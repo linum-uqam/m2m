@@ -8,7 +8,7 @@
 poetry install
 ```
 
-* Pour ajouter une dépendance <nouveau-paquet-python> à l'environnement
+* Pour ajouter une dépendance `<nouveau-paquet-python>` à l'environnement
 
 ```bash
 poetry add <nouveau-paquet-python>
