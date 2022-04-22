@@ -30,6 +30,12 @@ conda env create -f environment.yml
 conda activate allen2tract
 ```
 
+* **Note:** Pour mettre à jour l'environnement après avoir modifié le fichier `environment.yml`
+
+```bash
+conda env update --file environment.yml #--prune pour désinstaller les dépendances retirées du fichier
+```
+
 * Pour ajouter une dépendance `<nouveau-paquet-python>` à l'environnement, l'ajouter dans `requirements.txt`
 
 ```bash
