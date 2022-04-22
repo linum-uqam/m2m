@@ -1,1 +1,4 @@
 antspyx
+numpy==1.16.4
+pandas
+scipy
