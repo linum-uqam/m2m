@@ -1,4 +1,7 @@
 antspyx
-numpy==1.16.4
+dask==1.2.2
+pydot>=1.2.3
+opencv-python==3.4.2.17
+numpy==1.14.5
 pandas
 scipy

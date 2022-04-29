@@ -7,3 +7,7 @@ dependencies:
   - allensdk
   - jupyter
   - nipype
+  - libpng
+  - libblas
+  - liblapack
+  - gfortran
