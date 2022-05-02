@@ -11,3 +11,8 @@ dependencies:
   - libblas
   - liblapack
   - gfortran
+  - pillow
+  - webcolors
+  - plotly
+  - matplotlib
+  - scikit-image
