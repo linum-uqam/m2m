@@ -16,3 +16,4 @@ dependencies:
   - plotly
   - matplotlib
   - scikit-image
+  - nilearn
