@@ -53,15 +53,12 @@ def _build_arg_parser():
 
 def check_id(parser, args):
     ids = MouseConnectivityCache().get_experiments(dataframe=True).id
+    os.remove('./experiments.json')
+    os.remove('./mouse_connectivity_manifest.json')
     if args.id not in ids:
         parser.error("This experiment id doesn't exist. \n"
                      "Please check : https://connectivity.brain-map.org/")
-        os.remove('./experiments.json')
-        os.remove('./mouse_connectivity_manifest.json')
         exit()
-    else:
-        os.remove('./experiments.json')
-        os.remove('./mouse_connectivity_manifest.json')
 
 
 def check_file_exists(parser, args, path):
