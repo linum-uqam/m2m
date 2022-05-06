@@ -60,7 +60,6 @@ def main():
     
     roi = pd.DataFrame(mca.get_experiment_detail(args.id)).specimen[0]['stereotaxic_injections'][0]['primary_injection_structure']['acronym']
 
-    mca_res = 100
     if   args.res == 100 : mca_res = mca.VOXEL_RESOLUTION_100_MICRONS
     elif args.res == 50  : mca_res = mca.VOXEL_RESOLUTION_50_MICRONS
     elif args.res == 25  : mca_res = mca.VOXEL_RESOLUTION_25_MICRONS
@@ -74,41 +73,17 @@ def main():
         resolution    = mca_res
         )
 
-    vol, header = nrrd.read(nrrd_file)
-
-    r_mm   = mca_res / 1e3
-    affine = np.array([[ 0,     0,    r_mm, 0 ],
-                       [-r_mm,  0,    0,    0 ],
-                       [ 0,    -r_mm, 0,    0 ],
-                       [ 0,     0,    0,    1 ]])
-
-    img = nib.Nifti1Image(vol, affine)
-    nib.save(img, nifti_file)
-
+    allen_vol, header = nrrd.read(nrrd_file)
     os.remove(nrrd_file)
 
-    nifti_file_ras = args.dir / f"{args.id}_{roi}_projection_density_RAS_{args.res}.nii.gz"
-
-    vol = nib.load(nifti_file).get_fdata()
-    
-    vol_ras = np.moveaxis(vol, (0,1,2), (1,2,0))
-    vol_ras = np.flip(vol_ras, axis=2)
-    vol_ras = np.flip(vol_ras, axis=1)
+    allen_vol = np.moveaxis(allen_vol, (0,1,2), (1,2,0))
+    allen_vol = np.flip(allen_vol, axis=2)
+    allen_vol = np.flip(allen_vol, axis=1)
 
     affine = np.eye(4) * avgt_r_mm
 
-    img_ras = nib.Nifti1Image(vol_ras, affine)
-    nib.save(img_ras, nifti_file_ras)
-
-    os.remove(nifti_file)
-
-    nifi_file_warped = args.dir / f"{args.id}_{roi}_projection_density_{args.res}.nii.gz"
-
-    avgt = nib.load(avgt_file)
-    avgt_vol = avgt.get_fdata().astype(np.float32)
-
-    allen = nib.load(nifti_file_ras)
-    allen_vol = allen.get_fdata().astype(np.float32)
+    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
+    allen_vol = allen_vol.astype(np.float32)
 
     fixed  = ants.from_numpy( avgt_vol  ).resample_image((164, 212, 158),1,0)
     moving = ants.from_numpy( allen_vol ).resample_image((164, 212, 158),1,0)
@@ -120,15 +95,13 @@ def main():
     interp = 'nearestNeighbor'
     if args.interp : 
         interp = 'bSpline'
-        nifi_file_warped = args.dir / f"{args.id}_{roi}_projection_density_{args.res}_{interp}.nii.gz"
+        nifti_file = args.dir / f"{args.id}_{roi}_projection_density_{args.res}_{interp}.nii.gz"
 
     warped_moving = ants.apply_transforms(fixed = fixed,  moving = moving, 
                                           transformlist = transformations,
                                           interpolator  = interp)
 
-    affine = allen.affine
-    affine_offset = affine.copy()
-    affine_offset[:,3] = affine_offset[:,3] + avgt_offset
+    affine[:,3] = affine[:,3] + avgt_offset
 
     warped_vol = warped_moving.numpy()
 
@@ -139,12 +112,10 @@ def main():
                     if warped_vol[x, y, z] < 0:
                         warped_vol[x, y, z] = 0.0
     
-    img = nib.Nifti1Image(warped_vol, affine_offset)
-    nib.save(img, nifi_file_warped)
+    img = nib.Nifti1Image(warped_vol, affine)
+    nib.save(img, nifti_file)
 
-    os.remove(nifti_file_ras)
-
-    return nifi_file_warped
+    return nifti_file
 
 
 if __name__ == "__main__":
