@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-Description of this script.
-The description of the script .
-It can be referred in the ArgumentParser constructor as __doc__.
+    Script to import projection density from the Allen Mouse Brain Connectivity Atlas 
+    and align it on the Average Template.
+
+    >>> python allen2avgt_import_proj_density.py id 
+    >>> python allen2avgt_import_proj_density.py id --res res --dir directory
+    >>> python allen2avgt_import_proj_density.py id --interp 
+
 """
 
 import argparse
@@ -22,22 +26,22 @@ import pandas as pd
 import ants
 
 EPILOG = """
-[1] Made by.., Subject..., Date... 
+[1] Author :
+    Features : 
 """
 
 def _build_arg_parser():
-    p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-                                description=__doc__)
+    p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter, 
+                                epilog=EPILOG, description=__doc__)
     p.add_argument('id', type=int,
                     help='Id of the experiment in Allen Mouse Brain Connectivity Atlas. ')
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                    help='Base resolution (µm) of the projection density to download. \n'
-                         'Note: The final resolution will be 70µm anyways.')
+                    help='Base resolution (µm) of the projection density to download.')
     p.add_argument('-d', '--dir', default=".",
                     help='Absolute path of the ouptut file.')
     p.add_argument('-i', '--interp', action="store_true",
-                    help='Interpolation method is NN by default. \n'
-                         'Using --interp will change the methode to bS.')
+                    help='Interpolation method is nearestNeighbor by default. \n'
+                         'Using --interp will change the methode to bSpline.')
                          
     p.add_argument('-f', dest='overwrite', action="store_true",
                     help='Force overwriting of the output file.')                   
