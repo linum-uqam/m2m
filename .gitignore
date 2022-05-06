@@ -127,8 +127,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# Les fichiers et dossiers générés à la compilation
-src/**
-!src/*.py
-!src/*.ipynb
