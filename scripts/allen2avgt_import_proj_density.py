@@ -17,12 +17,16 @@ import logging
 
 import os
 from pathlib import Path
+from tabnanny import check
 
-from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
-import nibabel as nib
-import nrrd
 import numpy as np
 import pandas as pd
+
+from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
+from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
+
+import nibabel as nib
+import nrrd
 import ants
 
 EPILOG = """
@@ -38,7 +42,7 @@ def _build_arg_parser():
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
                     help='Base resolution (µm) of the projection density to download.')
     p.add_argument('-d', '--dir', default=".",
-                    help='Absolute path of the ouptut file.')
+                    help='Path of the ouptut file.')
     p.add_argument('-i', '--interp', action="store_true",
                     help='Interpolation method is nearestNeighbor by default. \n'
                          'Using --interp will change the methode to bSpline.')
@@ -48,12 +52,35 @@ def _build_arg_parser():
 
     return p
 
+def check_id(parser, args):
+    ids = MouseConnectivityCache().get_experiments(dataframe=True).id
+    if args.id not in ids: 
+        parser.error("This experiment id doesn't exist. \n"
+                     "Please check : https://connectivity.brain-map.org/")
+        os.remove('./experiments.json')
+        os.remove('./mouse_connectivity_manifest.json')
+        exit()
+    else :
+        os.remove('./experiments.json')
+        os.remove('./mouse_connectivity_manifest.json')
+
+def check_file_exists(parser, args, path):
+    if os.path.isfile(path) and not args.overwrite:
+        parser.error('Output file {} exists. Use -f to force '
+                         'overwriting'.format(path))
+
+    path_dir = os.path.dirname(path)
+    if path_dir and not os.path.isdir(path_dir):
+        parser.error('Directory {}/ \n for a given output file '
+                         'does not exists.'.format(path_dir))
+
 def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
+    check_id(parser, args)
+
     args.dir = Path(args.dir)
-    args.dir.absolute()
     args.dir.mkdir(exist_ok=True, parents=True)
 
     avgt_file   = '/Users/mahdi/stage-2022-mahdi/utils/AVGT.nii.gz' # todo
@@ -71,6 +98,13 @@ def main():
     nrrd_file  = args.dir / f"{args.id}_{roi}_projection_density_{args.res}.nrrd"
     nifti_file = args.dir / f"{args.id}_{roi}_projection_density_{args.res}.nii.gz"
 
+    interp = 'nearestNeighbor'
+    if args.interp : 
+        interp = 'bSpline'
+        nifti_file = args.dir / f"{args.id}_{roi}_projection_density_{args.res}_{interp}.nii.gz"
+
+    check_file_exists(parser, args, nifti_file)
+
     mca.download_projection_density(
         nrrd_file,
         experiment_id = args.id, 
@@ -86,7 +120,7 @@ def main():
 
     affine = np.eye(4) * avgt_r_mm
 
-    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
+    avgt_vol  = nib.load(avgt_file).get_fdata().astype(np.float32)
     allen_vol = allen_vol.astype(np.float32)
 
     fixed  = ants.from_numpy( avgt_vol  ).resample_image((164, 212, 158),1,0)
@@ -96,10 +130,6 @@ def main():
     transformations = [f'/Users/mahdi/stage-2022-mahdi/utils/transformations_allen2avgt/allen2avgt_{args.res}.nii.gz',
                        f'/Users/mahdi/stage-2022-mahdi/utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat']
 
-    interp = 'nearestNeighbor'
-    if args.interp : 
-        interp = 'bSpline'
-        nifti_file = args.dir / f"{args.id}_{roi}_projection_density_{args.res}_{interp}.nii.gz"
 
     warped_moving = ants.apply_transforms(fixed = fixed,  moving = moving, 
                                           transformlist = transformations,
