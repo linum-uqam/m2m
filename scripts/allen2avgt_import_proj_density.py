@@ -83,7 +83,7 @@ def main():
     args.dir = Path(args.dir)
     args.dir.mkdir(exist_ok=True, parents=True)
 
-    avgt_file   = '/Users/mahdi/stage-2022-mahdi/utils/AVGT.nii.gz' # todo
+    avgt_file   = './utils/AVGT.nii.gz' # todo
     avgt_r_mm   = 70 / 1e3
     avgt_offset = np.array([-5.675, -8.79448, -8.450335, 0])
 
@@ -127,8 +127,8 @@ def main():
     moving = ants.from_numpy( allen_vol ).resample_image((164, 212, 158),1,0)
 
     # todo
-    transformations = [f'/Users/mahdi/stage-2022-mahdi/utils/transformations_allen2avgt/allen2avgt_{args.res}.nii.gz',
-                       f'/Users/mahdi/stage-2022-mahdi/utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat']
+    transformations = [f'./utils/transformations_allen2avgt/allen2avgt_{args.res}.nii.gz',
+                       f'./utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat']
 
 
     warped_moving = ants.apply_transforms(fixed = fixed,  moving = moving, 
