@@ -133,3 +133,5 @@ dmypy.json
 
 # Images
 /examples/images
+
+!/examples/notebooks/*.ipynb

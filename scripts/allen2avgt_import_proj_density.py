@@ -38,14 +38,17 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
     p.add_argument('id', type=int,
-                   help='Id of the experiment. ')
+                   help='Id of the experiment in the Allen Mouse Brain Connectivity Atlas. ')
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                   help='Resolution (µm) of the projection density.')
+                   help='Resolution of the dowloaded projection density is 100µm by default.\n'
+                        'Using --res <value> will set the resolution to value.')
     p.add_argument('-d', '--dir', default=".",
-                   help='Path of the ouptut file.')
+                   help='Path of the ouptut file directory is . by default.\n'
+                        'Using --dir <dir> will change the output file\'s directory\n'
+                        'or create a new one if does not exits.')
     p.add_argument('-i', '--interp', action="store_true",
                    help='Interpolation method is nearestNeighbor by default.\n'
-                         'Using --interp will change the methode to bSpline.')
+                         'Using --interp will change the method to bSpline.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
     return p
