@@ -50,14 +50,20 @@ def _build_arg_parser():
                          'Using --interp will change the method to bSpline.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
+    p.add_argument('-c', '--cache', action="store_true",
+                   help='Update the Allen Mouse Brain Connectivity Cache')
     return p
 
 
 def check_id(parser, args):
     experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
     manifest_path = './utils/cache/mouse_conn_manifest.json'
-    mcc = MouseConnectivityCache(manifest_file=manifest_path)
 
+    if os.path.isfile(experiments_path) and os.path.isfile(manifest_path) and args.cache:
+        os.remove(experiments_path)
+        os.remove(manifest_path)
+
+    mcc = MouseConnectivityCache(manifest_file=manifest_path)
     ids = mcc.get_experiments(dataframe=True, file_name=experiments_path).id
     if args.id not in ids:
         parser.error("This experiment id doesn't exist. \n"
