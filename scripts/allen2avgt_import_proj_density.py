@@ -47,7 +47,7 @@ def _build_arg_parser():
                         'or create a new one if does not exits.')
     p.add_argument('--smooth', action="store_true",
                    help='Interpolation method is nearestNeighbor by default.\n'
-                         'Using --smooth will change the method to bSpline.')
+                        'Using --smooth will change the method to bSpline.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
     p.add_argument('-c', '--cache', action="store_true",
@@ -87,6 +87,7 @@ def check_file_exists(parser, args, path):
     """
     Verify that output does not exist or that if it exists, -f should be used.
     If not used, print parser's usage and exit.
+
     Parameters
     ----------
     parser: argparse.ArgumentParser object
@@ -106,6 +107,61 @@ def check_file_exists(parser, args, path):
                      'does not exists.'.format(path_dir))
 
 
+def loc_injection_centroid(args):
+    """
+    Localize the position (Left or Right) of the injection centroid in the Mouse Brain.
+    A resolution of 100µm is used to minimize downloading time.
+
+    Parameters
+    ----------
+    args: argparse namespace
+        Argument list.
+
+    Return
+    ------
+    string : R or L
+    """
+    # Creating tmp files
+    path_fraction = f"./utils/tmp/{args.id}_inj_fraction.nrrd"
+    path_density = f"./utils/tmp/{args.id}_density.nrrd"
+
+    mca = MouseConnectivityApi()
+
+    # Disabling the download logger.
+    logging.getLogger('allensdk.api.api.retrieve_file_over_http').disabled = True
+
+    # Downloading the injection fraction and density of the experiment
+    injection_density = mca.download_injection_density(path_density,
+                                                       experiment_id=args.id, resolution=100)
+    injection_fraction = mca.download_injection_fraction(path_fraction,
+                                                         experiment_id=args.id, resolution=100)
+
+    # Re-enabling the logger
+    logging.getLogger('allensdk.api.api.retrieve_file_over_http').disabled = False
+
+    # Loading the volumes
+    dens_vol, header = nrrd.read(path_density)
+    frac_vol, header = nrrd.read(path_fraction)
+
+    # Removing tmp files
+    os.remove(path_density)
+    os.remove(path_fraction)
+
+    # Downloading the injection centroid
+    injection_centroid = mca.calculate_injection_centroid(injection_density=dens_vol,
+                                                          injection_fraction=frac_vol)
+
+    # Defining the Left-Right limit (+z axis)
+    # Note: the bounding box is [2640, 1600, 2280]
+    limit_LR = 1140/2
+
+    # Returning the position
+    if injection_centroid[2] >= limit_LR:
+        return 'R'
+    else:
+        return 'L'
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -119,7 +175,7 @@ def main():
     args.dir.mkdir(exist_ok=True, parents=True)
 
     # AVGT settings
-    avgt_file = './utils/AVGT.nii.gz'  
+    avgt_file = './utils/AVGT.nii.gz'
     avgt_r_mm = 70 / 1e3
     avgt_offset = np.array([-5.675, -8.79448, -8.450335, 0])
 
@@ -127,6 +183,9 @@ def main():
 
     # ROI of the experiment
     roi = pd.DataFrame(mca.get_experiment_detail(args.id)).specimen[0]['stereotaxic_injections'][0]['primary_injection_structure']['acronym']
+
+    # Position of the injection centroid
+    loc = loc_injection_centroid(args)
 
     # Choosing the downloaded resolution
     if args.res == 100:
@@ -137,14 +196,14 @@ def main():
         mca_res = mca.VOXEL_RESOLUTION_25_MICRONS
 
     # Configuring file names
-    nrrd_file = args.dir / f"{args.id}_{roi}_proj_density_{args.res}.nrrd"
-    nifti_file = args.dir / f"{args.id}_{roi}_proj_density_{args.res}.nii.gz"
+    nrrd_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nrrd"
+    nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nii.gz"
 
     # Setting up the interpolation method
     interp = 'nearestNeighbor'
     if args.smooth:
         interp = 'bSpline'
-        nifti_file = args.dir / f"{args.id}_{roi}_proj_density_{args.res}_{interp}.nii.gz"
+        nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}_{interp}.nii.gz"
 
     # Verifying if outputs already exist
     check_file_exists(parser, args, nifti_file)
@@ -165,7 +224,7 @@ def main():
     allen_vol = np.flip(allen_vol, axis=2)
     allen_vol = np.flip(allen_vol, axis=1)
 
-    # Scale to AGVT 
+    # Scale to AGVT
     affine = np.eye(4) * avgt_r_mm
 
     # Loading allen volume and converting both arrays to float32
