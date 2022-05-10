@@ -45,9 +45,9 @@ def _build_arg_parser():
                    help='Path of the ouptut file directory is . by default.\n'
                         'Using --dir <dir> will change the output file\'s directory\n'
                         'or create a new one if does not exits.')
-    p.add_argument('-i', '--interp', action="store_true",
+    p.add_argument('--smooth', action="store_true",
                    help='Interpolation method is nearestNeighbor by default.\n'
-                         'Using --interp will change the method to bSpline.')
+                         'Using --smooth will change the method to bSpline.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
     p.add_argument('-c', '--cache', action="store_true",
@@ -110,7 +110,7 @@ def main():
     nifti_file = args.dir / f"{args.id}_{roi}_proj_density_{args.res}.nii.gz"
 
     interp = 'nearestNeighbor'
-    if args.interp:
+    if args.smooth:
         interp = 'bSpline'
         nifti_file = args.dir / f"{args.id}_{roi}_proj_density_{args.res}_{interp}.nii.gz"
 
@@ -149,7 +149,7 @@ def main():
 
     warped_vol = warped_moving.numpy()
 
-    if args.interp:
+    if args.smooth:
         for z in range(158):
             for y in range(212):
                 for x in range(164):
