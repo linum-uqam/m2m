@@ -150,11 +150,8 @@ def main():
     warped_vol = warped_moving.numpy()
 
     if args.smooth:
-        for z in range(158):
-            for y in range(212):
-                for x in range(164):
-                    if warped_vol[x, y, z] < 0:
-                        warped_vol[x, y, z] = 0.0
+        negatives_values = warped_vol < 0
+        warped_vol[negatives_values] = 0
 
     img = nib.Nifti1Image(warped_vol, affine)
     nib.save(img, nifti_file)
