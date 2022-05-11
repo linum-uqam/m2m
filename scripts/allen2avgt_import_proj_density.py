@@ -57,9 +57,9 @@ def _build_arg_parser():
 
 def check_id(parser, args):
     """
-    Verify if the experiment id is part of the Allen Mouse Brain Connectivity Altas.
+    Verify if the experiment id is part of the Allen Mouse Brain Connectivity Atlas.
     Read all experiments ids from the Allen Mouse Brain Connectivity Cache.
-    Dowload the Cache files if does not exits or --cache used.
+    Download the Cache files if does not exist or --cache used.
 
     Parameters
     ----------
