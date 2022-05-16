@@ -50,7 +50,7 @@ def _build_arg_parser():
                         'Using --smooth will change the method to bSpline.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
-    p.add_argument('-c', '--cache', action="store_true",
+    p.add_argument('-c', '--nocache', action="store_true",
                    help='Update the Allen Mouse Brain Connectivity Cache')
     return p
 
@@ -71,7 +71,7 @@ def check_id(parser, args):
     experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
     manifest_path = './utils/cache/mouse_conn_manifest.json'
 
-    if os.path.isfile(experiments_path) and os.path.isfile(manifest_path) and args.cache:
+    if os.path.isfile(experiments_path) and os.path.isfile(manifest_path) and args.nocache:
         os.remove(experiments_path)
         os.remove(manifest_path)
 
@@ -149,11 +149,12 @@ def loc_injection_centroid(args):
 
     # Downloading the injection centroid
     injection_centroid = mca.calculate_injection_centroid(injection_density=dens_vol,
-                                                          injection_fraction=frac_vol)
+                                                          injection_fraction=frac_vol,
+                                                          resolution=100)
 
     # Defining the Left-Right limit (+z axis)
-    # Note: the bounding box is [2640, 1600, 2280]
-    limit_LR = 1140/2
+    # Note: the bounding box is [13200, 8000, 11400]
+    limit_LR = 11400/2
 
     # Returning the position
     if injection_centroid[2] >= limit_LR:
@@ -254,8 +255,7 @@ def main():
 
     # Deleting negatives values if bSpline method was used (--smooth)
     if args.smooth:
-        negatives_values = warped_vol < 0
-        warped_vol[negatives_values] = 0
+        warped_vol[warped_vol < 0] = 0
 
     # Creating and Saving the Nifti volume
     img = nib.Nifti1Image(warped_vol, affine)
