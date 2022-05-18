@@ -2,12 +2,19 @@
 # -*- coding: utf-8 -*-
 
 """
-    Import projection density from the Allen Mouse Brain Connectivity Atlas
-    and align it on the Average Template.
+    Import a projection density map of an experiment in the 
+    Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
 
-    >>> python allen2avgt_import_proj_density.py id
-    >>> python allen2avgt_import_proj_density.py id --res res --dir directory
-    >>> python allen2avgt_import_proj_density.py id --interp
+    >>> python allen2avgt_import_proj_density.py id --map
+    >>> python allen2avgt_import_proj_density.py id --map -r res --dir directory
+    >>> python allen2avgt_import_proj_density.py id --map --smooth
+
+    Download a spherical roi mask located at the injection centroid of an experiment in the 
+    Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
+
+    >>> python allen2avgt_import_proj_density.py id --map
+    >>> python allen2avgt_import_proj_density.py id --map -r res --dir directory
+
 """
 
 import argparse
@@ -45,16 +52,19 @@ def _build_arg_parser():
                    help='Path of the ouptut file directory is . by default.\n'
                         'Using --dir <dir> will change the output file\'s directory\n'
                         'or create a new one if does not exits.')
+    p.add_argument('--map', action='store_true',
+                   help='Using --map will download a Nifti file containing\n'
+                        'the projeciton density of the experiment.')
     p.add_argument('--smooth', action="store_true",
-                   help='Interpolation method is nearestNeighbor by default.\n'
+                   help='Default interpolation method for the map registration is nearestNeighbor.\n'
                         'Using --smooth will change the method to bSpline.')
+    p.add_argument('--roi', action='store_true',
+                   help='Using --map will download a Nifti file containing\n'
+                        'a spherical mask at the injection centroid of the experiment.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
     p.add_argument('-c', '--nocache', action="store_true",
                    help='Update the Allen Mouse Brain Connectivity Cache')
-    p.add_argument('--roi', action='store_true',
-                   help='Generate a additionnal Nifti file containing\n'
-                        'a spherical mask at the injection centroid of the experiment.')
     return p
 
 
@@ -83,7 +93,23 @@ def check_id(parser, args):
     if args.id not in ids:
         parser.error("This experiment id doesn't exist. \n"
                      "Please check : https://connectivity.brain-map.org/")
-        exit()
+
+
+def check_args(parser, args):
+    """
+    Verify that the arguments are called the right way
+
+    Parameters
+    ----------
+    parser: argparse.ArgumentParser object
+        Parser.
+    args: argparse namespace
+        Argument list.
+    """
+    if not args.map and not args.roi:
+        parser.error("Please precise the file to download. \n"
+                     "Use --map to download the projection density map.\n"
+                     "Use --roi to download the spherical roi mask.")
 
 
 def check_file_exists(parser, args, path):
@@ -274,6 +300,9 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
+    # Verifying arguments
+    check_args(parser, args)
+
     # Verifying experiment id
     check_id(parser, args)
 
@@ -285,6 +314,11 @@ def main():
     avgt_file = './utils/AVGT.nii.gz'
     avgt_r_mm = 70 / 1e3
     avgt_offset = np.array([-5.675, -8.79448, -8.450335, 0])
+    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
+
+    # Preconfiguring the affine matrix to match AVGT position and scale in MI-Brain
+    affine = np.eye(4) * avgt_r_mm
+    affine[:, 3] = affine[:, 3] + avgt_offset
 
     mca = MouseConnectivityApi()
 
@@ -302,48 +336,48 @@ def main():
     elif args.res == 25:
         mca_res = mca.VOXEL_RESOLUTION_25_MICRONS
 
-    # Configuring file names
-    nrrd_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nrrd"
-    nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nii.gz"
-    if args.smooth:
-        nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}_bSpline.nii.gz"
-    roi_file = args.dir / f"{args.id}_{roi}_{loc}_spherical_mask_{args.res}.nii.gz"
+    # Downloading and Saving the projection density map if --map was used
+    if args.map:
+        # Configuring files names
+        nrrd_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nrrd"
+        nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nii.gz"
+        if args.smooth:
+            nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}_bSpline.nii.gz"
 
-    # Verifying if outputs already exist
-    check_file_exists(parser, args, nifti_file)
-    check_file_exists(parser, args, roi_file)
+        # Verifying if output already exist
+        check_file_exists(parser, args, nifti_file)
+    
+        # Downloading projection density (API)
+        mca.download_projection_density(nrrd_file, experiment_id=args.id, resolution=mca_res)
 
-    # Downloading projection density (API)
-    mca.download_projection_density(nrrd_file, experiment_id=args.id, resolution=mca_res)
+        # Loading volume and deleting nrrd tmp file
+        allen_vol, header = nrrd.read(nrrd_file)
+        os.remove(nrrd_file)
 
-    # Loading volume and deleting nrrd tmp file
-    allen_vol, header = nrrd.read(nrrd_file)
-    os.remove(nrrd_file)
+        # Transforming manually to RAS+
+        allen_vol = pretransform_PIR_to_RAS(allen_vol)
 
-    # Transforming manually to RAS+
-    allen_vol = pretransform_PIR_to_RAS(allen_vol)
+        # Loading allen volume converting to float32
+        allen_vol = allen_vol.astype(np.float32)
 
-    # Loading allen volume and converting both arrays to float32
-    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
-    allen_vol = allen_vol.astype(np.float32)
+        # Applying ANTsPyX registration
+        warped_vol = registrate_allen2avgt_ants(args=args, allen_vol=allen_vol, avgt_vol=avgt_vol)
 
-    # Applying ANTsPyX registration
-    warped_vol = registrate_allen2avgt_ants(args=args, allen_vol=allen_vol, avgt_vol=avgt_vol)
+        # Deleting negatives values if bSpline method was used (--smooth)
+        if args.smooth:
+            warped_vol[warped_vol < 0] = 0
 
-    # Creating affine matrix to match AVGT position and scale in MI-Brain
-    affine = np.eye(4) * avgt_r_mm
-    affine[:, 3] = affine[:, 3] + avgt_offset
-
-    # Deleting negatives values if bSpline method was used (--smooth)
-    if args.smooth:
-        warped_vol[warped_vol < 0] = 0
-
-    # Creating and Saving the Nifti volume
-    img = nib.Nifti1Image(warped_vol, affine)
-    nib.save(img, nifti_file)
+        # Creating and Saving the Nifti volume
+        img = nib.Nifti1Image(warped_vol, affine)
+        nib.save(img, nifti_file)
 
     # Creating and Saving the spherical mask if --roi was used
     if args.roi:
+        # Configuring file name
+        roi_file = args.dir / f"{args.id}_{roi}_{loc}_spherical_mask_{args.res}.nii.gz"
+        # Verifying if output already exist
+        check_file_exists(parser, args, roi_file)
+
         # Converting the coordinates in voxels depending the resolution
         inj_centroid_um = loc_injection_centroid(args)[1]
         inj_centroid_voxels = (inj_centroid_um[0]/args.res,
