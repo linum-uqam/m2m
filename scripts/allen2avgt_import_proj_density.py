@@ -52,6 +52,9 @@ def _build_arg_parser():
                    help='Force overwriting of the output file.')
     p.add_argument('-c', '--nocache', action="store_true",
                    help='Update the Allen Mouse Brain Connectivity Cache')
+    p.add_argument('--roi', action='store_true',
+                   help='Generate a additionnal Nifti file containing\n'
+                        'a spherical mask at the injection centroid of the experiment.')
     return p
 
 
@@ -119,7 +122,8 @@ def loc_injection_centroid(args):
 
     Return
     ------
-    string : R or L
+    string: R or L
+    list: coordinates of the injection centroid
     """
     # Creating tmp files
     path_fraction = f"./utils/tmp/{args.id}_inj_fraction.nrrd"
@@ -155,12 +159,114 @@ def loc_injection_centroid(args):
     # Defining the Left-Right limit (+z axis)
     # Note: the bounding box is [13200, 8000, 11400]
     limit_LR = 11400/2
+    is_right = injection_centroid[2] >= limit_LR
 
-    # Returning the position
-    if injection_centroid[2] >= limit_LR:
-        return 'R'
+    # Returning the position and its location
+    if is_right:
+        return 'R', injection_centroid
     else:
-        return 'L'
+        return 'L', injection_centroid
+
+
+def pretransform_PIR_to_RAS(vol):
+    """
+    Manually transform a PIR reference space to RAS+.
+
+    Parameters
+    ----------
+    vol: ndarray
+        PIR volume to transform.
+
+    Return
+    ------
+    ndarray: vol
+        Transformed volume into RAS+
+    """
+    # Switching axis
+    # +x, +y, +z (RAS) -> +z, -x, -y (PIR)
+    vol = np.moveaxis(vol, (0, 1, 2), (1, 2, 0))
+    vol = np.flip(vol, axis=2)
+    vol = np.flip(vol, axis=1)
+
+    return vol
+
+
+def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
+    """
+    Align a 3D allen volume on AVGT.
+    Using ANTsPyX registration.
+
+    Parameters
+    ----------
+    args: argparse namespace
+        Argument list.
+    allen_vol: float32 ndarray
+        Allen volume to registrate
+    avgt_vol: float32 ndarray
+        AVGT reference volume
+
+    Return
+    ------
+    ndarray: Warped volume.
+    """
+    # Creating and reshaping ANTsPyx images for registration
+    # Moving : Allen volume
+    # Fixed : AVGT volume
+    fixed = ants.from_numpy(avgt_vol).resample_image((164, 212, 158), 1, 0)
+    moving = ants.from_numpy(allen_vol).resample_image((164, 212, 158), 1, 0)
+
+    # Loading pre-calculated transformations (ANTsPyx registration)
+    transformations = [f'./utils/transformations_allen2avgt/allen2avgt_{args.res}.nii.gz',
+                       f'./utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat']
+
+    # Applying thoses transformations
+    interp = 'nearestNeighbor'
+    if args.smooth:
+        interp = 'bSpline'
+
+    warped_moving = ants.apply_transforms(fixed=fixed,  moving=moving,
+                                          transformlist=transformations,
+                                          interpolator=interp)
+
+    return warped_moving.numpy()
+
+
+def draw_spherical_mask(shape, radius, center):
+    """
+    Generate an n-dimensional spherical mask.
+
+    Parameters
+    ----------
+    shape: tuple
+        Shape of the volume created.
+    radius: int/float
+        Radius of the spherical mask.
+    center: tuple
+        Position of the center of the spherical mask.
+
+    Return
+    ------
+    ndarray: Volume containing the spherical mask.
+    """
+    # Assuming shape and center have the same length and contain ints
+    # (the units are pixels / voxels (px for short),
+    # radius is a int or float in px)
+    assert len(center) == len(shape)
+    semisizes = (radius,) * len(shape)
+
+    # Generating the grid for the support points
+    # centered at the position indicated by center
+    grid = [slice(-x0, dim - x0) for x0, dim in zip(center, shape)]
+    center = np.ogrid[grid]
+
+    # Calculating the distance of all points from center
+    # scaled by the radius
+    vol = np.zeros(shape, dtype=float)
+    for x_i, semisize in zip(center, semisizes):
+        vol += (x_i / semisize) ** 2
+
+    # the inner part of the sphere will have distance below or equal to 1
+    return vol <= 1.0
 
 
 def main():
@@ -186,7 +292,7 @@ def main():
     roi = pd.DataFrame(mca.get_experiment_detail(args.id)).specimen[0]['stereotaxic_injections'][0]['primary_injection_structure']['acronym']
 
     # Position of the injection centroid
-    loc = loc_injection_centroid(args)
+    loc = loc_injection_centroid(args)[0]
 
     # Choosing the downloaded resolution
     if args.res == 100:
@@ -199,59 +305,34 @@ def main():
     # Configuring file names
     nrrd_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nrrd"
     nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nii.gz"
-
-    # Setting up the interpolation method
-    interp = 'nearestNeighbor'
     if args.smooth:
-        interp = 'bSpline'
-        nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}_{interp}.nii.gz"
+        nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}_bSpline.nii.gz"
+    roi_file = args.dir / f"{args.id}_{roi}_{loc}_spherical_mask_{args.res}.nii.gz"
 
     # Verifying if outputs already exist
     check_file_exists(parser, args, nifti_file)
+    check_file_exists(parser, args, roi_file)
 
     # Downloading projection density (API)
-    mca.download_projection_density(
-        nrrd_file,
-        experiment_id=args.id,
-        resolution=mca_res
-        )
+    mca.download_projection_density(nrrd_file, experiment_id=args.id, resolution=mca_res)
 
     # Loading volume and deleting nrrd tmp file
     allen_vol, header = nrrd.read(nrrd_file)
     os.remove(nrrd_file)
 
     # Transforming manually to RAS+
-    allen_vol = np.moveaxis(allen_vol, (0, 1, 2), (1, 2, 0))
-    allen_vol = np.flip(allen_vol, axis=2)
-    allen_vol = np.flip(allen_vol, axis=1)
-
-    # Scale to AGVT
-    affine = np.eye(4) * avgt_r_mm
+    allen_vol = pretransform_PIR_to_RAS(allen_vol)
 
     # Loading allen volume and converting both arrays to float32
     avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
     allen_vol = allen_vol.astype(np.float32)
 
-    # Creating and reshaping ANTsPyx images for registration
-    # Moving : Allen volume
-    # Fixed : AVGT volume
-    fixed = ants.from_numpy(avgt_vol).resample_image((164, 212, 158), 1, 0)
-    moving = ants.from_numpy(allen_vol).resample_image((164, 212, 158), 1, 0)
+    # Applying ANTsPyX registration
+    warped_vol = registrate_allen2avgt_ants(args=args, allen_vol=allen_vol, avgt_vol=avgt_vol)
 
-    # Loading pre-calculated transformations (ANTsPyx registration)
-    transformations = [f'./utils/transformations_allen2avgt/allen2avgt_{args.res}.nii.gz',
-                       f'./utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat']
-
-    # Applying thoses transformations
-    warped_moving = ants.apply_transforms(fixed=fixed,  moving=moving,
-                                          transformlist=transformations,
-                                          interpolator=interp)
-
-    # Applying a translation to Allen volume (Same origin as AGVT in MI-Brain)
+    # Creating affine matrix to match AVGT position and scale in MI-Brain
+    affine = np.eye(4) * avgt_r_mm
     affine[:, 3] = affine[:, 3] + avgt_offset
-
-    # Converting the warped volume to numpy array
-    warped_vol = warped_moving.numpy()
 
     # Deleting negatives values if bSpline method was used (--smooth)
     if args.smooth:
@@ -260,6 +341,35 @@ def main():
     # Creating and Saving the Nifti volume
     img = nib.Nifti1Image(warped_vol, affine)
     nib.save(img, nifti_file)
+
+    # Creating and Saving the spherical mask if --roi was used
+    if args.roi:
+        # Converting the coordinates in voxels depending the resolution
+        inj_centroid_um = loc_injection_centroid(args)[1]
+        inj_centroid_voxels = (inj_centroid_um[0]/args.res,
+                               inj_centroid_um[1]/args.res,
+                               inj_centroid_um[2]/args.res)
+
+        # Configuring the bounding box
+        bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
+
+        # Drawing the spherical mask
+        roi_sphere_allen = draw_spherical_mask(shape=bbox_allen, center=inj_centroid_voxels,
+                                               radius=400//args.res).astype(np.float32)
+
+        # Transforming manually to RAS+
+        roi_sphere_allen = pretransform_PIR_to_RAS(roi_sphere_allen)
+
+        # Applying ANTsPyX registration
+        roi_sphere_avgt = registrate_allen2avgt_ants(args=args, allen_vol=roi_sphere_allen,
+                                                     avgt_vol=avgt_vol)
+
+        # Deleting non needed interpolated values
+        roi_sphere_avgt = (roi_sphere_avgt >= 1).astype(np.int32)
+
+        # Creating and Saving the Nifti spherical mask
+        sphere = nib.Nifti1Image(roi_sphere_avgt, affine)
+        nib.save(sphere, roi_file)
 
 
 if __name__ == "__main__":
