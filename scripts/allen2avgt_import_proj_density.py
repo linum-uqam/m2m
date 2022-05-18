@@ -2,18 +2,19 @@
 # -*- coding: utf-8 -*-
 
 """
-    Import a projection density map of an experiment in the 
+    Import a projection density map of an experiment in the
     Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
 
     >>> python allen2avgt_import_proj_density.py id --map
-    >>> python allen2avgt_import_proj_density.py id --map -r res --dir directory
+    >>> python allen2avgt_import_proj_density.py id --map -r res --dir dir
     >>> python allen2avgt_import_proj_density.py id --map --smooth
 
-    Download a spherical roi mask located at the injection centroid of an experiment in the 
-    Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
+    Download a spherical roi mask located at the injection centroid of an
+    experiment in the Allen Mouse Brain Connectivity Atlas and
+    align it on the Average Template.
 
     >>> python allen2avgt_import_proj_density.py id --map
-    >>> python allen2avgt_import_proj_density.py id --map -r res --dir directory
+    >>> python allen2avgt_import_proj_density.py id --map -r res --dir dir
 
 """
 
@@ -44,23 +45,27 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
     p.add_argument('id', type=int,
-                   help='Id of the experiment in the Allen Mouse Brain Connectivity Atlas. ')
+                   help='Experiment id in the Allen Mouse Brain '
+                        'Connectivity Atlas dataset.')
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                   help='Resolution of the dowloaded projection density is 100µm by default.\n'
-                        'Using --res <value> will set the resolution to value.')
+                   help='Resolution of the dowloaded projection density '
+                        'is 100µm by default.\n'
+                        'Using -r <value> will set the resolution to value.')
     p.add_argument('-d', '--dir', default=".",
                    help='Path of the ouptut file directory is . by default.\n'
-                        'Using --dir <dir> will change the output file\'s directory\n'
-                        'or create a new one if does not exits.')
+                        'Using --dir <dir> will change the output file\'s'
+                        'directory or create a new one if does not exits.')
     p.add_argument('--map', action='store_true',
-                   help='Using --map will download a Nifti file containing\n'
+                   help='Using --map will download a Nifti file containing '
                         'the projeciton density of the experiment.')
     p.add_argument('--smooth', action="store_true",
-                   help='Default interpolation method for the map registration is nearestNeighbor.\n'
+                   help='Interpolation method for the registration '
+                        'is nearestNeighbor by default.\n'
                         'Using --smooth will change the method to bSpline.')
     p.add_argument('--roi', action='store_true',
-                   help='Using --map will download a Nifti file containing\n'
-                        'a spherical mask at the injection centroid of the experiment.')
+                   help='Using --map will download a Nifti file containing '
+                        'a spherical mask at the injection centroid\n'
+                        'of the experiment.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
     p.add_argument('-c', '--nocache', action="store_true",
@@ -70,7 +75,9 @@ def _build_arg_parser():
 
 def check_id(parser, args):
     """
-    Verify if the experiment id is part of the Allen Mouse Brain Connectivity Atlas.
+    Verify if the experiment id is part of the
+    Allen Mouse Brain Connectivity Atlas.
+
     Read all experiments ids from the Allen Mouse Brain Connectivity Cache.
     Download the Cache files if does not exist or --cache used.
 
@@ -84,9 +91,10 @@ def check_id(parser, args):
     experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
     manifest_path = './utils/cache/mouse_conn_manifest.json'
 
-    if os.path.isfile(experiments_path) and os.path.isfile(manifest_path) and args.nocache:
-        os.remove(experiments_path)
-        os.remove(manifest_path)
+    if args.nocache:
+        if os.path.isfile(experiments_path) and os.path.isfile(manifest_path):
+            os.remove(experiments_path)
+            os.remove(manifest_path)
 
     mcc = MouseConnectivityCache(manifest_file=manifest_path)
     ids = mcc.get_experiments(dataframe=True, file_name=experiments_path).id
@@ -138,7 +146,7 @@ def check_file_exists(parser, args, path):
 
 def loc_injection_centroid(args):
     """
-    Localize the position (Left or Right) of the injection centroid in the Mouse Brain.
+    Return the position of the injection centroid in the Mouse Brain.
     A resolution of 100µm is used to minimize downloading time.
 
     Parameters
@@ -156,18 +164,21 @@ def loc_injection_centroid(args):
     path_density = f"./utils/tmp/{args.id}_density.nrrd"
 
     mca = MouseConnectivityApi()
+    allen_logger = 'allensdk.api.api.retrieve_file_over_http'
 
     # Disabling the download logger.
-    logging.getLogger('allensdk.api.api.retrieve_file_over_http').disabled = True
+    logging.getLogger(allen_logger).disabled = True
 
     # Downloading the injection fraction and density of the experiment
     injection_density = mca.download_injection_density(path_density,
-                                                       experiment_id=args.id, resolution=100)
+                                                       experiment_id=args.id,
+                                                       resolution=100)
     injection_fraction = mca.download_injection_fraction(path_fraction,
-                                                         experiment_id=args.id, resolution=100)
+                                                         experiment_id=args.id,
+                                                         resolution=100)
 
     # Re-enabling the logger
-    logging.getLogger('allensdk.api.api.retrieve_file_over_http').disabled = False
+    logging.getLogger(allen_logger).disabled = False
 
     # Loading the volumes
     dens_vol, header = nrrd.read(path_density)
@@ -178,9 +189,10 @@ def loc_injection_centroid(args):
     os.remove(path_fraction)
 
     # Downloading the injection centroid
-    injection_centroid = mca.calculate_injection_centroid(injection_density=dens_vol,
-                                                          injection_fraction=frac_vol,
-                                                          resolution=100)
+    injection_centroid = mca.calculate_injection_centroid(
+        injection_density=dens_vol,
+        injection_fraction=frac_vol,
+        resolution=100)
 
     # Defining the Left-Right limit (+z axis)
     # Note: the bounding box is [13200, 8000, 11400]
@@ -316,7 +328,7 @@ def main():
     avgt_offset = np.array([-5.675, -8.79448, -8.450335, 0])
     avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
 
-    # Preconfiguring the affine matrix to match AVGT position and scale in MI-Brain
+    # Affine matrix to match AVGT position and scale in MI-Brain
     affine = np.eye(4) * avgt_r_mm
     affine[:, 3] = affine[:, 3] + avgt_offset
 
@@ -346,9 +358,12 @@ def main():
 
         # Verifying if output already exist
         check_file_exists(parser, args, nifti_file)
-    
+
         # Downloading projection density (API)
-        mca.download_projection_density(nrrd_file, experiment_id=args.id, resolution=mca_res)
+        mca.download_projection_density(
+            nrrd_file,
+            experiment_id=args.id,
+            resolution=mca_res)
 
         # Loading volume and deleting nrrd tmp file
         allen_vol, header = nrrd.read(nrrd_file)
@@ -361,7 +376,10 @@ def main():
         allen_vol = allen_vol.astype(np.float32)
 
         # Applying ANTsPyX registration
-        warped_vol = registrate_allen2avgt_ants(args=args, allen_vol=allen_vol, avgt_vol=avgt_vol)
+        warped_vol = registrate_allen2avgt_ants(
+            args=args,
+            allen_vol=allen_vol,
+            avgt_vol=avgt_vol)
 
         # Deleting negatives values if bSpline method was used (--smooth)
         if args.smooth:
@@ -388,15 +406,19 @@ def main():
         bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
 
         # Drawing the spherical mask
-        roi_sphere_allen = draw_spherical_mask(shape=bbox_allen, center=inj_centroid_voxels,
-                                               radius=400//args.res).astype(np.float32)
+        roi_sphere_allen = draw_spherical_mask(
+            shape=bbox_allen,
+            center=inj_centroid_voxels,
+            radius=400//args.res).astype(np.float32)
 
         # Transforming manually to RAS+
         roi_sphere_allen = pretransform_PIR_to_RAS(roi_sphere_allen)
 
         # Applying ANTsPyX registration
-        roi_sphere_avgt = registrate_allen2avgt_ants(args=args, allen_vol=roi_sphere_allen,
-                                                     avgt_vol=avgt_vol)
+        roi_sphere_avgt = registrate_allen2avgt_ants(
+            args=args,
+            allen_vol=roi_sphere_allen,
+            avgt_vol=avgt_vol)
 
         # Deleting non needed interpolated values
         roi_sphere_avgt = (roi_sphere_avgt >= 1).astype(np.int32)
