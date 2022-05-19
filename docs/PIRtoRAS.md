@@ -60,7 +60,7 @@ The next step is to change the distance from the PIR origin to our voxel along t
 Now that we have all the elemets needed, here a simple method to transform and scale PIR coordinates to RAS+ coordinates: 
 
 ```python
-def PIR_to_RAS_coords(ras_coord, pir_shape, ras_shape):
+def PIR_to_RAS_coords(pir_coord, pir_shape, ras_shape):
     # max len of PIR axis
     p, i, r = pir_shape[0], pir_shape[1], pir_shape[2]
 
@@ -71,7 +71,7 @@ def PIR_to_RAS_coords(ras_coord, pir_shape, ras_shape):
     sx, sy, sz = r_/r, a/p, s/i
 
     # input PIR coordinates
-    x, y, z = ras_coord[0], ras_coord[1], ras_coord[2]
+    x, y, z = pir_coord[0], pir_coord[1], pir_coord[2]
 
     # outputs RAS+ coordinates
     x_ = z     * sx
