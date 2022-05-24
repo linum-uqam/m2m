@@ -421,7 +421,7 @@ def main():
             avgt_vol=avgt_vol)
 
         # Deleting non needed interpolated values
-        roi_sphere_avgt = (roi_sphere_avgt >= 1).astype(np.int32)
+        roi_sphere_avgt = roi_sphere_avgt.astype(np.int32)
 
         # Creating and Saving the Nifti spherical mask
         sphere = nib.Nifti1Image(roi_sphere_avgt, affine)
