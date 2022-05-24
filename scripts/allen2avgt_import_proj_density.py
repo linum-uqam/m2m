@@ -13,8 +13,8 @@
     experiment in the Allen Mouse Brain Connectivity Atlas and
     align it on the Average Template.
 
-    >>> python allen2avgt_import_proj_density.py id --map
-    >>> python allen2avgt_import_proj_density.py id --map -r res --dir dir
+    >>> python allen2avgt_import_proj_density.py id --roi
+    >>> python allen2avgt_import_proj_density.py id --roi -r res --dir dir
 
 """
 
