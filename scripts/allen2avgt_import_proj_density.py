@@ -324,13 +324,8 @@ def main():
 
     # AVGT settings
     avgt_file = './utils/AVGT.nii.gz'
-    avgt_r_mm = 70 / 1e3
-    avgt_offset = np.array([-5.675, -8.79448, -8.450335, 0])
-    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
-
-    # Affine matrix to match AVGT position and scale in MI-Brain
-    affine = np.eye(4) * avgt_r_mm
-    affine[:, 3] = affine[:, 3] + avgt_offset
+    avgt_affine = nib.load(avgt_file).affine
+    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32) 
 
     mca = MouseConnectivityApi()
 
@@ -386,7 +381,7 @@ def main():
             warped_vol[warped_vol < 0] = 0
 
         # Creating and Saving the Nifti volume
-        img = nib.Nifti1Image(warped_vol, affine)
+        img = nib.Nifti1Image(warped_vol, avgt_affine)
         nib.save(img, nifti_file)
 
     # Creating and Saving the spherical mask if --roi was used
@@ -424,7 +419,7 @@ def main():
         roi_sphere_avgt = roi_sphere_avgt.astype(np.int32)
 
         # Creating and Saving the Nifti spherical mask
-        sphere = nib.Nifti1Image(roi_sphere_avgt, affine)
+        sphere = nib.Nifti1Image(roi_sphere_avgt, avgt_affine)
         nib.save(sphere, roi_file)
 
 
