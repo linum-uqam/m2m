@@ -20,6 +20,7 @@
 
 import argparse
 from email.policy import default
+import json
 import logging
 
 import os
@@ -307,6 +308,61 @@ def draw_spherical_mask(shape, radius, center):
     return vol <= 1.0
 
 
+def get_mib_coords(args):
+    """
+    Get MI-Brain voxels coords
+    of the experiment injection centroid.
+
+    Parameters
+    ----------
+    args: argparse namespace
+        Argument list.
+
+    Return
+    ------
+    list: MI-Brain coords
+    """
+    # Loading transform matrix
+    file_mat = f'./utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat'
+
+    # Defining invert transformation
+    itx = ants.read_transform(file_mat).invert()
+
+    # Converting injection centroid position to voxels
+    allen_pir_um = loc_injection_centroid(args)[1]
+    allen_pir_vox = [allen_pir_um[0]/args.res, allen_pir_um[1]/args.res,
+                     allen_pir_um[2]/args.res]
+
+    # Converting injection centroid voxels position to ras
+    p, i, r = 13200//args.res, 8000//args.res, 11400//args.res
+    x, y, z = allen_pir_vox[0], allen_pir_vox[1], allen_pir_vox[2]
+    x_, y_, z_ = z, p-x, i-y
+    allen_ras_vox = [x_, y_, z_]
+
+    # Converting injection centroid voxels ras position to mi-brain voxels
+    mib_vox = itx.apply_to_point(allen_ras_vox)
+
+    return mib_vox
+
+
+def save_mib_coords(dic, path):
+    """
+    Saving MI-brain injection centroid coords
+    in a json file
+
+    Parameters
+    ----------
+    dic: dictionnary
+        Json content.
+    path: string or path to file
+        Path to the output file.
+    """
+    # Saving into json file
+    json_object = json.dumps(dic, indent=4)
+    with open(path, "w") as outfile:
+        outfile.write(json_object)
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -325,15 +381,32 @@ def main():
     # AVGT settings
     avgt_file = './utils/AVGT.nii.gz'
     avgt_affine = nib.load(avgt_file).affine
-    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32) 
+    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
 
     mca = MouseConnectivityApi()
 
-    # ROI of the experiment
+    # Experiment infos
     roi = pd.DataFrame(mca.get_experiment_detail(args.id)).specimen[0]['stereotaxic_injections'][0]['primary_injection_structure']['acronym']
-
-    # Position of the injection centroid
     loc = loc_injection_centroid(args)[0]
+    pos = loc_injection_centroid(args)[1]
+
+    # Creating and Saving MI-brain injection centroid coords in json file
+
+    # Configuring file name
+    coords_file = args.dir / f"{args.id}_{roi}_{loc}_inj_centroid_coords_{args.res}.json"
+
+    # Verifying if file already exist
+    check_file_exists(parser, args, coords_file)
+
+    # Getting mi-brain voxel coordinates
+    mib_coords = get_mib_coords(args)
+
+    # Creating json content
+    dic = {"id": args.id, "roi": roi, "location": loc,
+           "allen_micron": pos.tolist(), "mibrain_voxels": mib_coords}
+
+    # Saving in json file
+    save_mib_coords(dic, coords_file)
 
     # Choosing the downloaded resolution
     if args.res == 100:
@@ -388,6 +461,7 @@ def main():
     if args.roi:
         # Configuring file name
         roi_file = args.dir / f"{args.id}_{roi}_{loc}_spherical_mask_{args.res}.nii.gz"
+
         # Verifying if output already exist
         check_file_exists(parser, args, roi_file)
 
