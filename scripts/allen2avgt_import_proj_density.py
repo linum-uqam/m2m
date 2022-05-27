@@ -16,6 +16,8 @@
     >>> python allen2avgt_import_proj_density.py id --roi
     >>> python allen2avgt_import_proj_density.py id --roi -r res --dir dir
 
+    Save experiment injection coordinates (Allen and MI-Brain) in a json file.
+
 """
 
 import argparse
