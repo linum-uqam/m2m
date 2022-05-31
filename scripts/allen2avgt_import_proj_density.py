@@ -56,7 +56,7 @@ def _build_arg_parser():
                         'Using -r <value> will set the resolution to value.')
     p.add_argument('-d', '--dir', default=".",
                    help='Path of the ouptut file directory is . by default.\n'
-                        'Using --dir <dir> will change the output file\'s'
+                        'Using --dir <dir> will change the output file\'s '
                         'directory or create a new one if does not exits.')
     p.add_argument('--map', action='store_true',
                    help='Using --map will download a Nifti file containing '
