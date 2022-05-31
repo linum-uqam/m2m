@@ -51,7 +51,7 @@ def _build_arg_parser():
                    help='Experiment id in the Allen Mouse Brain '
                         'Connectivity Atlas dataset.')
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                   help='Resolution of the dowloaded projection density '
+                   help='Resolution of the downloaded projection density '
                         'is 100µm by default.\n'
                         'Using -r <value> will set the resolution to value.')
     p.add_argument('-d', '--dir', default=".",
