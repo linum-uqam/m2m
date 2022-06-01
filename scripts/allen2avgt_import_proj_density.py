@@ -27,6 +27,7 @@ import logging
 
 import os
 from pathlib import Path
+from re import A
 from tabnanny import check
 
 import numpy as np
@@ -76,20 +77,20 @@ def _build_arg_parser():
     return p
 
 
-def check_id(parser, args):
+def get_mcc(args):
     """
-    Verify if the experiment id is part of the
-    Allen Mouse Brain Connectivity Atlas.
-
-    Read all experiments ids from the Allen Mouse Brain Connectivity Cache.
-    Download the Cache files if does not exist or --cache used.
+    Get Allen Mouse Connectivity Cache.\n
+    Update it by removing and downloading cache file
+    using --nocache.
 
     Parameters
     ----------
-    parser: argparse.ArgumentParser object
-        Parser.
     args: argparse namespace
         Argument list.
+
+    Return
+    ------
+    dataframe : Allen Mouse Connectivity experiments
     """
     experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
     manifest_path = './utils/cache/mouse_conn_manifest.json'
@@ -100,7 +101,30 @@ def check_id(parser, args):
             os.remove(manifest_path)
 
     mcc = MouseConnectivityCache(manifest_file=manifest_path)
-    ids = mcc.get_experiments(dataframe=True, file_name=experiments_path).id
+    experiments = mcc.get_experiments(dataframe=True, file_name=experiments_path)
+
+    return pd.DataFrame(experiments)
+
+
+def check_id(parser, args, allen_experiments):
+    """
+    Verify if the experiment id is part of the
+    Allen Mouse Brain Connectivity Atlas.
+
+    Read all experiments ids from the Allen Mouse Brain Connectivity Cache.\n
+    Download the Cache files if does not exist or --cache used.
+
+    Parameters
+    ----------
+    parser: argparse.ArgumentParser object
+        Parser.
+    args: argparse namespace
+        Argument list.
+    experiments : dataframe
+        Allen Mouse Connectivity experiments.
+    """
+    ids = allen_experiments.id
+
     if args.id not in ids:
         parser.error("This experiment id doesn't exist. \n"
                      "Please check : https://connectivity.brain-map.org/")
@@ -147,7 +171,7 @@ def check_file_exists(parser, args, path):
                      'does not exists.'.format(path_dir))
 
 
-def loc_injection_coordinates(args):
+def loc_injection_coordinates(args, allen_experiments):
     """
     Return the injection coordinates of
     an experiment and its position.
@@ -156,28 +180,19 @@ def loc_injection_coordinates(args):
     ----------
     args: argparse namespace
         Argument list.
+    experiments : dataframe
+        Allen Mouse Connectivity experiments
 
     Return
     ------
     string: R or L
     list: coordinates of the injection coordinates
     """
-    # Defining cache files
-    experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
-    manifest_path = './utils/cache/mouse_conn_manifest.json'
-
-    # Getting injection coordinates
-    mcc = MouseConnectivityCache(manifest_file=manifest_path)
-    exps = mcc.get_experiments(dataframe=True, file_name=experiments_path)
-    inj_coord = pd.DataFrame(exps).loc[args.id]['injection-coordinates']
-
-    # Defining the Left-Right limit (+z axis)
-    # Note: the bounding box is [13200, 8000, 11400]
-    limit_LR = 11400/2
-    is_right = inj_coord[2] >= limit_LR
+    inj_coord = allen_experiments.loc[args.id]['injection-coordinates']
 
     # Returning the position and its location
-    if is_right:
+    # Right is >= than z/2
+    if inj_coord[2] >= 11400/2:
         return 'R', inj_coord
     else:
         return 'L', inj_coord
@@ -284,7 +299,7 @@ def draw_spherical_mask(shape, radius, center):
     return vol <= 1.0
 
 
-def get_mib_coords(args):
+def get_mib_coords(args, allen_experiments):
     """
     Get MI-Brain voxels coords
     of the experiment injection coordinates.
@@ -305,7 +320,7 @@ def get_mib_coords(args):
     itx = ants.read_transform(file_mat).invert()
 
     # Converting injection coordinates position to voxels
-    allen_pir_um = loc_injection_coordinates(args)[1]
+    allen_pir_um = loc_injection_coordinates(args, allen_experiments)[1]
     allen_pir_vox = [allen_pir_um[0]/args.res, allen_pir_um[1]/args.res,
                      allen_pir_um[2]/args.res]
 
@@ -344,11 +359,17 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
+    # Mouse Connectivity settings
+    # API
+    mca = MouseConnectivityApi()
+    # experiments from Cache
+    allen_experiments = get_mcc(args)
+
     # Verifying arguments
     check_args(parser, args)
 
     # Verifying experiment id
-    check_id(parser, args)
+    check_id(parser, args, allen_experiments)
 
     # Configuring output directory
     args.dir = Path(args.dir)
@@ -359,12 +380,10 @@ def main():
     avgt_affine = nib.load(avgt_file).affine
     avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
 
-    mca = MouseConnectivityApi()
-
     # Experiment infos
-    roi = pd.DataFrame(mca.get_experiment_detail(args.id)).specimen[0]['stereotaxic_injections'][0]['primary_injection_structure']['acronym']
-    loc = loc_injection_coordinates(args)[0]
-    pos = loc_injection_coordinates(args)[1]
+    roi = allen_experiments.loc[args.id]['structure-abbrev']
+    loc = loc_injection_coordinates(args, allen_experiments)[0]
+    pos = loc_injection_coordinates(args, allen_experiments)[1]
 
     # Creating and Saving MI-brain injection coordinates coords in json file
 
@@ -375,7 +394,7 @@ def main():
     check_file_exists(parser, args, coords_file)
 
     # Getting mi-brain voxel coordinates
-    mib_coords = get_mib_coords(args)
+    mib_coords = get_mib_coords(args, allen_experiments)
 
     # Creating json content
     dic = {"id": args.id, "roi": roi, "location": loc,
@@ -442,7 +461,7 @@ def main():
         check_file_exists(parser, args, roi_file)
 
         # Converting the coordinates in voxels depending the resolution
-        inj_coord_um = loc_injection_coordinates(args)[1]
+        inj_coord_um = loc_injection_coordinates(args, allen_experiments)[1]
         inj_coord_voxels = (inj_coord_um[0]/args.res,
                             inj_coord_um[1]/args.res,
                             inj_coord_um[2]/args.res)
