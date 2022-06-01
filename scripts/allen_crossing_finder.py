@@ -82,10 +82,12 @@ def check_args(parser, args):
     args: argparse namespace
         Argument list.
     """
+    # Verifying threshold
     if 1.0 < args.threshold < 0.0:
         parser.error('Please enter a valid threshold value. '
                      'Pick a float value from 0.0 to 1.0')
 
+    # Verifying coords
     x, y, z = range(0, 164), range(0, 212), range(0, 158)
 
     if args.red[0] not in x or args.red[1] not in y or args.red[2] not in z:
@@ -126,6 +128,26 @@ def check_file_exists(parser, args, path):
                      'does not exists.'.format(path_dir))
 
 
+def get_allen_coords(mib_coords, res):
+    """
+    """
+    # Reading transform matrix
+    file_mat = f'./utils/transformations_allen2avgt/allen2avgtAffine_{res}.mat'
+    tx = ants.read_transform(file_mat)
+
+    # Getting allen voxels RAS+ coords
+    allen_ras = tx.apply_to_point(mib_coords)
+
+    # Converting to PIR (microns)
+    p, i, r = 13200/res, 8000/res, 11400/res
+    r, a, s = r, p, i
+    x, y, z = allen_ras[0], allen_ras[1], allen_ras[2]
+    x_, y_, z_ = (a-y)*res, (s-z)*res, x*res
+    allen_pir = [x_, y_, z_]
+
+    return list(map(int, allen_pir))
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -135,14 +157,18 @@ def main():
     check_args(parser, args)
 
     # Getting allen coords
-
+    allen_red_coords = get_allen_coords(args.red, args.res)
+    allen_green_coords = get_allen_coords(args.green, args.res)
+    if args.blue:
+        allen_blue_coords = get_allen_coords(args.blue, args.res)
+    print(allen_red_coords, allen_green_coords)
     # Finding experiments
         # if --spatial
         # if --injection
-    
+
     # Aligning and saving projection density volumes
 
-    # Creating and saving RGB volume 
+    # Creating and saving RGB volume
 
     # Searching crossing regions
 
