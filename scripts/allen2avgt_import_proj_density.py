@@ -9,7 +9,7 @@
     >>> python allen2avgt_import_proj_density.py id --map -r res --dir dir
     >>> python allen2avgt_import_proj_density.py id --map --smooth
 
-    Download a spherical roi mask located at the injection centroid of an
+    Download a spherical roi mask located at the injection coordinates of an
     experiment in the Allen Mouse Brain Connectivity Atlas and
     align it on the Average Template.
 
@@ -67,7 +67,7 @@ def _build_arg_parser():
                         'Using --smooth will change the method to bSpline.')
     p.add_argument('--roi', action='store_true',
                    help='Using --map will download a Nifti file containing '
-                        'a spherical mask at the injection centroid\n'
+                        'a spherical mask at the injection coordinates\n'
                         'of the experiment.')
     p.add_argument('-f', dest='overwrite', action="store_true",
                    help='Force overwriting of the output file.')
@@ -147,10 +147,10 @@ def check_file_exists(parser, args, path):
                      'does not exists.'.format(path_dir))
 
 
-def loc_injection_centroid(args):
+def loc_injection_coordinates(args):
     """
-    Return the position of the injection centroid in the Mouse Brain.
-    A resolution of 100µm is used to minimize downloading time.
+    Return the injection coordinates of
+    an experiment and its position.
 
     Parameters
     ----------
@@ -160,53 +160,27 @@ def loc_injection_centroid(args):
     Return
     ------
     string: R or L
-    list: coordinates of the injection centroid
+    list: coordinates of the injection coordinates
     """
-    # Creating tmp files
-    path_fraction = f"./utils/tmp/{args.id}_inj_fraction.nrrd"
-    path_density = f"./utils/tmp/{args.id}_density.nrrd"
+    # Defining cache files
+    experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
+    manifest_path = './utils/cache/mouse_conn_manifest.json'
 
-    mca = MouseConnectivityApi()
-    allen_logger = 'allensdk.api.api.retrieve_file_over_http'
-
-    # Disabling the download logger.
-    logging.getLogger(allen_logger).disabled = True
-
-    # Downloading the injection fraction and density of the experiment
-    injection_density = mca.download_injection_density(path_density,
-                                                       experiment_id=args.id,
-                                                       resolution=100)
-    injection_fraction = mca.download_injection_fraction(path_fraction,
-                                                         experiment_id=args.id,
-                                                         resolution=100)
-
-    # Re-enabling the logger
-    logging.getLogger(allen_logger).disabled = False
-
-    # Loading the volumes
-    dens_vol, header = nrrd.read(path_density)
-    frac_vol, header = nrrd.read(path_fraction)
-
-    # Removing tmp files
-    os.remove(path_density)
-    os.remove(path_fraction)
-
-    # Downloading the injection centroid
-    injection_centroid = mca.calculate_injection_centroid(
-        injection_density=dens_vol,
-        injection_fraction=frac_vol,
-        resolution=100)
+    # Getting injection coordinates
+    mcc = MouseConnectivityCache(manifest_file=manifest_path)
+    exps = mcc.get_experiments(dataframe=True, file_name=experiments_path)
+    inj_coord = pd.DataFrame(exps).loc[args.id]['injection-coordinates']
 
     # Defining the Left-Right limit (+z axis)
     # Note: the bounding box is [13200, 8000, 11400]
     limit_LR = 11400/2
-    is_right = injection_centroid[2] >= limit_LR
+    is_right = inj_coord[2] >= limit_LR
 
     # Returning the position and its location
     if is_right:
-        return 'R', injection_centroid
+        return 'R', inj_coord
     else:
-        return 'L', injection_centroid
+        return 'L', inj_coord
 
 
 def pretransform_PIR_to_RAS(vol):
@@ -313,7 +287,7 @@ def draw_spherical_mask(shape, radius, center):
 def get_mib_coords(args):
     """
     Get MI-Brain voxels coords
-    of the experiment injection centroid.
+    of the experiment injection coordinates.
 
     Parameters
     ----------
@@ -330,18 +304,18 @@ def get_mib_coords(args):
     # Defining invert transformation
     itx = ants.read_transform(file_mat).invert()
 
-    # Converting injection centroid position to voxels
-    allen_pir_um = loc_injection_centroid(args)[1]
+    # Converting injection coordinates position to voxels
+    allen_pir_um = loc_injection_coordinates(args)[1]
     allen_pir_vox = [allen_pir_um[0]/args.res, allen_pir_um[1]/args.res,
                      allen_pir_um[2]/args.res]
 
-    # Converting injection centroid voxels position to ras
+    # Converting injection coordinates voxels position to ras
     p, i, r = 13200//args.res, 8000//args.res, 11400//args.res
     x, y, z = allen_pir_vox[0], allen_pir_vox[1], allen_pir_vox[2]
     x_, y_, z_ = z, p-x, i-y
     allen_ras_vox = [x_, y_, z_]
 
-    # Converting injection centroid voxels ras position to mi-brain voxels
+    # Converting injection coordinates voxels ras position to mi-brain voxels
     mib_vox = itx.apply_to_point(allen_ras_vox)
 
     return mib_vox
@@ -349,7 +323,7 @@ def get_mib_coords(args):
 
 def save_mib_coords(dic, path):
     """
-    Saving MI-brain injection centroid coords
+    Saving MI-brain injection coordinates coords
     in a json file
 
     Parameters
@@ -389,13 +363,13 @@ def main():
 
     # Experiment infos
     roi = pd.DataFrame(mca.get_experiment_detail(args.id)).specimen[0]['stereotaxic_injections'][0]['primary_injection_structure']['acronym']
-    loc = loc_injection_centroid(args)[0]
-    pos = loc_injection_centroid(args)[1]
+    loc = loc_injection_coordinates(args)[0]
+    pos = loc_injection_coordinates(args)[1]
 
-    # Creating and Saving MI-brain injection centroid coords in json file
+    # Creating and Saving MI-brain injection coordinates coords in json file
 
     # Configuring file name
-    coords_file = args.dir / f"{args.id}_{roi}_{loc}_inj_centroid_coords_{args.res}.json"
+    coords_file = args.dir / f"{args.id}_{roi}_{loc}_inj_coords_{args.res}.json"
 
     # Verifying if file already exist
     check_file_exists(parser, args, coords_file)
@@ -405,7 +379,7 @@ def main():
 
     # Creating json content
     dic = {"id": args.id, "roi": roi, "location": loc,
-           "allen_micron": pos.tolist(), "mibrain_voxels": mib_coords}
+           "allen_micron": pos, "mibrain_voxels": mib_coords}
 
     # Saving in json file
     save_mib_coords(dic, coords_file)
@@ -468,10 +442,10 @@ def main():
         check_file_exists(parser, args, roi_file)
 
         # Converting the coordinates in voxels depending the resolution
-        inj_centroid_um = loc_injection_centroid(args)[1]
-        inj_centroid_voxels = (inj_centroid_um[0]/args.res,
-                               inj_centroid_um[1]/args.res,
-                               inj_centroid_um[2]/args.res)
+        inj_coord_um = loc_injection_coordinates(args)[1]
+        inj_coord_voxels = (inj_coord_um[0]/args.res,
+                            inj_coord_um[1]/args.res,
+                            inj_coord_um[2]/args.res)
 
         # Configuring the bounding box
         bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
@@ -479,7 +453,7 @@ def main():
         # Drawing the spherical mask
         roi_sphere_allen = draw_spherical_mask(
             shape=bbox_allen,
-            center=inj_centroid_voxels,
+            center=inj_coord_voxels,
             radius=400//args.res).astype(np.float32)
 
         # Transforming manually to RAS+
