@@ -58,7 +58,7 @@ def _build_arg_parser():
                         'Threshold is 0.30 by default.\n'
                         '--threshold <value> will set threshold to value.')
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                   help='Resolution is 100µm by default.\n'
+                   help='Resolution of downloaded files is 100µm by default.\n'
                         '--res <value> will set the resolution to value.')
     p.add_argument('-d', '--dir', default=".",
                    help='Path of the ouptut file directory is . by default.\n'
@@ -88,7 +88,7 @@ def check_args(parser, args):
                      'Pick a float value from 0.0 to 1.0')
 
     # Verifying coords
-    x, y, z = range(0, 164), range(0, 212), range(0, 158)
+    x, y, z = range(0, 165), range(0, 213), range(0, 159)
 
     if args.red[0] not in x or args.red[1] not in y or args.red[2] not in z:
         parser.error('Red coords invalid. '
@@ -128,8 +128,23 @@ def check_file_exists(parser, args, path):
                      'does not exists.'.format(path_dir))
 
 
-def get_allen_coords(mib_coords, res):
+def get_allen_coords(mib_coords, res=25):
     """
+    Compute the Allen coordinates from
+    MI-Brain coordinates.\n
+    Resolution is fixed to 25 to ensure
+    best precision.
+
+    Parameters
+    ----------
+    args: argparse namespace
+        Argument list.
+    res: int
+        Resolution of the transformation matrix.
+
+    Return
+    ------
+    list: Allen coordinates in micron.
     """
     # Reading transform matrix
     file_mat = f'./utils/transformations_allen2avgt/allen2avgtAffine_{res}.mat'
@@ -139,8 +154,8 @@ def get_allen_coords(mib_coords, res):
     allen_ras = tx.apply_to_point(mib_coords)
 
     # Converting to PIR (microns)
-    p, i, r = 13200/res, 8000/res, 11400/res
-    r, a, s = r, p, i
+    p, i, r = 13200//res, 8000//res, 11400//res
+    r_, a, s = r, p, i
     x, y, z = allen_ras[0], allen_ras[1], allen_ras[2]
     x_, y_, z_ = (a-y)*res, (s-z)*res, x*res
     allen_pir = [x_, y_, z_]
@@ -157,14 +172,14 @@ def main():
     check_args(parser, args)
 
     # Getting allen coords
-    allen_red_coords = get_allen_coords(args.red, args.res)
-    allen_green_coords = get_allen_coords(args.green, args.res)
+    allen_red_coords = get_allen_coords(args.red)
+    allen_green_coords = get_allen_coords(args.green)
     if args.blue:
-        allen_blue_coords = get_allen_coords(args.blue, args.res)
-    print(allen_red_coords, allen_green_coords)
+        allen_blue_coords = get_allen_coords(args.blue)
+
     # Finding experiments
-        # if --spatial
-        # if --injection
+    # if --spatial
+    # if --injection
 
     # Aligning and saving projection density volumes
 
