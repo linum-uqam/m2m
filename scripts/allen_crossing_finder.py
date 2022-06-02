@@ -164,9 +164,9 @@ def get_allen_coords(mib_coords, res=25):
     return list(map(int, allen_pir))
 
 
-def get_nearest_exp_id(args, seed_point):
+def search_experiments(args, seed_point):
     """
-    Retrieve nearest Allen experiment id
+    Retrieve Allen experiments
     from a seed point.\n
     Using `injection coordinate search` or
     `spatial search`.
@@ -181,26 +181,30 @@ def get_nearest_exp_id(args, seed_point):
 
     Return
     ------
-    long : Id of the nearest experiment.
+    dic : Allen experiments founded.
     """
     mcc = MouseConnectivityApi()
 
     # Injection coordinate search
     if args.injection:
-        nearby_exps = mcc.experiment_injection_coordinate_search(
+        exps = mcc.experiment_injection_coordinate_search(
             seed_point=seed_point)
 
     # Spatial search
     if args.spatial:
-        nearby_exps = mcc.experiment_spatial_search(
+        exps = mcc.experiment_spatial_search(
             seed_point=seed_point)
 
-    try:
-        nearest_id = nearby_exps[0]['id']
-    except (KeyError, TypeError):
-        sys.exit("No experiment founded for {}".format(seed_point))
+    return exps
 
-    return nearest_id
+
+def get_experiment_id(experiments, index, color):
+    try:
+        id = experiments[index]['id']
+    except (KeyError, TypeError):
+        sys.exit("No experiment founded : {}".format(color))
+
+    return id
 
 
 def main():
@@ -217,12 +221,32 @@ def main():
     if args.blue:
         allen_blue_coords = get_allen_coords(args.blue)
 
-    # Finding nearests experiments
-    red_id = get_nearest_exp_id(args, allen_red_coords)
-    green_id = get_nearest_exp_id(args, allen_green_coords)
+    # Getting Allen experiments
+    red_exps = search_experiments(args, allen_red_coords)
+    green_exps = search_experiments(args, allen_green_coords)
     if args.blue:
-        blue_id = get_nearest_exp_id(args, allen_blue_coords)
+        blue_exps = search_experiments(args, allen_blue_coords)
 
+    # Retrieving experiments ids
+    red_id = get_experiment_id(red_exps, 0, "red")
+    green_id = get_experiment_id(green_exps, 0, "green")
+    if args.blue:
+        blue_id = get_experiment_id(blue_exps, 0, "blue")
+
+    if red_id == green_id:
+        green_id = get_experiment_id(green_exps, 1, "green")
+    if args.blue:
+        if red_id == blue_id:
+            blue_id = get_experiment_id(blue_exps, 1, "blue")
+            if green_id == blue_id:
+                blue_id = get_experiment_id(blue_exps, 2, "blue")
+        elif green_id == blue_id:
+            blue_id = get_experiment_id(blue_exps, 1, "blue")
+            if red_id == blue_id:
+                blue_id = get_experiment_id(blue_exps, 2, "blue")
+
+    if red_id != green_id != blue_id:
+        print(red_id, green_id, blue_id)
     # Aligning and saving projection density volumes
 
     # Creating and saving RGB volume
