@@ -11,6 +11,7 @@ import logging
 
 import os
 from pathlib import Path
+import sys
 from tabnanny import check
 
 import numpy as np
@@ -163,6 +164,45 @@ def get_allen_coords(mib_coords, res=25):
     return list(map(int, allen_pir))
 
 
+def get_nearest_exp_id(args, seed_point):
+    """
+    Retrieve nearest Allen experiment id
+    from a seed point.\n
+    Using `injection coordinate search` or
+    `spatial search`.
+
+    Parameters
+    ----------
+    args: argparse namespace
+        Argument list.
+    seed_point : list of int
+        Coordinate of the seed point
+        in Allen reference space.
+
+    Return
+    ------
+    long : Id of the nearest experiment.
+    """
+    mcc = MouseConnectivityApi()
+
+    # Injection coordinate search
+    if args.injection:
+        nearby_exps = mcc.experiment_injection_coordinate_search(
+            seed_point=seed_point)
+
+    # Spatial search
+    if args.spatial:
+        nearby_exps = mcc.experiment_spatial_search(
+            seed_point=seed_point)
+
+    try:
+        nearest_id = nearby_exps[0]['id']
+    except (KeyError, TypeError):
+        sys.exit("No experiment founded for {}".format(seed_point))
+
+    return nearest_id
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -177,9 +217,11 @@ def main():
     if args.blue:
         allen_blue_coords = get_allen_coords(args.blue)
 
-    # Finding experiments
-    # if --spatial
-    # if --injection
+    # Finding nearests experiments
+    red_id = get_nearest_exp_id(args, allen_red_coords)
+    green_id = get_nearest_exp_id(args, allen_green_coords)
+    if args.blue:
+        blue_id = get_nearest_exp_id(args, allen_blue_coords)
 
     # Aligning and saving projection density volumes
 
