@@ -600,8 +600,10 @@ def main():
                 sum_proj = red_proj + green_proj + blue_proj
             # Saving crossing rois 
             if sum_proj >= args.threshold:
-                cross_rois_ids.append(ida)
-                cross_rois_names.append(structures_names_a[structures_ids_a.index(ida)])
+                if ida not in cross_rois_ids:
+                    structure_name = structures_names_a[structures_ids_a.index(ida)]
+                    cross_rois_ids.append(ida)
+                    cross_rois_names.append(structure_name)
 
     for idb in structures_ids_b:
         # Iterating in each structure
@@ -626,11 +628,36 @@ def main():
                 sum_proj = red_proj + green_proj + blue_proj
             # Saving crossing rois 
             if sum_proj >= args.threshold:
-                cross_rois_ids.append(idb)
-                cross_rois_names.append(structures_names_b[structures_ids_b.index(idb)])
+                if idb not in cross_rois_ids:
+                    structure_name = structures_names_b[structures_ids_b.index(idb)]
+                    cross_rois_ids.append(idb)
+                    cross_rois_names.append(structure_name)
 
     # Creating and saving ROI mask and json
-    print(cross_rois_names)
+    print(cross_rois_ids,cross_rois_names)
+    # Preparing and saving json file
+    xrois_json = args.dir / f"{red_id}_{green_id}_x-rois.json"
+    if args.blue:
+        xrois_json = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
+
+    rois = {}
+    for key in cross_rois_names:
+        for value in cross_rois_ids:
+            rois[key] = value
+            break
+
+    exps_ids = [red_id,  green_id]
+    if args.blue:
+        exps_ids.append(blue_id)
+
+    dic = {
+        "experiments" : exps_ids,
+        "cross-rois" : rois
+    }
+
+    json_object = json.dumps(dic, indent=4)
+    with open(xrois_json, "w") as outfile:
+        outfile.write(json_object)
 
 
 if __name__ == "__main__":
