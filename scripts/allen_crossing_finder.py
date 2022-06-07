@@ -634,26 +634,18 @@ def main():
                     cross_rois_names.append(structure_name)
 
     # Creating and saving ROI mask and json
-    print(cross_rois_ids,cross_rois_names)
     # Preparing and saving json file
     xrois_json = args.dir / f"{red_id}_{green_id}_x-rois.json"
     if args.blue:
         xrois_json = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
 
-    rois = {}
-    for key in cross_rois_names:
-        for value in cross_rois_ids:
-            rois[key] = value
-            break
+    rois = dict(zip(cross_rois_names, cross_rois_ids))
 
     exps_ids = [red_id,  green_id]
     if args.blue:
         exps_ids.append(blue_id)
 
-    dic = {
-        "experiments" : exps_ids,
-        "cross-rois" : rois
-    }
+    dic = {"experiments" : exps_ids, "cross-rois" : rois}
 
     json_object = json.dumps(dic, indent=4)
     with open(xrois_json, "w") as outfile:
