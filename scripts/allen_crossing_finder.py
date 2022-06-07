@@ -541,39 +541,39 @@ def main():
             is_injection=False,
             structure_ids=structures_ids_a)
         unionizes_blue_b = mca.get_structure_unionizes(
-        experiment_ids=[blue_id],
-        is_injection=False,
-        structure_ids=structures_ids_b)
+            experiment_ids=[blue_id],
+            is_injection=False,
+            structure_ids=structures_ids_b)
 
     # Creating dataframes
     unionizes_red_a = pd.DataFrame(unionizes_red_a)[
         ['hemisphere_id',
-        'structure_id',
-        'projection_density']]
+         'structure_id',
+         'projection_density']]
     unionizes_red_b = pd.DataFrame(unionizes_red_b)[
         ['hemisphere_id',
-        'structure_id',
-        'projection_density']]
+         'structure_id',
+         'projection_density']]
     unionizes_green_a = pd.DataFrame(unionizes_green_a)[
         ['hemisphere_id',
-        'structure_id',
-        'projection_density']]
+         'structure_id',
+         'projection_density']]
     unionizes_green_b = pd.DataFrame(unionizes_green_b)[
         ['hemisphere_id',
-        'structure_id',
-        'projection_density']]
+         'structure_id',
+         'projection_density']]
     if args.blue:
         unionizes_blue_a = pd.DataFrame(unionizes_blue_a)[
             ['hemisphere_id',
-            'structure_id',
-            'projection_density']]
+             'structure_id',
+             'projection_density']]
         unionizes_blue_b = pd.DataFrame(unionizes_blue_b)[
             ['hemisphere_id',
-            'structure_id',
-            'projection_density']]
+             'structure_id',
+             'projection_density']]
 
     # Localising crossing regions
-    hem_ids = [1,2,3]
+    hem_ids = [1, 2, 3]
     cross_rois_ids = []
     cross_rois_names = []
 
@@ -589,7 +589,7 @@ def main():
             green_hem = green_struct[green_struct.hemisphere_id == hid]
             if args.blue:
                 blue_hem = blue_struct[blue_struct.hemisphere_id == hid]
-            # Getting projection density value 
+            # Getting projection density value
             red_proj = red_hem.projection_density.tolist()[0]
             green_proj = green_hem.projection_density.tolist()[0]
             if args.blue:
@@ -601,7 +601,7 @@ def main():
                         structure_name = structures_names_a[structures_ids_a.index(ida)]
                         cross_rois_ids.append(ida)
                         cross_rois_names.append(structure_name)
-            else: 
+            else:
                 if red_proj >= args.threshold and green_proj >= args.threshold:
                     if ida not in cross_rois_ids:
                         structure_name = structures_names_a[structures_ids_a.index(ida)]
@@ -620,7 +620,7 @@ def main():
             green_hem = green_struct[green_struct.hemisphere_id == hid]
             if args.blue:
                 blue_hem = blue_struct[blue_struct.hemisphere_id == hid]
-            # Getting projection density value 
+            # Getting projection density value
             red_proj = red_hem.projection_density.tolist()[0]
             green_proj = green_hem.projection_density.tolist()[0]
             if args.blue:
@@ -662,7 +662,7 @@ def main():
             exps_rois.append(broi)
         exps_infos = dict((z[0], list(z[1:])) for z in zip(exps_ids, exps_rois, exps_locs))
 
-        dic = {"experiments" : exps_infos, "x-rois" : xrois}
+        dic = {"experiments": exps_infos, "x-rois": xrois}
 
         json_object = json.dumps(dic, indent=4)
         with open(xrois_json, "w") as outfile:
@@ -696,10 +696,10 @@ def main():
         warped_mask_combined = registrate_allen2avgt_ants(
             args=args,
             allen_vol=mask_combined,
-            avgt_vol= avgt_vol
+            avgt_vol=avgt_vol
         )
 
-        # Improving display in MI-Brain    
+        # Improving display in MI-Brain
         warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
         warped_mask_combined[warped_mask_combined > 1] = 1
 
