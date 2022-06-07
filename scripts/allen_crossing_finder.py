@@ -425,7 +425,7 @@ def main():
             experiment_id=blue_id,
             resolution=args.res)
 
-    # Loading volume and deleting nrrd tmp file
+    # Getting allen volume and deleting nrrd tmp file
     red_vol, header = nrrd.read(nrrd_red)
     green_vol, header = nrrd.read(nrrd_green)
     if args.blue:
@@ -440,7 +440,7 @@ def main():
     if args.blue:
         blue_vol = pretransform_PIR_to_RAS(blue_vol)
 
-    # Loading allen volume converting to float32
+    # Converting allen volume to float32
     red_vol = red_vol.astype(np.float32)
     green_vol = green_vol.astype(np.float32)
     blue_vol = blue_vol.astype(np.float32)
@@ -651,6 +651,7 @@ def main():
     with open(xrois_json, "w") as outfile:
         outfile.write(json_object)
 
+    # Downloading masks
 
 if __name__ == "__main__":
     main()
