@@ -471,6 +471,7 @@ def main():
     nifti_rgb = args.dir / f"r-{red_id}_g-{green_id}_proj_density_{args.res}.nii.gz"
     if args.blue:
         nifti_rgb = args.dir / f"r-{red_id}_g-{green_id}_b-{blue_id}_proj_density_{args.res}.nii.gz"
+    check_file_exists(parser, args, nifti_rgb)
 
     rgb_vol = np.zeros((164, 212, 158, 1, 1), [('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')])
 
