@@ -594,16 +594,19 @@ def main():
             green_proj = green_hem.projection_density.tolist()[0]
             if args.blue:
                 blue_proj = blue_hem.projection_density.tolist()[0]
-            # Computing projection density sum
-            sum_proj = red_proj + green_proj
+            # Saving crossing rois
             if args.blue:
-                sum_proj = red_proj + green_proj + blue_proj
-            # Saving crossing rois 
-            if sum_proj >= args.threshold:
-                if ida not in cross_rois_ids:
-                    structure_name = structures_names_a[structures_ids_a.index(ida)]
-                    cross_rois_ids.append(ida)
-                    cross_rois_names.append(structure_name)
+                if red_proj >= args.threshold and green_proj >= args.threshold and blue_proj >= args.threshold:
+                    if ida not in cross_rois_ids:
+                        structure_name = structures_names_a[structures_ids_a.index(ida)]
+                        cross_rois_ids.append(ida)
+                        cross_rois_names.append(structure_name)
+            else: 
+                if red_proj >= args.threshold and green_proj >= args.threshold:
+                    if ida not in cross_rois_ids:
+                        structure_name = structures_names_a[structures_ids_a.index(ida)]
+                        cross_rois_ids.append(ida)
+                        cross_rois_names.append(structure_name)
 
     for idb in structures_ids_b:
         # Iterating in each structure
@@ -622,84 +625,92 @@ def main():
             green_proj = green_hem.projection_density.tolist()[0]
             if args.blue:
                 blue_proj = blue_hem.projection_density.tolist()[0]
-            # Computing projection density sum
-            sum_proj = red_proj + green_proj
+            # Saving crossing rois
             if args.blue:
-                sum_proj = red_proj + green_proj + blue_proj
-            # Saving crossing rois 
-            if sum_proj >= args.threshold:
-                if idb not in cross_rois_ids:
-                    structure_name = structures_names_b[structures_ids_b.index(idb)]
-                    cross_rois_ids.append(idb)
-                    cross_rois_names.append(structure_name)
+                if red_proj >= args.threshold and green_proj >= args.threshold and blue_proj >= args.threshold:
+                    if idb not in cross_rois_ids:
+                        structure_name = structures_names_b[structures_ids_b.index(idb)]
+                        cross_rois_ids.append(idb)
+                        cross_rois_names.append(structure_name)
+            else:
+                if red_proj >= args.threshold and green_proj >= args.threshold:
+                    if idb not in cross_rois_ids:
+                        structure_name = structures_names_b[structures_ids_b.index(idb)]
+                        cross_rois_ids.append(idb)
+                        cross_rois_names.append(structure_name)
 
-    # Creating and saving crossing ROI masks and json
+    # Verifying if x-rois were found
+    if len(cross_rois_names) == 0:
+        sys.exit("No crossing-ROIs founded ...\n"
+                 "Please try to lower the threshold or "
+                 "select others coordinates.")
+    else:
+        # Creating and saving crossing ROI masks and json
+        # Preparing and saving json file
+        xrois_json = args.dir / f"{red_id}_{green_id}_x-rois.json"
+        if args.blue:
+            xrois_json = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
 
-    # Preparing and saving json file
-    xrois_json = args.dir / f"{red_id}_{green_id}_x-rois.json"
-    if args.blue:
-        xrois_json = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
+        xrois = dict(zip(cross_rois_names, cross_rois_ids))
 
-    xrois = dict(zip(cross_rois_names, cross_rois_ids))
+        exps_ids = [red_id,  green_id]
+        exps_locs = [rloc, gloc]
+        exps_rois = [rroi, groi]
+        if args.blue:
+            exps_ids.append(blue_id)
+            exps_locs.append(bloc)
+            exps_rois.append(broi)
+        exps_infos = dict((z[0], list(z[1:])) for z in zip(exps_ids, exps_rois, exps_locs))
 
-    exps_ids = [red_id,  green_id]
-    exps_locs = [rloc, gloc]
-    exps_rois = [rroi, groi]
-    if args.blue:
-        exps_ids.append(blue_id)
-        exps_locs.append(bloc)
-        exps_rois.append(broi)
-    exps_infos = dict((z[0], list(z[1:])) for z in zip(exps_ids, exps_rois, exps_locs))
+        dic = {"experiments" : exps_infos, "x-rois" : xrois}
 
-    dic = {"experiments" : exps_infos, "x-rois" : xrois}
+        json_object = json.dumps(dic, indent=4)
+        with open(xrois_json, "w") as outfile:
+            outfile.write(json_object)
 
-    json_object = json.dumps(dic, indent=4)
-    with open(xrois_json, "w") as outfile:
-        outfile.write(json_object)
+        # Downloading each masks
+        # then merging them into one mask
+        rsa = ReferenceSpaceApi()
 
-    # Downloading each masks
-    # then merging them into one mask
-    rsa = ReferenceSpaceApi()
+        bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
+        mask_combined = np.zeros(bbox_allen)
 
-    bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
-    mask_combined = np.zeros(bbox_allen)
+        for structure_id in cross_rois_ids:
+            mask_nrrd = args.dir / f"{structure_id}_mask.nrrd"
 
-    for structure_id in cross_rois_ids:
-        mask_nrrd = args.dir / f"{structure_id}_mask.nrrd"
+            rsa.download_structure_mask(
+                structure_id=structure_id,
+                ccf_version=rsa.CCF_VERSION_DEFAULT,
+                resolution=args.res,
+                file_name=mask_nrrd
+                )
 
-        rsa.download_structure_mask(
-            structure_id=structure_id,
-            ccf_version=rsa.CCF_VERSION_DEFAULT,
-            resolution=args.res,
-            file_name=mask_nrrd
-            )
+            mask, header = nrrd.read(mask_nrrd)
+            mask_combined += mask
+            os.remove(mask_nrrd)
 
-        mask, header = nrrd.read(mask_nrrd)
-        mask_combined += mask
-        os.remove(mask_nrrd)
+        # Converting merged mask to RAS+
+        mask_combined = pretransform_PIR_to_RAS(mask_combined)
 
-    # Converting merged mask to RAS+
-    mask_combined = pretransform_PIR_to_RAS(mask_combined)
+        # Applying ANTsPy registration
+        warped_mask_combined = registrate_allen2avgt_ants(
+            args=args,
+            allen_vol=mask_combined,
+            avgt_vol= avgt_vol
+        )
 
-    # Applying ANTsPy registration
-    warped_mask_combined = registrate_allen2avgt_ants(
-        args=args,
-        allen_vol=mask_combined,
-        avgt_vol= avgt_vol
-    )
+        # Improving display in MI-Brain    
+        warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
+        warped_mask_combined[warped_mask_combined > 1] = 1
 
-    # Improving display in MI-Brain    
-    warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
-    warped_mask_combined[warped_mask_combined > 1] = 1
+        # Save the Nifti mask
+        xrois_nifti = args.dir / f"{red_id}_{green_id}_x-rois_mask.nii.gz"
+        if args.blue:
+            xrois_nifti = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask.nii.gz"
+        check_file_exists(parser, args, xrois_nifti)
 
-    # Save the Nifti mask
-    xrois_nifti = args.dir / f"{red_id}_{green_id}_x-rois_mask.nii.gz"
-    if args.blue:
-        xrois_nifti = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask.nii.gz"
-    check_file_exists(parser, args, xrois_nifti)
-
-    msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
-    nib.save(msk, xrois_nifti)
+        msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
+        nib.save(msk, xrois_nifti)
 
 
 if __name__ == "__main__":
