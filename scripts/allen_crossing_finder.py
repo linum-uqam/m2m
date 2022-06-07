@@ -676,15 +676,16 @@ def main():
         mask_combined = np.zeros(bbox_allen)
 
         for structure_id in cross_rois_ids:
+            # Creating temporary file
             mask_nrrd = args.dir / f"{structure_id}_mask.nrrd"
-
+            # Downloading structure mask
             rsa.download_structure_mask(
                 structure_id=structure_id,
                 ccf_version=rsa.CCF_VERSION_DEFAULT,
                 resolution=args.res,
                 file_name=mask_nrrd
                 )
-
+            # Adding it in the combined volume
             mask, header = nrrd.read(mask_nrrd)
             mask_combined += mask
             os.remove(mask_nrrd)
