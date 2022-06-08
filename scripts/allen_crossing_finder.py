@@ -2,6 +2,45 @@
 # -*- coding: utf-8 -*-
 
 """
+    Find crossing regions (ROIs) between Allen Mouse Brain Connectivity
+    experiments.
+    Experiments are found by search in the Allen Mouse Brain Connectivity API
+    giving two or three MI-Brain voxel coordinates.\n
+
+    Generate projection density maps for each experiments.
+    Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
+
+    Generate a RGB projection density volume combining each
+    experiments founded. (--red, --green, --blue).
+    At least two colors (coordinates) are mandatory.\n
+
+    Generate a mask at crossing regions if projection density is
+    superior to threshold (--threshold) for each experiment founded.
+    Masks are download from Allen Mouse Brain Altas.\n
+
+    Generate a json file enumarating each crossing regions.\n
+
+    All files are stored in a same folder.\n
+
+    Examples:
+    ---------
+
+    2 colors:
+
+    Injection coordinate search: (--injection)
+
+    >>> allen_crossing_finder.py --red x y z --green x y z
+    >>> --injection --dir dir
+
+    Spatial search: (--spatial):
+
+    >>> allen_crossing_finder.py --red x y z --green x y z
+    >>> --spatial --dir dir
+
+    3 colors:
+
+    >>> allen_crossing_finder.py --red x y z --green x y z
+    >>> --blue x y z --injection --dir dir
 """
 
 import argparse
@@ -56,7 +95,7 @@ def _build_arg_parser():
     p.add_argument('--threshold', type=float, default=0.10,
                    help='Combined projection density threshold for finding '
                         'masks of crossing ROIs.\n'
-                        'Threshold is 0.30 by default.\n'
+                        'Threshold is 0.10 by default.\n'
                         '--threshold <value> will set threshold to value.')
     p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
                    help='Resolution of downloaded files is 100µm by default.\n'
@@ -242,11 +281,11 @@ def loc_injection_coordinates(id, allen_experiments):
     id: long
         Allen experiment id.
     experiments: dataframe
-        Allen Mouse Connectivity experiments
+        Allen Mouse Connectivity experiments.
 
     Return
     ------
-    string: R or L
+    string: Injection location (R or L).
     """
     inj_coord = allen_experiments.loc[id]['injection-coordinates']
 
@@ -295,6 +334,20 @@ def get_mcc(args):
 
 def get_experiment_info(allen_experiments, id):
     """
+    Retrieve the injection ROI and location (L/R)
+    of an Allen experiment.
+
+    Parameters
+    ----------
+    allen_experiments: dataframe
+        Allen experiments.
+    id: long
+        Experiment id.
+
+    Returns
+    -------
+    string: Roi acronym.
+    string: Injection location (R or L).
     """
     roi = allen_experiments.loc[id]['structure-abbrev']
     loc = loc_injection_coordinates(id, allen_experiments)
