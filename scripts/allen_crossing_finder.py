@@ -200,7 +200,7 @@ def search_experiments(args, seed_point):
 
 def get_experiment_id(experiments, index, color):
     """
-    Retrieve an experiment id at a specific index in a list of 
+    Retrieve an experiment id at a specific index in a list of
     Allen experiments found with `search_experiments`.\n
     Notify if there is no experiments.
 
@@ -280,7 +280,8 @@ def get_mcc(args):
             os.remove(structures_path)
 
     mcc = MouseConnectivityCache(manifest_file=manifest_path)
-    experiments = mcc.get_experiments(dataframe=True, file_name=experiments_path)
+    experiments = mcc.get_experiments(dataframe=True,
+                                      file_name=experiments_path)
     stree = mcc.get_structure_tree(file_name=structures_path)
 
     return pd.DataFrame(experiments), stree
@@ -422,17 +423,20 @@ def main():
     if args.blue:
         broi, bloc = get_experiment_info(allen_experiments, blue_id)
 
-    nrrd_red = subdir / f"{red_id}_{rroi}_{rloc}_proj_density_{args.res}.nrrd"
-    nifti_red = subdir / f"{red_id}_{rroi}_{rloc}_proj_density_{args.res}.nii.gz"
+    nrrd_ = "{}_{}_{}_proj_density_{}.nrrd"
+    nifti_ = "{}_{}_{}_proj_density_{}.nii.gz"
+
+    nrrd_red = subdir / nrrd_.format(red_id, rroi, rloc, args.res)
+    nifti_red = subdir / nifti_.format(red_id, rroi, rloc, args.res)
     check_file_exists(parser, args, nifti_red)
 
-    nrrd_green = subdir / f"{green_id}_{groi}_{gloc}_proj_density_{args.res}.nrrd"
-    nifti_green = subdir / f"{green_id}_{groi}_{gloc}_proj_density_{args.res}.nii.gz"
+    nrrd_green = subdir / nrrd_.format(green_id, groi, gloc, args.res)
+    nifti_green = subdir / nifti_.format(green_id, groi, gloc, args.res)
     check_file_exists(parser, args, nifti_green)
 
     if args.blue:
-        nrrd_blue = subdir / f"{blue_id}_{broi}_{bloc}_proj_density_{args.res}.nrrd"
-        nifti_blue = subdir / f"{blue_id}_{broi}_{bloc}_proj_density_{args.res}.nii.gz"
+        nrrd_blue = subdir / nrrd_.format(blue_id, broi, bloc, args.res)
+        nifti_blue = subdir / nifti_.format(blue_id, broi, bloc, args.res)
         check_file_exists(parser, args, nifti_blue)
 
     # Downloading maps
@@ -502,12 +506,16 @@ def main():
         nib.save(blue_img, nifti_blue)
 
     # Creating and saving RGB volume
-    nifti_rgb = subdir / f"r-{red_id}_g-{green_id}_proj_density_{args.res}.nii.gz"
+    rg = "r-{}_g-{}_proj_density_{}.nii.gz"
+    rgb = "r-{}_g-{}_b-{}_proj_density_{}.nii.gz"
+
+    nifti_rgb = subdir / rg.format(red_id, green_id, args.res)
     if args.blue:
-        nifti_rgb = subdir / f"r-{red_id}_g-{green_id}_b-{blue_id}_proj_density_{args.res}.nii.gz"
+        nifti_rgb = subdir / rgb.format(red_id, green_id, blue_id, args.res)
     check_file_exists(parser, args, nifti_rgb)
 
-    rgb_vol = np.zeros((164, 212, 158, 1, 1), [('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')])
+    rgb_vol = np.zeros((164, 212, 158, 1, 1),
+                       [('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')])
 
     for i in range(164):
         for j in range(212):
@@ -675,9 +683,12 @@ def main():
     else:
         # Creating and saving crossing ROI masks and json
         # Preparing and saving json file
-        xrois_json = subdir / f"{red_id}_{green_id}_x-rois.json"
+        json_rg = "{}_{}_x-rois.json"
+        json_rgb = "{}_{}_{}_x-rois.json"
+
+        xrois_json = subdir / json_rg.format(red_id, green_id)
         if args.blue:
-            xrois_json = subdir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
+            xrois_json = subdir / json_rgb.format(red_id, green_id, blue_id)
 
         xrois = dict(zip(cross_rois_names, cross_rois_ids))
 
@@ -688,7 +699,9 @@ def main():
             exps_ids.append(blue_id)
             exps_locs.append(bloc)
             exps_rois.append(broi)
-        exps_infos = dict((z[0], list(z[1:])) for z in zip(exps_ids, exps_rois, exps_locs))
+        exps_infos = dict((z[0], list(z[1:])) for z in zip(exps_ids,
+                                                           exps_rois,
+                                                           exps_locs))
 
         dic = {"experiments": exps_infos, "x-rois": xrois}
 
@@ -733,9 +746,12 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Save the Nifti mask
-        xrois_nifti = subdir / f"{red_id}_{green_id}_x-rois_mask.nii.gz"
+        mask_rg = "{}_{}_{}_x-rois_mask.nii.gz"
+        mask_rgb = "{}_{}_{}_x-rois_mask.nii.gz"
+
+        xrois_nifti = subdir / mask_rg.format(red_id, green_id)
         if args.blue:
-            xrois_nifti = subdir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask.nii.gz"
+            xrois_nifti = subdir / mask_rgb.format(red_id, green_id, blue_id)
         check_file_exists(parser, args, xrois_nifti)
 
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
