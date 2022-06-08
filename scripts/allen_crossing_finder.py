@@ -388,6 +388,12 @@ def main():
                 blue_id = get_experiment_id(blue_exps, 2, "blue")
 
     # Downloading aligning and saving projection density volumes
+    # Preparing subdir
+    subdir = Path(args.dir / f"{red_id}_{green_id}_crossing")
+    subdir.mkdir(exist_ok=True, parents=True)
+    if args.blue:
+        subdir = Path(args.dir / f"{red_id}_{green_id}_{blue_id}_crossing")
+        subdir.mkdir(exist_ok=True, parents=True)
 
     # Preparing files names
     rroi, rloc = get_experiment_info(allen_experiments, red_id)
@@ -395,17 +401,17 @@ def main():
     if args.blue:
         broi, bloc = get_experiment_info(allen_experiments, blue_id)
 
-    nrrd_red = args.dir / f"{red_id}_{rroi}_{rloc}_proj_density_{args.res}.nrrd"
-    nifti_red = args.dir / f"{red_id}_{rroi}_{rloc}_proj_density_{args.res}.nii.gz"
+    nrrd_red = subdir / f"{red_id}_{rroi}_{rloc}_proj_density_{args.res}.nrrd"
+    nifti_red = subdir / f"{red_id}_{rroi}_{rloc}_proj_density_{args.res}.nii.gz"
     check_file_exists(parser, args, nifti_red)
 
-    nrrd_green = args.dir / f"{green_id}_{groi}_{gloc}_proj_density_{args.res}.nrrd"
-    nifti_green = args.dir / f"{green_id}_{groi}_{gloc}_proj_density_{args.res}.nii.gz"
+    nrrd_green = subdir / f"{green_id}_{groi}_{gloc}_proj_density_{args.res}.nrrd"
+    nifti_green = subdir / f"{green_id}_{groi}_{gloc}_proj_density_{args.res}.nii.gz"
     check_file_exists(parser, args, nifti_green)
 
     if args.blue:
-        nrrd_blue = args.dir / f"{blue_id}_{broi}_{bloc}_proj_density_{args.res}.nrrd"
-        nifti_blue = args.dir / f"{blue_id}_{broi}_{bloc}_proj_density_{args.res}.nii.gz"
+        nrrd_blue = subdir / f"{blue_id}_{broi}_{bloc}_proj_density_{args.res}.nrrd"
+        nifti_blue = subdir / f"{blue_id}_{broi}_{bloc}_proj_density_{args.res}.nii.gz"
         check_file_exists(parser, args, nifti_blue)
 
     # Downloading maps
@@ -475,9 +481,9 @@ def main():
         nib.save(blue_img, nifti_blue)
 
     # Creating and saving RGB volume
-    nifti_rgb = args.dir / f"r-{red_id}_g-{green_id}_proj_density_{args.res}.nii.gz"
+    nifti_rgb = subdir / f"r-{red_id}_g-{green_id}_proj_density_{args.res}.nii.gz"
     if args.blue:
-        nifti_rgb = args.dir / f"r-{red_id}_g-{green_id}_b-{blue_id}_proj_density_{args.res}.nii.gz"
+        nifti_rgb = subdir / f"r-{red_id}_g-{green_id}_b-{blue_id}_proj_density_{args.res}.nii.gz"
     check_file_exists(parser, args, nifti_rgb)
 
     rgb_vol = np.zeros((164, 212, 158, 1, 1), [('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')])
@@ -648,9 +654,9 @@ def main():
     else:
         # Creating and saving crossing ROI masks and json
         # Preparing and saving json file
-        xrois_json = args.dir / f"{red_id}_{green_id}_x-rois.json"
+        xrois_json = subdir / f"{red_id}_{green_id}_x-rois.json"
         if args.blue:
-            xrois_json = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
+            xrois_json = subdir / f"{red_id}_{green_id}_{blue_id}_x-rois.json"
 
         xrois = dict(zip(cross_rois_names, cross_rois_ids))
 
@@ -678,7 +684,7 @@ def main():
 
         for structure_id in cross_rois_ids:
             # Creating temporary file
-            mask_nrrd = args.dir / f"{structure_id}_mask.nrrd"
+            mask_nrrd = subdir / f"{structure_id}_mask.nrrd"
             # Downloading structure mask
             rsa.download_structure_mask(
                 structure_id=structure_id,
@@ -706,9 +712,9 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Save the Nifti mask
-        xrois_nifti = args.dir / f"{red_id}_{green_id}_x-rois_mask.nii.gz"
+        xrois_nifti = subdir / f"{red_id}_{green_id}_x-rois_mask.nii.gz"
         if args.blue:
-            xrois_nifti = args.dir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask.nii.gz"
+            xrois_nifti = subdir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask.nii.gz"
         check_file_exists(parser, args, xrois_nifti)
 
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
