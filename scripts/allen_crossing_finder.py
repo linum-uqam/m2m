@@ -769,7 +769,7 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Save the Nifti mask
-        mask_rg = "{}_{}_{}_x-rois_mask.nii.gz"
+        mask_rg = "{}_{}_x-rois_mask.nii.gz"
         mask_rgb = "{}_{}_{}_x-rois_mask.nii.gz"
 
         xrois_nifti = subdir / mask_rg.format(red_id, green_id)
