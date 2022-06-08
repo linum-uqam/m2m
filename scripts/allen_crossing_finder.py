@@ -91,16 +91,22 @@ def check_args(parser, args):
     # Verifying coords
     x, y, z = range(0, 165), range(0, 213), range(0, 159)
 
-    if args.red[0] not in x or args.red[1] not in y or args.red[2] not in z:
+    if args.red[0] not in x or \
+       args.red[1] not in y or \
+       args.red[2] not in z:
         parser.error('Red coords invalid. '
                      'x, y, z values must be in [164, 212, 158].')
 
-    if args.green[0] not in x or args.green[1] not in y or args.green[2] not in z:
+    if args.green[0] not in x or \
+       args.green[1] not in y or \
+       args.green[2] not in z:
         parser.error('Green coords invalid. '
                      'x, y, z values must be in [164, 212, 158].')
 
     if args.blue:
-        if args.blue[0] not in x or args.blue[1] not in y or args.blue[2] not in z:
+        if args.blue[0] not in x or \
+           args.blue[1] not in y or \
+           args.blue[2] not in z:
             parser.error('Blue coords invalid. '
                          'x, y, z values must be in [164, 212, 158].')
 
@@ -523,7 +529,9 @@ def main():
         for j in range(212):
             for k in range(158):
                 if args.blue:
-                    if warped_red[i, j, k] == 0 and warped_green[i, j, k] == 0 and warped_blue[i, j, k] == 0:
+                    if warped_red[i, j, k] == 0 and \
+                       warped_green[i, j, k] == 0 and \
+                       warped_blue[i, j, k] == 0:
                         rgb_vol[i, j, k] = (0, 0, 0, 0)
                     else:
                         rgb_vol[i, j, k] = (warped_red[i, j, k] * 255,
@@ -531,7 +539,8 @@ def main():
                                             warped_blue[i, j, k] * 255,
                                             255)
                 else:
-                    if warped_red[i, j, k] == 0 and warped_green[i, j, k] == 0:
+                    if warped_red[i, j, k] == 0 and \
+                       warped_green[i, j, k] == 0:
                         rgb_vol[i, j, k] = (0, 0, 0, 0)
                     else:
                         rgb_vol[i, j, k] = (warped_red[i, j, k] * 255,
@@ -634,13 +643,16 @@ def main():
                 blue_proj = blue_hem.projection_density.tolist()[0]
             # Saving crossing rois
             if args.blue:
-                if red_proj >= args.threshold and green_proj >= args.threshold and blue_proj >= args.threshold:
+                if red_proj >= args.threshold and \
+                   green_proj >= args.threshold and \
+                   blue_proj >= args.threshold:
                     if ida not in cross_rois_ids:
                         structure_name = structures_names_a[structures_ids_a.index(ida)]
                         cross_rois_ids.append(ida)
                         cross_rois_names.append(structure_name)
             else:
-                if red_proj >= args.threshold and green_proj >= args.threshold:
+                if red_proj >= args.threshold and \
+                   green_proj >= args.threshold:
                     if ida not in cross_rois_ids:
                         structure_name = structures_names_a[structures_ids_a.index(ida)]
                         cross_rois_ids.append(ida)
@@ -665,13 +677,16 @@ def main():
                 blue_proj = blue_hem.projection_density.tolist()[0]
             # Saving crossing rois
             if args.blue:
-                if red_proj >= args.threshold and green_proj >= args.threshold and blue_proj >= args.threshold:
+                if red_proj >= args.threshold and \
+                   green_proj >= args.threshold and \
+                   blue_proj >= args.threshold:
                     if idb not in cross_rois_ids:
                         structure_name = structures_names_b[structures_ids_b.index(idb)]
                         cross_rois_ids.append(idb)
                         cross_rois_names.append(structure_name)
             else:
-                if red_proj >= args.threshold and green_proj >= args.threshold:
+                if red_proj >= args.threshold and \
+                   green_proj >= args.threshold:
                     if idb not in cross_rois_ids:
                         structure_name = structures_names_b[structures_ids_b.index(idb)]
                         cross_rois_ids.append(idb)
