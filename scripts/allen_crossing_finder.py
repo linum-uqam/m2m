@@ -629,7 +629,8 @@ def main():
         red_struct = unionizes_red_a[unionizes_red_a.structure_id == ida]
         green_struct = unionizes_green_a[unionizes_green_a.structure_id == ida]
         if args.blue:
-            blue_struct = unionizes_blue_a[unionizes_blue_a.structure_id == ida]
+            blue_struct = unionizes_blue_a[
+                unionizes_blue_a.structure_id == ida]
         # Iterating in each hemisphere
         for hid in hem_ids:
             red_hem = red_struct[red_struct.hemisphere_id == hid]
@@ -647,14 +648,16 @@ def main():
                    green_proj >= args.threshold and \
                    blue_proj >= args.threshold:
                     if ida not in cross_rois_ids:
-                        structure_name = structures_names_a[structures_ids_a.index(ida)]
+                        structure_name = structures_names_a[
+                            structures_ids_a.index(ida)]
                         cross_rois_ids.append(ida)
                         cross_rois_names.append(structure_name)
             else:
                 if red_proj >= args.threshold and \
                    green_proj >= args.threshold:
                     if ida not in cross_rois_ids:
-                        structure_name = structures_names_a[structures_ids_a.index(ida)]
+                        structure_name = structures_names_a[
+                            structures_ids_a.index(ida)]
                         cross_rois_ids.append(ida)
                         cross_rois_names.append(structure_name)
 
@@ -663,7 +666,8 @@ def main():
         red_struct = unionizes_red_b[unionizes_red_b.structure_id == idb]
         green_struct = unionizes_green_b[unionizes_green_b.structure_id == idb]
         if args.blue:
-            blue_struct = unionizes_blue_b[unionizes_blue_b.structure_id == idb]
+            blue_struct = unionizes_blue_b[
+                unionizes_blue_b.structure_id == idb]
         # Iterating in each hemisphere
         for hid in hem_ids:
             red_hem = red_struct[red_struct.hemisphere_id == hid]
@@ -681,14 +685,16 @@ def main():
                    green_proj >= args.threshold and \
                    blue_proj >= args.threshold:
                     if idb not in cross_rois_ids:
-                        structure_name = structures_names_b[structures_ids_b.index(idb)]
+                        structure_name = structures_names_b[
+                            structures_ids_b.index(idb)]
                         cross_rois_ids.append(idb)
                         cross_rois_names.append(structure_name)
             else:
                 if red_proj >= args.threshold and \
                    green_proj >= args.threshold:
                     if idb not in cross_rois_ids:
-                        structure_name = structures_names_b[structures_ids_b.index(idb)]
+                        structure_name = structures_names_b[
+                            structures_ids_b.index(idb)]
                         cross_rois_ids.append(idb)
                         cross_rois_names.append(structure_name)
 
