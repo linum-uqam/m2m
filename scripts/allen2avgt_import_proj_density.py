@@ -246,8 +246,10 @@ def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
     moving = ants.from_numpy(allen_vol).resample_image((164, 212, 158), 1, 0)
 
     # Loading pre-calculated transformations (ANTsPyx registration)
-    transformations = [f'./utils/transformations_allen2avgt/allen2avgt_{args.res}.nii.gz',
-                       f'./utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat']
+    tx_nifti = './utils/transformations_allen2avgt/allen2avgt_{}.nii.gz'
+    tx_mat = './utils/transformations_allen2avgt/allen2avgtAffine_{}.mat'
+    transformations = [tx_nifti.format(args.res),
+                       tx_mat.format(args.res)]
 
     # Applying thoses transformations
     interp = 'nearestNeighbor'
