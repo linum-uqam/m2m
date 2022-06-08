@@ -53,7 +53,7 @@ def _build_arg_parser():
                         'to find experiments.\n'
                         'https://allensdk.readthedocs.io/en/latest/'
                         'allensdk.api.queries.mouse_connectivity_api.html')
-    p.add_argument('--threshold', type=float, default=0.30,
+    p.add_argument('--threshold', type=float, default=0.10,
                    help='Combined projection density threshold for finding '
                         'masks of crossing ROIs.\n'
                         'Threshold is 0.30 by default.\n'
@@ -175,13 +175,13 @@ def search_experiments(args, seed_point):
     ----------
     args: argparse namespace
         Argument list.
-    seed_point : list of int
+    seed_point: list of int
         Coordinate of the seed point
         in Allen reference space.
 
     Return
     ------
-    dic : Allen experiments founded.
+    dic: Allen experiments founded.
     """
     mcc = MouseConnectivityApi()
 
@@ -199,6 +199,25 @@ def search_experiments(args, seed_point):
 
 
 def get_experiment_id(experiments, index, color):
+    """
+    Retrieve an experiment id at a specific index in a list of 
+    Allen experiments found with `search_experiments`.\n
+    Notify if there is no experiments.
+
+    Parameters
+    ----------
+    experiments: dic
+        Allen experiments.
+    index: int
+        Index of the experiment needed.
+    color: string
+        Color of the experiment.
+        Used to notify if error.
+
+    Return
+    ------
+    id : Allen experiment id founded.
+    """
     try:
         id = experiments[index]['id']
     except (KeyError, TypeError):
@@ -216,7 +235,7 @@ def loc_injection_coordinates(id, allen_experiments):
     ----------
     id: long
         Allen experiment id.
-    experiments : dataframe
+    experiments: dataframe
         Allen Mouse Connectivity experiments
 
     Return
@@ -268,6 +287,8 @@ def get_mcc(args):
 
 
 def get_experiment_info(allen_experiments, id):
+    """
+    """
     roi = allen_experiments.loc[id]['structure-abbrev']
     loc = loc_injection_coordinates(id, allen_experiments)
 
