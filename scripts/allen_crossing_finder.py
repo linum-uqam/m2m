@@ -430,9 +430,9 @@ def main():
     green_vol, header = nrrd.read(nrrd_green)
     if args.blue:
         blue_vol, header = nrrd.read(nrrd_blue)
+        os.remove(nrrd_blue)
     os.remove(nrrd_red)
     os.remove(nrrd_green)
-    os.remove(nrrd_blue)
 
     # Transforming manually to RAS+
     red_vol = pretransform_PIR_to_RAS(red_vol)
@@ -443,7 +443,8 @@ def main():
     # Converting allen volume to float32
     red_vol = red_vol.astype(np.float32)
     green_vol = green_vol.astype(np.float32)
-    blue_vol = blue_vol.astype(np.float32)
+    if args.blue:
+        blue_vol = blue_vol.astype(np.float32)
 
     # Applying ANTsPyX registration
     warped_red = registrate_allen2avgt_ants(
