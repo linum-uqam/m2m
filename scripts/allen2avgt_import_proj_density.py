@@ -101,7 +101,8 @@ def get_mcc(args):
             os.remove(manifest_path)
 
     mcc = MouseConnectivityCache(manifest_file=manifest_path)
-    experiments = mcc.get_experiments(dataframe=True, file_name=experiments_path)
+    experiments = mcc.get_experiments(dataframe=True,
+                                      file_name=experiments_path)
 
     return pd.DataFrame(experiments)
 
@@ -316,7 +317,8 @@ def get_mib_coords(args, allen_experiments):
     list: MI-Brain coords
     """
     # Loading transform matrix
-    file_mat = f'./utils/transformations_allen2avgt/allen2avgtAffine_{args.res}.mat'
+    tx_mat = './utils/transformations_allen2avgt/allen2avgtAffine_{}.mat'
+    file_mat = tx_mat.format(args.res)
 
     # Defining invert transformation
     itx = ants.read_transform(file_mat).invert()
@@ -390,7 +392,8 @@ def main():
     # Creating and Saving MI-brain injection coordinates coords in json file
 
     # Configuring file name
-    coords_file = args.dir / f"{args.id}_{roi}_{loc}_inj_coords_{args.res}.json"
+    json_ = "{}_{}_{}_inj_coords_{}.json"
+    coords_file = args.dir / json_.format(args.id, roi, loc, args.res)
 
     # Verifying if file already exist
     check_file_exists(parser, args, coords_file)
@@ -416,10 +419,14 @@ def main():
     # Downloading and Saving the projection density map if --map was used
     if args.map:
         # Configuring files names
-        nrrd_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nrrd"
-        nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}.nii.gz"
+        nrrd_ = "{}_{}_{}_proj_density_{}.nrrd"
+        nifti_ = "{}_{}_{}_proj_density_{}.nii.gz"
+        smooth_ = "{}_{}_{}_proj_density_{}_bSpline.nii.gz"
+
+        nrrd_file = args.dir / nrrd_.format(args.id, roi, loc, args.res)
+        nifti_file = args.dir / nifti_.format(args.id, roi, loc, args.res)
         if args.smooth:
-            nifti_file = args.dir / f"{args.id}_{roi}_{loc}_proj_density_{args.res}_bSpline.nii.gz"
+            nifti_file = args.dir / smooth_.format(args.id, roi, loc, args.res)
 
         # Verifying if output already exist
         check_file_exists(parser, args, nifti_file)
@@ -457,7 +464,9 @@ def main():
     # Creating and Saving the spherical mask if --roi was used
     if args.roi:
         # Configuring file name
-        roi_file = args.dir / f"{args.id}_{roi}_{loc}_spherical_mask_{args.res}.nii.gz"
+        roi_ = "{}_{}_{}_spherical_mask_{}.nii.gz"
+
+        roi_file = args.dir / roi_.format(args.id, roi, loc, args.res)
 
         # Verifying if output already exist
         check_file_exists(parser, args, roi_file)
