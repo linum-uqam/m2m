@@ -659,7 +659,8 @@ def main():
     # Getting mouse brain structures ids and names
     structures = stree.get_structures_by_set_id([167587189])
     structures_ids = pd.DataFrame(structures).id.tolist()
-    structures_names = pd.DataFrame(structures).acronym.tolist()
+    structures_acronym = pd.DataFrame(structures).acronym.tolist()
+    structures_names = pd.DataFrame(structures).name.tolist()
 
     # Getting structures unionized
     unionizes_red = get_unionized_list(red_id, structures_ids)
@@ -669,8 +670,9 @@ def main():
 
     # Localising crossing regions
     hem_ids = [1, 2, 3]
-    cross_rois_ids = []
-    cross_rois_names = []
+    xrois_ids = []
+    xrois_acronyms = []
+    xrois_names = []
 
     for id in structures_ids:
         # Iterating in each structure
@@ -694,22 +696,25 @@ def main():
                 if red_proj >= args.threshold and \
                    green_proj >= args.threshold and \
                    blue_proj >= args.threshold:
-                    if id not in cross_rois_ids:
+                    if id not in xrois_ids:
                         structure_name = structures_names[
                             structures_ids.index(id)]
-                        cross_rois_ids.append(id)
-                        cross_rois_names.append(structure_name)
+                        xrois_ids.append(id)
+                        xrois_names.append(structure_name)
             else:
                 if red_proj >= args.threshold and \
                    green_proj >= args.threshold:
-                    if id not in cross_rois_ids:
+                    if id not in xrois_ids:
                         structure_name = structures_names[
                             structures_ids.index(id)]
-                        cross_rois_ids.append(id)
-                        cross_rois_names.append(structure_name)
+                        structure_acronym = structures_acronym[
+                            structures_ids.index(id)]
+                        xrois_ids.append(id)
+                        xrois_names.append(structure_name)
+                        xrois_acronyms.append(structure_acronym)
 
     # Verifying if x-rois were found
-    if len(cross_rois_names) == 0:
+    if len(xrois_names) == 0:
         sys.exit("No crossing-ROIs founded ...\n"
                  "Please try a lower threshold or "
                  "select others coordinates.")
@@ -722,7 +727,9 @@ def main():
             json_ = "{}_{}_{}_x-rois.json"
             xrois_json = subdir / json_.format(red_id, green_id, blue_id)
 
-        xrois = dict(zip(cross_rois_names, cross_rois_ids))
+        xrois = dict((z[0], list(z[1:])) for z in zip(xrois_acronyms,
+                                                      xrois_names,
+                                                      xrois_ids))
 
         exps_ids = [red_id,  green_id]
         exps_locs = [rloc, gloc]
@@ -748,7 +755,7 @@ def main():
         bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
         mask_combined = np.zeros(bbox_allen)
 
-        for structure_id in cross_rois_ids:
+        for structure_id in xrois_ids:
             # Creating temporary file
             mask_nrrd = subdir / f"{structure_id}_mask.nrrd"
             # Downloading structure mask
@@ -778,12 +785,9 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Save the Nifti mask
-        mask_ = "{}_{}_x-rois_mask.nii_{}.gz"
-        xrois_nifti = subdir / mask_.format(red_id, green_id, args.res)
+        xrois_nifti = subdir / f"{red_id}_{green_id}_x-rois_mask.nii_{args.res}.gz"
         if args.blue:
-            mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
-            xrois_nifti = subdir / mask_.format(
-                red_id, green_id, blue_id, args.res)
+            xrois_nifti = subdir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask_{args.res}.nii.gz"
         check_file_exists(parser, args, xrois_nifti)
 
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
