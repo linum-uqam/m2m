@@ -228,16 +228,16 @@ def search_experiments(args, seed_point):
     ------
     dic: Allen experiments founded.
     """
-    mcc = MouseConnectivityApi()
+    mca = MouseConnectivityApi()
 
     # Injection coordinate search
     if args.injection:
-        exps = mcc.experiment_injection_coordinate_search(
+        exps = mca.experiment_injection_coordinate_search(
             seed_point=seed_point)
 
     # Spatial search
     if args.spatial:
-        exps = mcc.experiment_spatial_search(
+        exps = mca.experiment_spatial_search(
             seed_point=seed_point)
 
     return exps
