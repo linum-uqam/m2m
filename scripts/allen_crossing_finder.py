@@ -786,10 +786,11 @@ def main():
 
         # Save the Nifti mask
         mask_ = "{}_{}_x-rois_mask_{}.nii.gz"
-        xrois_nifti = subdir / mask_
+        xrois_nifti = subdir / mask_.format(red_id, green_id, args.res)
         if args.blue:
             mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
-            xrois_nifti = subdir / mask_
+            xrois_nifti = subdir / mask_.format(
+                red_id, green_id, blue_id, args.res)
         check_file_exists(parser, args, xrois_nifti)
 
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
