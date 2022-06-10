@@ -472,10 +472,12 @@ def main():
 
     # Downloading aligning and saving projection density volumes
     # Preparing subdir
-    subdir = Path(args.dir / f"{red_id}_{green_id}_crossing")
+    subdir_path = f"{red_id}_{green_id}_crossing_{args.res}"
+    subdir = Path(args.dir / subdir_path)
     subdir.mkdir(exist_ok=True, parents=True)
     if args.blue:
-        subdir = Path(args.dir / f"{red_id}_{green_id}_{blue_id}_crossing")
+        subdir_path = f"{red_id}_{green_id}_{blue_id}_crossing_{args.res}"
+        subdir = Path(args.dir / subdir_path)
         subdir.mkdir(exist_ok=True, parents=True)
 
     # Preparing files names
