@@ -417,6 +417,38 @@ def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
     return warped_moving.numpy()
 
 
+def get_unionized_list(exp_id, struct_ids):
+    # Diving mouse brain structures ids 
+    # into 2 arrays (for API call purposes)
+    struct_ids_a = struct_ids[0:len(struct_ids)//2]
+    struct_ids_b = struct_ids[len(struct_ids)//2:len(struct_ids)]
+
+    # Getting structures unionized
+    mca = MouseConnectivityApi()
+    unionizes_a = mca.get_structure_unionizes(
+        experiment_ids=[exp_id],
+        is_injection=False,
+        structure_ids=struct_ids_a)
+    unionizes_b = mca.get_structure_unionizes(
+        experiment_ids=[exp_id],
+        is_injection=False,
+        structure_ids=struct_ids_b)    
+
+    # Creating dataframes
+    unionizes_a = pd.DataFrame(unionizes_a)[
+        ['hemisphere_id',
+         'structure_id',
+         'projection_density']]
+    unionizes_b = pd.DataFrame(unionizes_b)[
+        ['hemisphere_id',
+         'structure_id',
+         'projection_density']]
+
+    # Returning concat dataframe
+    fnames = [unionizes_a, unionizes_b]
+    return pd.concat(fnames)
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -609,83 +641,27 @@ def main():
     # Searching crossing regions
 
     # Getting mouse brain structures ids and names
-    # and diving it into 2 arrays (for API call purposes)
     structures = stree.get_structures_by_set_id([167587189])
-
     structures_ids = pd.DataFrame(structures).id.tolist()
-    structures_ids_a = structures_ids[0:len(structures)//2]
-    structures_ids_b = structures_ids[len(structures)//2:len(structures)]
-
     structures_names = pd.DataFrame(structures).acronym.tolist()
-    structures_names_a = structures_names[0:len(structures)//2]
-    structures_names_b = structures_names[len(structures)//2:len(structures)]
 
     # Getting structures unionized
-    unionizes_red_a = mca.get_structure_unionizes(
-        experiment_ids=[red_id],
-        is_injection=False,
-        structure_ids=structures_ids_a)
-    unionizes_red_b = mca.get_structure_unionizes(
-        experiment_ids=[red_id],
-        is_injection=False,
-        structure_ids=structures_ids_b)
-    unionizes_green_a = mca.get_structure_unionizes(
-        experiment_ids=[green_id],
-        is_injection=False,
-        structure_ids=structures_ids_a)
-    unionizes_green_b = mca.get_structure_unionizes(
-        experiment_ids=[green_id],
-        is_injection=False,
-        structure_ids=structures_ids_b)
+    unionizes_red = get_unionized_list(red_id, structures_ids)
+    unionizes_green = get_unionized_list(green_id, structures_ids)
     if args.blue:
-        unionizes_blue_a = mca.get_structure_unionizes(
-            experiment_ids=[blue_id],
-            is_injection=False,
-            structure_ids=structures_ids_a)
-        unionizes_blue_b = mca.get_structure_unionizes(
-            experiment_ids=[blue_id],
-            is_injection=False,
-            structure_ids=structures_ids_b)
-
-    # Creating dataframes
-    unionizes_red_a = pd.DataFrame(unionizes_red_a)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_red_b = pd.DataFrame(unionizes_red_b)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_green_a = pd.DataFrame(unionizes_green_a)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_green_b = pd.DataFrame(unionizes_green_b)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    if args.blue:
-        unionizes_blue_a = pd.DataFrame(unionizes_blue_a)[
-            ['hemisphere_id',
-             'structure_id',
-             'projection_density']]
-        unionizes_blue_b = pd.DataFrame(unionizes_blue_b)[
-            ['hemisphere_id',
-             'structure_id',
-             'projection_density']]
+        unionizes_blue = get_unionized_list(blue_id, structures_ids)
 
     # Localising crossing regions
     hem_ids = [1, 2, 3]
     cross_rois_ids = []
     cross_rois_names = []
 
-    for ida in structures_ids_a:
+    for id in structures_ids:
         # Iterating in each structure
-        red_struct = unionizes_red_a[unionizes_red_a.structure_id == ida]
-        green_struct = unionizes_green_a[unionizes_green_a.structure_id == ida]
+        red_struct = unionizes_red[unionizes_red.structure_id == id]
+        green_struct = unionizes_green[unionizes_green.structure_id == id]
         if args.blue:
-            blue_struct = unionizes_blue_a[
-                unionizes_blue_a.structure_id == ida]
+            blue_struct = unionizes_blue[unionizes_blue.structure_id == id]
         # Iterating in each hemisphere
         for hid in hem_ids:
             red_hem = red_struct[red_struct.hemisphere_id == hid]
@@ -702,55 +678,18 @@ def main():
                 if red_proj >= args.threshold and \
                    green_proj >= args.threshold and \
                    blue_proj >= args.threshold:
-                    if ida not in cross_rois_ids:
-                        structure_name = structures_names_a[
-                            structures_ids_a.index(ida)]
-                        cross_rois_ids.append(ida)
+                    if id not in cross_rois_ids:
+                        structure_name = structures_names[
+                            structures_ids.index(id)]
+                        cross_rois_ids.append(id)
                         cross_rois_names.append(structure_name)
             else:
                 if red_proj >= args.threshold and \
                    green_proj >= args.threshold:
-                    if ida not in cross_rois_ids:
-                        structure_name = structures_names_a[
-                            structures_ids_a.index(ida)]
-                        cross_rois_ids.append(ida)
-                        cross_rois_names.append(structure_name)
-
-    for idb in structures_ids_b:
-        # Iterating in each structure
-        red_struct = unionizes_red_b[unionizes_red_b.structure_id == idb]
-        green_struct = unionizes_green_b[unionizes_green_b.structure_id == idb]
-        if args.blue:
-            blue_struct = unionizes_blue_b[
-                unionizes_blue_b.structure_id == idb]
-        # Iterating in each hemisphere
-        for hid in hem_ids:
-            red_hem = red_struct[red_struct.hemisphere_id == hid]
-            green_hem = green_struct[green_struct.hemisphere_id == hid]
-            if args.blue:
-                blue_hem = blue_struct[blue_struct.hemisphere_id == hid]
-            # Getting projection density value
-            red_proj = red_hem.projection_density.tolist()[0]
-            green_proj = green_hem.projection_density.tolist()[0]
-            if args.blue:
-                blue_proj = blue_hem.projection_density.tolist()[0]
-            # Saving crossing rois
-            if args.blue:
-                if red_proj >= args.threshold and \
-                   green_proj >= args.threshold and \
-                   blue_proj >= args.threshold:
-                    if idb not in cross_rois_ids:
-                        structure_name = structures_names_b[
-                            structures_ids_b.index(idb)]
-                        cross_rois_ids.append(idb)
-                        cross_rois_names.append(structure_name)
-            else:
-                if red_proj >= args.threshold and \
-                   green_proj >= args.threshold:
-                    if idb not in cross_rois_ids:
-                        structure_name = structures_names_b[
-                            structures_ids_b.index(idb)]
-                        cross_rois_ids.append(idb)
+                    if id not in cross_rois_ids:
+                        structure_name = structures_names[
+                            structures_ids.index(id)]
+                        cross_rois_ids.append(id)
                         cross_rois_names.append(structure_name)
 
     # Verifying if x-rois were found
