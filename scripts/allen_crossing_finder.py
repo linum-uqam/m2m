@@ -785,9 +785,11 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Save the Nifti mask
-        xrois_nifti = subdir / f"{red_id}_{green_id}_x-rois_mask.nii_{args.res}.gz"
+        mask_ = "{}_{}_x-rois_mask_{}.nii.gz"
+        xrois_nifti = subdir / mask_
         if args.blue:
-            xrois_nifti = subdir / f"{red_id}_{green_id}_{blue_id}_x-rois_mask_{args.res}.nii.gz"
+            mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
+            xrois_nifti = subdir / mask_
         check_file_exists(parser, args, xrois_nifti)
 
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
