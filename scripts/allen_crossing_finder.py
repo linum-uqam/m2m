@@ -756,7 +756,7 @@ def main():
     # Verifying if x-rois were found
     if len(cross_rois_names) == 0:
         sys.exit("No crossing-ROIs founded ...\n"
-                 "Please try to lower the threshold or "
+                 "Please try a lower threshold or "
                  "select others coordinates.")
     else:
         # Creating and saving crossing ROI masks and json
