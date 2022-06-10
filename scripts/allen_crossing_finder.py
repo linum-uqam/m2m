@@ -418,7 +418,7 @@ def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
 
 
 def get_unionized_list(exp_id, struct_ids):
-    # Diving mouse brain structures ids 
+    # Diving mouse brain structures ids
     # into 2 arrays (for API call purposes)
     struct_ids_a = struct_ids[0:len(struct_ids)//2]
     struct_ids_b = struct_ids[len(struct_ids)//2:len(struct_ids)]
@@ -432,7 +432,7 @@ def get_unionized_list(exp_id, struct_ids):
     unionizes_b = mca.get_structure_unionizes(
         experiment_ids=[exp_id],
         is_injection=False,
-        structure_ids=struct_ids_b)    
+        structure_ids=struct_ids_b)
 
     # Creating dataframes
     unionizes_a = pd.DataFrame(unionizes_a)[
@@ -700,12 +700,11 @@ def main():
     else:
         # Creating and saving crossing ROI masks and json
         # Preparing and saving json file
-        json_rg = "{}_{}_x-rois.json"
-        json_rgb = "{}_{}_{}_x-rois.json"
-
-        xrois_json = subdir / json_rg.format(red_id, green_id)
+        json_ = "{}_{}_x-rois.json"
+        xrois_json = subdir / json_.format(red_id, green_id)
         if args.blue:
-            xrois_json = subdir / json_rgb.format(red_id, green_id, blue_id)
+            json_ = "{}_{}_{}_x-rois.json"
+            xrois_json = subdir / json_.format(red_id, green_id, blue_id)
 
         xrois = dict(zip(cross_rois_names, cross_rois_ids))
 
@@ -763,12 +762,12 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Save the Nifti mask
-        mask_rg = "{}_{}_x-rois_mask.nii.gz"
-        mask_rgb = "{}_{}_{}_x-rois_mask.nii.gz"
-
-        xrois_nifti = subdir / mask_rg.format(red_id, green_id)
+        mask_ = "{}_{}_x-rois_mask.nii_{}.gz"
+        xrois_nifti = subdir / mask_.format(red_id, green_id, args.res)
         if args.blue:
-            xrois_nifti = subdir / mask_rgb.format(red_id, green_id, blue_id)
+            mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
+            xrois_nifti = subdir / mask_.format(
+                red_id, green_id, blue_id, args.res)
         check_file_exists(parser, args, xrois_nifti)
 
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
