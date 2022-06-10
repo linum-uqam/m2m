@@ -418,6 +418,22 @@ def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
 
 
 def get_unionized_list(exp_id, struct_ids):
+    """
+    Get the unionized structures
+    of an Allen experiment.
+
+    Parameters
+    ----------
+    exp_id: long
+        Id of Allen experiment.
+    struct_ids: list
+        Ids of structures in Allen
+        Mouse Brain Atlas.
+
+    Returns
+    -------
+    dataframe: Unionized structures.
+    """
     # Diving mouse brain structures ids
     # into 2 arrays (for API call purposes)
     struct_ids_a = struct_ids[0:len(struct_ids)//2]
