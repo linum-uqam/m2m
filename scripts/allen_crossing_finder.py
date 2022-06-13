@@ -518,7 +518,7 @@ def get_structure_parents_infos(structure_id):
     # Retrieving parents ids and names path
     parents_ids_path = df_tree.structure_id_path[len(df_tree)-1]
     parents = df_tree.safe_name[0:len(df_tree)].tolist()
-    parents_names_path = "\n-".join(map(str, parents))
+    parents_names_path = " / ".join(map(str, parents))
 
     return parents_ids_path, parents_names_path
 
