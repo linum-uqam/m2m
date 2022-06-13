@@ -516,13 +516,13 @@ def main():
     avgt_affine = nib.load(avgt_file).affine
     avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
 
-    # Getting allen coords
+    # Getting Allen coords
     allen_red_coords = get_allen_coords(args.red)
     allen_green_coords = get_allen_coords(args.green)
     if args.blue:
         allen_blue_coords = get_allen_coords(args.blue)
 
-    # Getting Allen experiments
+    # Searching Allen experiments
     red_exps = search_experiments(args, allen_red_coords)
     green_exps = search_experiments(args, allen_green_coords)
     if args.blue:
@@ -546,8 +546,8 @@ def main():
             if red_id == blue_id:
                 blue_id = get_experiment_id(blue_exps, 2, "blue")
 
-    # Downloading aligning and saving projection density volumes
-    # Preparing subdir
+    # Preparing files names
+    # Creating subdir
     subdir_path = f"{red_id}_{green_id}_crossing_{args.res}"
     subdir = Path(args.dir / subdir_path)
     subdir.mkdir(exist_ok=True, parents=True)
@@ -556,12 +556,13 @@ def main():
         subdir = Path(args.dir / subdir_path)
         subdir.mkdir(exist_ok=True, parents=True)
 
-    # Preparing files names
+    # Retrieving experiment informations
     rroi, rloc = get_experiment_info(allen_experiments, red_id)
     groi, gloc = get_experiment_info(allen_experiments, green_id)
     if args.blue:
         broi, bloc = get_experiment_info(allen_experiments, blue_id)
 
+    # Projection density maps Niftis and Nrrd files
     nrrd_ = "{}_{}_{}_proj_density_{}.nrrd"
     nifti_ = "{}_{}_{}_proj_density_{}.nii.gz"
 
@@ -578,7 +579,33 @@ def main():
         nifti_blue = subdir / nifti_.format(blue_id, broi, bloc, args.res)
         check_file_exists(parser, args, nifti_blue)
 
-    # Downloading maps
+    # RGB volume Nifti file
+    rg = "r-{}_g-{}_proj_density_{}.nii.gz"
+    rgb = "r-{}_g-{}_b-{}_proj_density_{}.nii.gz"
+
+    nifti_rgb = subdir / rg.format(red_id, green_id, args.res)
+    if args.blue:
+        nifti_rgb = subdir / rgb.format(red_id, green_id, blue_id, args.res)
+    check_file_exists(parser, args, nifti_rgb)
+
+    # X-ROIs mask Nifti file
+    mask_ = "{}_{}_x-rois_mask_{}.nii.gz"
+    xrois_nifti = subdir / mask_.format(red_id, green_id, args.res)
+    if args.blue:
+        mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
+        xrois_nifti = subdir / mask_.format(
+            red_id, green_id, blue_id, args.res)
+    check_file_exists(parser, args, xrois_nifti)
+
+    # X-ROIs json file
+    json_ = "{}_{}_x-rois.json"
+    xrois_json = subdir / json_.format(red_id, green_id)
+    if args.blue:
+        json_ = "{}_{}_{}_x-rois.json"
+        xrois_json = subdir / json_.format(red_id, green_id, blue_id)
+    check_file_exists(parser, args, xrois_json)
+
+    # Downloading projetion density maps
     mca.download_projection_density(
         nrrd_red,
         experiment_id=red_id,
@@ -595,7 +622,7 @@ def main():
             experiment_id=blue_id,
             resolution=args.res)
 
-    # Getting allen volume and deleting nrrd tmp file
+    # Getting Allen volumes and deleting nrrd tmps files
     red_vol, header = nrrd.read(nrrd_red)
     green_vol, header = nrrd.read(nrrd_green)
     if args.blue:
@@ -610,7 +637,7 @@ def main():
     if args.blue:
         blue_vol = pretransform_PIR_to_RAS(blue_vol)
 
-    # Converting allen volume to float32
+    # Converting Allen volumes to float32
     red_vol = red_vol.astype(np.float32)
     green_vol = green_vol.astype(np.float32)
     if args.blue:
@@ -633,7 +660,7 @@ def main():
             allen_vol=blue_vol,
             avgt_vol=avgt_vol)
 
-    # Creating and Saving Nifti volumes
+    # Saving Niftis files
     red_img = nib.Nifti1Image(warped_red, avgt_affine)
     nib.save(red_img, nifti_red)
 
@@ -644,18 +671,11 @@ def main():
         blue_img = nib.Nifti1Image(warped_blue, avgt_affine)
         nib.save(blue_img, nifti_blue)
 
-    # Creating and saving RGB volume
-    rg = "r-{}_g-{}_proj_density_{}.nii.gz"
-    rgb = "r-{}_g-{}_b-{}_proj_density_{}.nii.gz"
-
-    nifti_rgb = subdir / rg.format(red_id, green_id, args.res)
-    if args.blue:
-        nifti_rgb = subdir / rgb.format(red_id, green_id, blue_id, args.res)
-    check_file_exists(parser, args, nifti_rgb)
-
+    # Creating RBGA volume (combining maps)
     rgb_vol = np.zeros((164, 212, 158, 1, 1),
                        [('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')])
 
+    # Filling the volume with RBG values
     for i in range(164):
         for j in range(212):
             for k in range(158):
@@ -679,12 +699,12 @@ def main():
                                             0,
                                             255)
 
+    # Saving Nifti
     rgb_img = nib.Nifti1Image(rgb_vol, avgt_affine)
     nib.save(rgb_img, nifti_rgb)
 
-    # Searching crossing regions
-
-    # Getting mouse brain structures ids and names
+    # Getting Mouse Brain structures ids and names
+    # in structure set id "Mouse Connectivity - Target Search"
     structures = stree.get_structures_by_set_id([184527634])
     structures_ids = pd.DataFrame(structures).id.tolist()
     structures_acronym = pd.DataFrame(structures).acronym.tolist()
@@ -696,7 +716,7 @@ def main():
     if args.blue:
         unionizes_blue = get_unionized_list(blue_id, structures_ids)
 
-    # Localising crossing regions
+    # Searching crossing regions
     hem_ids = [1, 2, 3]
     xrois_ids = []
     xrois_acronyms = []
@@ -747,14 +767,7 @@ def main():
                  "Please try a lower threshold or "
                  "select others coordinates.")
     else:
-        # Creating and saving crossing ROI masks and json
-        # Preparing and saving json file
-        json_ = "{}_{}_x-rois.json"
-        xrois_json = subdir / json_.format(red_id, green_id)
-        if args.blue:
-            json_ = "{}_{}_{}_x-rois.json"
-            xrois_json = subdir / json_.format(red_id, green_id, blue_id)
-
+        # Configuring X-ROIs json file
         xrois = dict((z[0], list(z[1:])) for z in zip(xrois_acronyms,
                                                       xrois_names,
                                                       xrois_ids))
@@ -776,8 +789,8 @@ def main():
         with open(xrois_json, "w") as outfile:
             outfile.write(json_object)
 
-        # Downloading each masks
-        # then merging them into one mask
+        # Downloading each ROIs masks
+        # then merging them into one X-ROIs mask
         rsa = ReferenceSpaceApi()
 
         bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
@@ -798,7 +811,7 @@ def main():
             mask_combined += mask
             os.remove(mask_nrrd)
 
-        # Converting merged mask to RAS+
+        # Converting X-ROIs mask to RAS+
         mask_combined = pretransform_PIR_to_RAS(mask_combined)
 
         # Applying ANTsPy registration
@@ -812,15 +825,7 @@ def main():
         warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
         warped_mask_combined[warped_mask_combined > 1] = 1
 
-        # Save the Nifti mask
-        mask_ = "{}_{}_x-rois_mask_{}.nii.gz"
-        xrois_nifti = subdir / mask_.format(red_id, green_id, args.res)
-        if args.blue:
-            mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
-            xrois_nifti = subdir / mask_.format(
-                red_id, green_id, blue_id, args.res)
-        check_file_exists(parser, args, xrois_nifti)
-
+        # Saving Nifti file
         msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
         nib.save(msk, xrois_nifti)
 
