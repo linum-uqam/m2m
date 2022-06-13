@@ -59,6 +59,7 @@ import pandas as pd
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
+from allensdk.api.queries.tree_search_api import TreeSearchApi
 
 import nibabel as nib
 import nrrd
@@ -493,6 +494,23 @@ def get_unionized_list(exp_id, struct_ids):
     return pd.concat(fnames)
 
 
+def get_structure_parents_infos(structure_id):
+    """
+    """
+    # Getting ancestor tree of the structure
+    tsa = TreeSearchApi()
+    tree = tsa.get_tree(kind='Structure', db_id=structure_id,
+                        ancestors=True)
+    df_tree = pd.DataFrame(tree)
+
+    # Retrieving parents ids and names path
+    parents_ids_path = df_tree.structure_id_path[len(df_tree)-1]
+    parents = df_tree.safe_name[0:len(df_tree)].tolist()
+    parents_names_path = "\n\_".join(map(str, parents))
+
+    return parents_ids_path, parents_names_path
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -768,18 +786,26 @@ def main():
                  "select others coordinates.")
     else:
         # Configuring X-ROIs json file
+        parents_ids_paths = []
+        parents_names_paths = []
+        for id in xrois_ids:
+            parents_ids_path = get_structure_parents_infos(id)[0]
+            parents_ids_paths.append(parents_ids_path)
+            parents_names_path = get_structure_parents_infos(id)[1]
+            parents_names_paths.append(parents_names_path)
+
         xrois = []
         for i in range(len(xrois_ids)):
             roi = {
                 "acronym": xrois_acronyms[i],
                 "name": xrois_names[i],
-                "parents": "",
+                "parents_names": parents_names_paths[i],
+                "parents_ids": parents_ids_paths[i],
                 "id": xrois_ids[i]
             }
             xrois.append(roi) 
 
         exps_infos = []
-
         exps_ids = [red_id,  green_id]
         exps_locs = [rloc, gloc]
         exps_rois = [rroi, groi]
