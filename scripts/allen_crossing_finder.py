@@ -496,6 +496,18 @@ def get_unionized_list(exp_id, struct_ids):
 
 def get_structure_parents_infos(structure_id):
     """
+    Get the path of ids and names of the
+    parents of a Allen Mouse Brain Atlas structure.
+
+    Parameters
+    ----------
+    structure_id: long
+        Allen Mouse Brain Atlas structure id.
+
+    Returns
+    -------
+    string: Path of parents ids's
+    string: Path of parents names's
     """
     # Getting ancestor tree of the structure
     tsa = TreeSearchApi()
