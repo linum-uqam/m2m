@@ -768,9 +768,17 @@ def main():
                  "select others coordinates.")
     else:
         # Configuring X-ROIs json file
-        xrois = dict((z[0], list(z[1:])) for z in zip(xrois_acronyms,
-                                                      xrois_names,
-                                                      xrois_ids))
+        xrois = []
+        for i in range(len(xrois_ids)):
+            roi = {
+                "acronym": xrois_acronyms[i],
+                "name": xrois_names[i],
+                "parents": "",
+                "id": xrois_ids[i]
+            }
+            xrois.append(roi) 
+
+        exps_infos = []
 
         exps_ids = [red_id,  green_id]
         exps_locs = [rloc, gloc]
@@ -778,10 +786,15 @@ def main():
         if args.blue:
             exps_ids.append(blue_id)
             exps_locs.append(bloc)
-            exps_rois.append(broi)
-        exps_infos = dict((z[0], list(z[1:])) for z in zip(exps_ids,
-                                                           exps_rois,
-                                                           exps_locs))
+            exps_rois.append(broi)  
+
+        for i in range(len(exps_ids)):
+            exp = {
+                "id": exps_ids[i],
+                "region": exps_rois[i],
+                "location": exps_locs[i]
+            }
+            exps_infos.append(exp)
 
         dic = {"experiments": exps_infos, "x-rois": xrois}
 
