@@ -435,9 +435,12 @@ def get_unionized_list(exp_id, struct_ids):
     dataframe: Unionized structures.
     """
     # Diving mouse brain structures ids
-    # into 2 arrays (for API call purposes)
-    struct_ids_a = struct_ids[0:len(struct_ids)//2]
-    struct_ids_b = struct_ids[len(struct_ids)//2:len(struct_ids)]
+    # into 5 arrays (for API call purposes)
+    struct_ids_a = struct_ids[0:len(struct_ids)//5]
+    struct_ids_b = struct_ids[len(struct_ids)//5:len(struct_ids)*2//5]
+    struct_ids_c = struct_ids[len(struct_ids)*2//5:len(struct_ids)*3//5]
+    struct_ids_d = struct_ids[len(struct_ids)*3//5:len(struct_ids)*4//5]
+    struct_ids_e = struct_ids[len(struct_ids)*4//5:len(struct_ids)]
 
     # Getting structures unionized
     mca = MouseConnectivityApi()
@@ -449,6 +452,18 @@ def get_unionized_list(exp_id, struct_ids):
         experiment_ids=[exp_id],
         is_injection=False,
         structure_ids=struct_ids_b)
+    unionizes_c = mca.get_structure_unionizes(
+        experiment_ids=[exp_id],
+        is_injection=False,
+        structure_ids=struct_ids_c)
+    unionizes_d = mca.get_structure_unionizes(
+        experiment_ids=[exp_id],
+        is_injection=False,
+        structure_ids=struct_ids_d)
+    unionizes_e = mca.get_structure_unionizes(
+        experiment_ids=[exp_id],
+        is_injection=False,
+        structure_ids=struct_ids_e)
 
     # Creating dataframes
     unionizes_a = pd.DataFrame(unionizes_a)[
@@ -459,9 +474,22 @@ def get_unionized_list(exp_id, struct_ids):
         ['hemisphere_id',
          'structure_id',
          'projection_density']]
+    unionizes_c = pd.DataFrame(unionizes_c)[
+        ['hemisphere_id',
+         'structure_id',
+         'projection_density']]
+    unionizes_d = pd.DataFrame(unionizes_d)[
+        ['hemisphere_id',
+         'structure_id',
+         'projection_density']]
+    unionizes_e = pd.DataFrame(unionizes_e)[
+        ['hemisphere_id',
+         'structure_id',
+         'projection_density']]
 
     # Returning concat dataframe
-    fnames = [unionizes_a, unionizes_b]
+    fnames = [unionizes_a, unionizes_b, unionizes_c,
+              unionizes_d, unionizes_e]
     return pd.concat(fnames)
 
 
@@ -657,7 +685,7 @@ def main():
     # Searching crossing regions
 
     # Getting mouse brain structures ids and names
-    structures = stree.get_structures_by_set_id([167587189])
+    structures = stree.get_structures_by_set_id([184527634])
     structures_ids = pd.DataFrame(structures).id.tolist()
     structures_acronym = pd.DataFrame(structures).acronym.tolist()
     structures_names = pd.DataFrame(structures).name.tolist()
@@ -674,7 +702,7 @@ def main():
     xrois_acronyms = []
     xrois_names = []
 
-    for id in structures_ids:
+    for id in unionizes_red.structure_id.tolist():
         # Iterating in each structure
         red_struct = unionizes_red[unionizes_red.structure_id == id]
         green_struct = unionizes_green[unionizes_green.structure_id == id]
