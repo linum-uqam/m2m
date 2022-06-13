@@ -518,7 +518,7 @@ def get_structure_parents_infos(structure_id):
     # Retrieving parents ids and names path
     parents_ids_path = df_tree.structure_id_path[len(df_tree)-1]
     parents = df_tree.safe_name[0:len(df_tree)].tolist()
-    parents_names_path = "\n\_".join(map(str, parents))
+    parents_names_path = "\n-".join(map(str, parents))
 
     return parents_ids_path, parents_names_path
 
@@ -578,13 +578,11 @@ def main():
 
     # Preparing files names
     # Creating subdir
-    subdir_path = f"{red_id}_{green_id}_crossing_{args.res}"
-    subdir = Path(args.dir / subdir_path)
-    subdir.mkdir(exist_ok=True, parents=True)
+    subdir_ = f"{red_id}_{green_id}_{args.res}_{args.threshold}"
     if args.blue:
-        subdir_path = f"{red_id}_{green_id}_{blue_id}_crossing_{args.res}"
-        subdir = Path(args.dir / subdir_path)
-        subdir.mkdir(exist_ok=True, parents=True)
+        subdir_ = f"{red_id}_{green_id}_{blue_id}_{args.res}_{args.threshold}"
+    subdir = Path(args.dir / subdir_)
+    subdir.mkdir(exist_ok=True, parents=True)
 
     # Retrieving experiment informations
     rroi, rloc = get_experiment_info(allen_experiments, red_id)
@@ -619,20 +617,22 @@ def main():
     check_file_exists(parser, args, nifti_rgb)
 
     # X-ROIs mask Nifti file
-    mask_ = "{}_{}_x-rois_mask_{}.nii.gz"
-    xrois_nifti = subdir / mask_.format(red_id, green_id, args.res)
+    mask_ = "{}_{}_x-rois_mask_{}_{}.nii.gz"
+    xrois_nifti = subdir / mask_.format(
+        red_id, green_id, args.res, args.threshold)
     if args.blue:
-        mask_ = "{}_{}_{}_x-rois_mask_{}.nii.gz"
+        mask_ = "{}_{}_{}_x-rois_mask_{}_{}.nii.gz"
         xrois_nifti = subdir / mask_.format(
-            red_id, green_id, blue_id, args.res)
+            red_id, green_id, blue_id, args.res, args.threshold)
     check_file_exists(parser, args, xrois_nifti)
 
     # X-ROIs json file
-    json_ = "{}_{}_x-rois.json"
-    xrois_json = subdir / json_.format(red_id, green_id)
+    json_ = "{}_{}_x-rois_{}.json"
+    xrois_json = subdir / json_.format(red_id, green_id, args.threshold)
     if args.blue:
-        json_ = "{}_{}_{}_x-rois.json"
-        xrois_json = subdir / json_.format(red_id, green_id, blue_id)
+        json_ = "{}_{}_{}_x-rois_{}.json"
+        xrois_json = subdir / json_.format(red_id, green_id, blue_id,
+                                           args.threshold)
     check_file_exists(parser, args, xrois_json)
 
     # Downloading projetion density maps
@@ -815,7 +815,7 @@ def main():
                 "parents_ids": parents_ids_paths[i],
                 "id": xrois_ids[i]
             }
-            xrois.append(roi) 
+            xrois.append(roi)
 
         exps_infos = []
         exps_ids = [red_id,  green_id]
@@ -824,7 +824,7 @@ def main():
         if args.blue:
             exps_ids.append(blue_id)
             exps_locs.append(bloc)
-            exps_rois.append(broi)  
+            exps_rois.append(broi)
 
         for i in range(len(exps_ids)):
             exp = {
