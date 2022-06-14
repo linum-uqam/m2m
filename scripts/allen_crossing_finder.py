@@ -770,18 +770,29 @@ def main():
             if args.blue:
                 blue_proj = blue_hem.projection_density.tolist()[0]
             # Saving crossing rois
+            if red_proj >= args.threshold and \
+               green_proj >= args.threshold:
+                if id not in xrois_ids:
+                    structure_name = structures_names[
+                        structures_ids.index(id)]
+                    structure_acronym = structures_acronym[
+                        structures_ids.index(id)]
+                    xrois_ids.append(id)
+                    xrois_names.append(structure_name)
+                    xrois_acronyms.append(structure_acronym)
             if args.blue:
-                if red_proj >= args.threshold and \
-                   green_proj >= args.threshold and \
-                   blue_proj >= args.threshold:
+                if blue_proj >= args.threshold and \
+                   green_proj >= args.threshold:
                     if id not in xrois_ids:
                         structure_name = structures_names[
                             structures_ids.index(id)]
+                        structure_acronym = structures_acronym[
+                            structures_ids.index(id)]
                         xrois_ids.append(id)
                         xrois_names.append(structure_name)
-            else:
-                if red_proj >= args.threshold and \
-                   green_proj >= args.threshold:
+                        xrois_acronyms.append(structure_acronym)
+                if blue_proj >= args.threshold and \
+                   red_proj >= args.threshold:
                     if id not in xrois_ids:
                         structure_name = structures_names[
                             structures_ids.index(id)]
