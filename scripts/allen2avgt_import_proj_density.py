@@ -74,30 +74,6 @@ def _build_arg_parser():
     return p
 
 
-def check_id(parser, args, allen_experiments):
-    """
-    Verify if the experiment id is part of the
-    Allen Mouse Brain Connectivity Atlas.
-
-    Read all experiments ids from the Allen Mouse Brain Connectivity Cache.\n
-    Download the Cache files if does not exist or --cache used.
-
-    Parameters
-    ----------
-    parser: argparse.ArgumentParser object
-        Parser.
-    args: argparse namespace
-        Argument list.
-    experiments : dataframe
-        Allen Mouse Connectivity experiments.
-    """
-    ids = allen_experiments.id
-
-    if args.id not in ids:
-        parser.error("This experiment id doesn't exist. \n"
-                     "Please check : https://connectivity.brain-map.org/")
-
-
 def check_args(parser, args):
     """
     Verify that the arguments are called the right way
@@ -130,7 +106,11 @@ def main():
     check_args(parser, args)
 
     # Verifying experiment id
-    check_id(parser, args, allen_experiments)
+    ids = allen_experiments.id
+
+    if args.id not in ids:
+        parser.error("This experiment id doesn't exist. \n"
+                     "Please check : https://connectivity.brain-map.org/")
 
     # Configuring output directory
     args.dir = Path(args.dir)
