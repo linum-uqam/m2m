@@ -163,14 +163,6 @@ def main():
     with open(coords_file, "w") as outfile:
         outfile.write(json_object)
 
-    # Choosing the downloaded resolution
-    if args.res == 100:
-        mca_res = mca.VOXEL_RESOLUTION_100_MICRONS
-    elif args.res == 50:
-        mca_res = mca.VOXEL_RESOLUTION_50_MICRONS
-    elif args.res == 25:
-        mca_res = mca.VOXEL_RESOLUTION_25_MICRONS
-
     # Downloading and Saving the projection density map if --map was used
     if args.map:
         # Configuring files names
@@ -190,7 +182,7 @@ def main():
         mca.download_projection_density(
             nrrd_file,
             experiment_id=args.id,
-            resolution=mca_res)
+            resolution=args.res)
 
         # Loading volume and deleting nrrd tmp file
         allen_vol, header = nrrd.read(nrrd_file)
