@@ -60,7 +60,6 @@ from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 from allensdk.api.queries.tree_search_api import TreeSearchApi
 
-import nibabel as nib
 import nrrd
 
 from utils.control import (add_cache_arg, add_output_dir_arg,
@@ -73,7 +72,6 @@ from utils.transform import (pretransform_vol_PIR_RAS,
 
 from utils.util import (get_injection_infos,
                         get_mcc,
-                        load_avgt,
                         save_nii)
 
 EPILOG = """

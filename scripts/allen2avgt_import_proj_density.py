@@ -35,7 +35,6 @@ import numpy as np
 import pandas as pd
 
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
-import nibabel as nib
 import nrrd
 
 from utils.control import (add_cache_arg, add_output_dir_arg,
