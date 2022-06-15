@@ -17,3 +17,5 @@ dependencies:
   - matplotlib
   - scikit-image
   - pycodestyle
+  - dipy
+  - fury
