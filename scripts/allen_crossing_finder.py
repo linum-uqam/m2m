@@ -58,12 +58,18 @@ import pandas as pd
 
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
-from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
 from allensdk.api.queries.tree_search_api import TreeSearchApi
 
 import nibabel as nib
 import nrrd
-import ants
+
+from utils.control import (add_cache_arg, add_output_dir_arg,
+                           add_overwrite_arg, add_resolution_arg,
+                           check_file_exists)
+from utils.transform import (load_avgt, pretransform_vol_PIR_RAS,
+                             registrate_allen2avgt_ants, get_allen_coords)
+
+from utils.util import (get_injection_infos, get_mcc)
 
 EPILOG = """
 Author : Mahdi
@@ -98,17 +104,10 @@ def _build_arg_parser():
                         'masks of crossing ROIs.\n'
                         'Threshold is 0.10 by default.\n'
                         '--threshold <value> will set threshold to value.')
-    p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                   help='Resolution of downloaded files is 100µm by default.\n'
-                        '--res <value> will set the resolution to value.')
-    p.add_argument('-d', '--dir', default=".",
-                   help='Path of the ouptut file directory is . by default.\n'
-                        '--dir <dir> will change the output file\'s '
-                        'directory or create a new one if does not exits.')
-    p.add_argument('-f', dest='overwrite', action="store_true",
-                   help='Force overwriting of the output file.')
-    p.add_argument('-c', '--nocache', action="store_true",
-                   help='Update the Allen Mouse Brain Connectivity Cache')
+    add_resolution_arg(p)
+    add_output_dir_arg(p)
+    add_cache_arg(p)
+    add_overwrite_arg(p)
     return p
 
 
@@ -149,65 +148,6 @@ def check_args(parser, args):
            args.blue[2] not in z:
             parser.error('Blue coords invalid. '
                          'x, y, z values must be in [164, 212, 158].')
-
-
-def check_file_exists(parser, args, path):
-    """
-    Verify that output does not exist or that if it exists, -f should be used.
-    If not used, print parser's usage and exit.
-
-    Parameters
-    ----------
-    parser: argparse.ArgumentParser object
-        Parser.
-    args: argparse namespace
-        Argument list.
-    path: string or path to file
-        Required path to be checked.
-    """
-    if os.path.isfile(path) and not args.overwrite:
-        parser.error('Output file {} exists. Use -f to force '
-                     'overwriting'.format(path))
-
-    path_dir = os.path.dirname(path)
-    if path_dir and not os.path.isdir(path_dir):
-        parser.error('Directory {}/ \n for a given output file '
-                     'does not exists.'.format(path_dir))
-
-
-def get_allen_coords(mib_coords, res=25):
-    """
-    Compute the Allen coordinates from
-    MI-Brain coordinates.\n
-    Resolution is fixed to 25 to ensure
-    best precision.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-    res: int
-        Resolution of the transformation matrix.
-
-    Return
-    ------
-    list: Allen coordinates in micron.
-    """
-    # Reading transform matrix
-    file_mat = f'./utils/transformations_allen2avgt/allen2avgtAffine_{res}.mat'
-    tx = ants.read_transform(file_mat)
-
-    # Getting allen voxels RAS+ coords
-    allen_ras = tx.apply_to_point(mib_coords)
-
-    # Converting to PIR (microns)
-    p, i, r = 13200//res, 8000//res, 11400//res
-    r_, a, s = r, p, i
-    x, y, z = allen_ras[0], allen_ras[1], allen_ras[2]
-    x_, y_, z_ = (a-y)*res, (s-z)*res, x*res
-    allen_pir = [x_, y_, z_]
-
-    return list(map(int, allen_pir))
 
 
 def search_experiments(args, seed_point):
@@ -270,152 +210,6 @@ def get_experiment_id(experiments, index, color):
         sys.exit("No experiment founded : {}".format(color))
 
     return id
-
-
-def loc_injection_coordinates(id, allen_experiments):
-    """
-    Return the injection coordinate position
-    of an experiment. (Left or Right)
-
-    Parameters
-    ----------
-    id: long
-        Allen experiment id.
-    experiments: dataframe
-        Allen Mouse Connectivity experiments.
-
-    Return
-    ------
-    string: Injection location (R or L).
-    """
-    inj_coord = allen_experiments.loc[id]['injection-coordinates']
-
-    # Returning the position and its location
-    # Right is >= than z/2
-    if inj_coord[2] >= 11400/2:
-        return 'R'
-    else:
-        return 'L'
-
-
-def get_mcc(args):
-    """
-    Get Allen Mouse Connectivity Cache.\n
-    Update it by removing and downloading cache file
-    using --nocache.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-
-    Return
-    ------
-    dataframe :
-        Allen Mouse Connectivity experiments
-        Allen Mouse Brain structure tree
-    """
-    experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
-    manifest_path = './utils/cache/mouse_conn_manifest.json'
-    structures_path = './utils/cache/structures.json'
-
-    if args.nocache:
-        if os.path.isfile(experiments_path) and os.path.isfile(manifest_path):
-            os.remove(experiments_path)
-            os.remove(manifest_path)
-            os.remove(structures_path)
-
-    mcc = MouseConnectivityCache(manifest_file=manifest_path)
-    experiments = mcc.get_experiments(dataframe=True,
-                                      file_name=experiments_path)
-    stree = mcc.get_structure_tree(file_name=structures_path)
-
-    return pd.DataFrame(experiments), stree
-
-
-def get_experiment_info(allen_experiments, id):
-    """
-    Retrieve the injection ROI and location (L/R)
-    of an Allen experiment.
-
-    Parameters
-    ----------
-    allen_experiments: dataframe
-        Allen experiments.
-    id: long
-        Experiment id.
-
-    Returns
-    -------
-    string: Roi acronym.
-    string: Injection location (R or L).
-    """
-    roi = allen_experiments.loc[id]['structure-abbrev']
-    loc = loc_injection_coordinates(id, allen_experiments)
-
-    return roi, loc
-
-
-def pretransform_PIR_to_RAS(vol):
-    """
-    Manually transform a PIR reference space to RAS+.
-
-    Parameters
-    ----------
-    vol: ndarray
-        PIR volume to transform.
-
-    Return
-    ------
-    ndarray: vol
-        Transformed volume into RAS+
-    """
-    # Switching axis
-    # +x, +y, +z (RAS) -> +z, -x, -y (PIR)
-    vol = np.moveaxis(vol, (0, 1, 2), (1, 2, 0))
-    vol = np.flip(vol, axis=2)
-    vol = np.flip(vol, axis=1)
-
-    return vol
-
-
-def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
-    """
-    Align a 3D allen volume on AVGT.
-    Using ANTsPyX registration.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-    allen_vol: float32 ndarray
-        Allen volume to registrate
-    avgt_vol: float32 ndarray
-        AVGT reference volume
-
-    Return
-    ------
-    ndarray: Warped volume.
-    """
-    # Creating and reshaping ANTsPyx images for registration
-    # Moving : Allen volume
-    # Fixed : AVGT volume
-    fixed = ants.from_numpy(avgt_vol).resample_image((164, 212, 158), 1, 0)
-    moving = ants.from_numpy(allen_vol).resample_image((164, 212, 158), 1, 0)
-
-    # Loading pre-calculated transformations (ANTsPyx registration)
-    tx_nifti = './utils/transformations_allen2avgt/allen2avgt_{}.nii.gz'
-    tx_mat = './utils/transformations_allen2avgt/allen2avgtAffine_{}.mat'
-    transformations = [tx_nifti.format(args.res),
-                       tx_mat.format(args.res)]
-
-    # Applying thoses transformations
-    interp = 'nearestNeighbor'
-    warped_moving = ants.apply_transforms(fixed=fixed,  moving=moving,
-                                          transformlist=transformations,
-                                          interpolator=interp)
-
-    return warped_moving.numpy()
 
 
 def get_unionized_list(exp_id, struct_ids):
@@ -542,9 +336,8 @@ def main():
     args.dir.mkdir(exist_ok=True, parents=True)
 
     # AVGT settings
-    avgt_file = './utils/AVGT.nii.gz'
-    avgt_affine = nib.load(avgt_file).affine
-    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
+    avgt = load_avgt()
+    avgt_affine = avgt.affine
 
     # Getting Allen coords
     allen_red_coords = get_allen_coords(args.red)
@@ -585,10 +378,13 @@ def main():
     subdir.mkdir(exist_ok=True, parents=True)
 
     # Retrieving experiment informations
-    rroi, rloc = get_experiment_info(allen_experiments, red_id)
-    groi, gloc = get_experiment_info(allen_experiments, green_id)
+    rroi = get_injection_infos(allen_experiments, red_id)[0]
+    rloc = get_injection_infos(allen_experiments, red_id)[2]
+    groi = get_injection_infos(allen_experiments, green_id)[0]
+    gloc = get_injection_infos(allen_experiments, green_id)[2]
     if args.blue:
-        broi, bloc = get_experiment_info(allen_experiments, blue_id)
+        broi = get_injection_infos(allen_experiments, blue_id)[0]
+        bloc = get_injection_infos(allen_experiments, blue_id)[2]
 
     # Projection density maps Niftis and Nrrd files
     nrrd_ = "{}_{}_{}_proj_density_{}.nrrd"
@@ -662,10 +458,10 @@ def main():
     os.remove(nrrd_green)
 
     # Transforming manually to RAS+
-    red_vol = pretransform_PIR_to_RAS(red_vol)
-    green_vol = pretransform_PIR_to_RAS(green_vol)
+    red_vol = pretransform_vol_PIR_RAS(red_vol)
+    green_vol = pretransform_vol_PIR_RAS(green_vol)
     if args.blue:
-        blue_vol = pretransform_PIR_to_RAS(blue_vol)
+        blue_vol = pretransform_vol_PIR_RAS(blue_vol)
 
     # Converting Allen volumes to float32
     red_vol = red_vol.astype(np.float32)
@@ -676,19 +472,16 @@ def main():
     # Applying ANTsPyX registration
     warped_red = registrate_allen2avgt_ants(
         args=args,
-        allen_vol=red_vol,
-        avgt_vol=avgt_vol)
+        allen_vol=red_vol)
 
     warped_green = registrate_allen2avgt_ants(
         args=args,
-        allen_vol=green_vol,
-        avgt_vol=avgt_vol)
+        allen_vol=green_vol)
 
     if args.blue:
         warped_blue = registrate_allen2avgt_ants(
             args=args,
-            allen_vol=blue_vol,
-            avgt_vol=avgt_vol)
+            allen_vol=blue_vol)
 
     # Saving Niftis files
     red_img = nib.Nifti1Image(warped_red, avgt_affine)
@@ -874,14 +667,12 @@ def main():
             os.remove(mask_nrrd)
 
         # Converting X-ROIs mask to RAS+
-        mask_combined = pretransform_PIR_to_RAS(mask_combined)
+        mask_combined = pretransform_vol_PIR_RAS(mask_combined)
 
         # Applying ANTsPy registration
         warped_mask_combined = registrate_allen2avgt_ants(
             args=args,
-            allen_vol=mask_combined,
-            avgt_vol=avgt_vol
-        )
+            allen_vol=mask_combined)
 
         # Improving display in MI-Brain
         warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
