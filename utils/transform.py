@@ -2,7 +2,7 @@ import numpy as np
 import ants
 import nibabel as nib
 
-from utils.util import get_injection_info
+from utils.util import get_injection_infos
 
 def load_avgt():
     """
@@ -148,7 +148,7 @@ def get_mib_coords(args, allen_experiments):
     itx = ants.read_transform(file_mat).invert()
 
     # Converting injection coordinates position to voxels
-    allen_pir_um = get_injection_info(args, allen_experiments)[1]
+    allen_pir_um = get_injection_infos(allen_experiments, args.id)[1]
 
     # Converting injection coordinates voxels position to ras
     allen_ras_vox = pretransform_point_PIR_RAS(allen_pir_um, args.res)

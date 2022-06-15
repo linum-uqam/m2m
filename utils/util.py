@@ -40,7 +40,7 @@ def get_mcc(args):
     return pd.DataFrame(experiments), stree
 
 
-def get_injection_info(allen_experiments, id):
+def get_injection_infos(allen_experiments, id):
     """
     Retrieve the injection coordinates, region
     and location (L/R) of an Allen experiment.
