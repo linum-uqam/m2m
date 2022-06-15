@@ -29,6 +29,7 @@ import os
 from pathlib import Path
 from re import A
 from tabnanny import check
+from matplotlib.ft2font import LOAD_LINEAR_DESIGN
 
 import numpy as np
 import pandas as pd
@@ -39,6 +40,14 @@ from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
 import nibabel as nib
 import nrrd
 import ants
+
+from utils.control import (add_cache_arg, add_output_dir_arg,
+                           add_overwrite_arg, add_resolution_arg,
+                           check_file_exists)
+from utils.transform import (load_avgt, pretransform_vol_PIR_RAS,
+                             registrate_allen2avgt_ants, get_mib_coords)
+
+from utils.util import (get_injection_infos, get_mcc, draw_spherical_mask)
 
 EPILOG = """
 Author : Mahdi
@@ -51,14 +60,6 @@ def _build_arg_parser():
     p.add_argument('id', type=int,
                    help='Experiment id in the Allen Mouse Brain '
                         'Connectivity Atlas dataset.')
-    p.add_argument('-r', '--res', type=int, default=100, choices=[25, 50, 100],
-                   help='Resolution of the downloaded projection density '
-                        'is 100µm by default.\n'
-                        'Using -r <value> will set the resolution to value.')
-    p.add_argument('-d', '--dir', default=".",
-                   help='Path of the ouptut file directory is . by default.\n'
-                        'Using --dir <dir> will change the output file\'s '
-                        'directory or create a new one if does not exits.')
     p.add_argument('--map', action='store_true',
                    help='Using --map will download a Nifti file containing '
                         'the projeciton density of the experiment.')
@@ -70,41 +71,11 @@ def _build_arg_parser():
                    help='Using --map will download a Nifti file containing '
                         'a spherical mask at the injection coordinates\n'
                         'of the experiment.')
-    p.add_argument('-f', dest='overwrite', action="store_true",
-                   help='Force overwriting of the output file.')
-    p.add_argument('-c', '--nocache', action="store_true",
-                   help='Update the Allen Mouse Brain Connectivity Cache')
+    add_resolution_arg(p)
+    add_output_dir_arg(p)
+    add_cache_arg(p)
+    add_overwrite_arg(p)
     return p
-
-
-def get_mcc(args):
-    """
-    Get Allen Mouse Connectivity Cache.\n
-    Update it by removing and downloading cache file
-    using --nocache.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-
-    Return
-    ------
-    dataframe : Allen Mouse Connectivity experiments
-    """
-    experiments_path = './utils/cache/allen_mouse_conn_experiments.json'
-    manifest_path = './utils/cache/mouse_conn_manifest.json'
-
-    if args.nocache:
-        if os.path.isfile(experiments_path) and os.path.isfile(manifest_path):
-            os.remove(experiments_path)
-            os.remove(manifest_path)
-
-    mcc = MouseConnectivityCache(manifest_file=manifest_path)
-    experiments = mcc.get_experiments(dataframe=True,
-                                      file_name=experiments_path)
-
-    return pd.DataFrame(experiments)
 
 
 def check_id(parser, args, allen_experiments):
@@ -148,216 +119,6 @@ def check_args(parser, args):
                      "Use --roi to download the spherical roi mask.")
 
 
-def check_file_exists(parser, args, path):
-    """
-    Verify that output does not exist or that if it exists, -f should be used.
-    If not used, print parser's usage and exit.
-
-    Parameters
-    ----------
-    parser: argparse.ArgumentParser object
-        Parser.
-    args: argparse namespace
-        Argument list.
-    path: string or path to file
-        Required path to be checked.
-    """
-    if os.path.isfile(path) and not args.overwrite:
-        parser.error('Output file {} exists. Use -f to force '
-                     'overwriting'.format(path))
-
-    path_dir = os.path.dirname(path)
-    if path_dir and not os.path.isdir(path_dir):
-        parser.error('Directory {}/ \n for a given output file '
-                     'does not exists.'.format(path_dir))
-
-
-def loc_injection_coordinates(args, allen_experiments):
-    """
-    Return the injection coordinates of
-    an experiment and its position.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-    experiments : dataframe
-        Allen Mouse Connectivity experiments
-
-    Return
-    ------
-    string: R or L
-    list: coordinates of the injection coordinates
-    """
-    inj_coord = allen_experiments.loc[args.id]['injection-coordinates']
-
-    # Returning the position and its location
-    # Right is >= than z/2
-    if inj_coord[2] >= 11400/2:
-        return 'R', inj_coord
-    else:
-        return 'L', inj_coord
-
-
-def pretransform_PIR_to_RAS(vol):
-    """
-    Manually transform a PIR reference space to RAS+.
-
-    Parameters
-    ----------
-    vol: ndarray
-        PIR volume to transform.
-
-    Return
-    ------
-    ndarray: vol
-        Transformed volume into RAS+
-    """
-    # Switching axis
-    # +x, +y, +z (RAS) -> +z, -x, -y (PIR)
-    vol = np.moveaxis(vol, (0, 1, 2), (1, 2, 0))
-    vol = np.flip(vol, axis=2)
-    vol = np.flip(vol, axis=1)
-
-    return vol
-
-
-def registrate_allen2avgt_ants(args, allen_vol, avgt_vol):
-    """
-    Align a 3D allen volume on AVGT.
-    Using ANTsPyX registration.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-    allen_vol: float32 ndarray
-        Allen volume to registrate
-    avgt_vol: float32 ndarray
-        AVGT reference volume
-
-    Return
-    ------
-    ndarray: Warped volume.
-    """
-    # Creating and reshaping ANTsPyx images for registration
-    # Moving : Allen volume
-    # Fixed : AVGT volume
-    fixed = ants.from_numpy(avgt_vol).resample_image((164, 212, 158), 1, 0)
-    moving = ants.from_numpy(allen_vol).resample_image((164, 212, 158), 1, 0)
-
-    # Loading pre-calculated transformations (ANTsPyx registration)
-    tx_nifti = './utils/transformations_allen2avgt/allen2avgt_{}.nii.gz'
-    tx_mat = './utils/transformations_allen2avgt/allen2avgtAffine_{}.mat'
-    transformations = [tx_nifti.format(args.res),
-                       tx_mat.format(args.res)]
-
-    # Applying thoses transformations
-    interp = 'nearestNeighbor'
-    if args.smooth:
-        interp = 'bSpline'
-
-    warped_moving = ants.apply_transforms(fixed=fixed,  moving=moving,
-                                          transformlist=transformations,
-                                          interpolator=interp)
-
-    return warped_moving.numpy()
-
-
-def draw_spherical_mask(shape, radius, center):
-    """
-    Generate an n-dimensional spherical mask.
-
-    Parameters
-    ----------
-    shape: tuple
-        Shape of the volume created.
-    radius: int/float
-        Radius of the spherical mask.
-    center: tuple
-        Position of the center of the spherical mask.
-
-    Return
-    ------
-    ndarray: Volume containing the spherical mask.
-    """
-    # Assuming shape and center have the same length and contain ints
-    # (the units are pixels / voxels (px for short),
-    # radius is a int or float in px)
-    assert len(center) == len(shape)
-    semisizes = (radius,) * len(shape)
-
-    # Generating the grid for the support points
-    # centered at the position indicated by center
-    grid = [slice(-x0, dim - x0) for x0, dim in zip(center, shape)]
-    center = np.ogrid[grid]
-
-    # Calculating the distance of all points from center
-    # scaled by the radius
-    vol = np.zeros(shape, dtype=float)
-    for x_i, semisize in zip(center, semisizes):
-        vol += (x_i / semisize) ** 2
-
-    # the inner part of the sphere will have distance below or equal to 1
-    return vol <= 1.0
-
-
-def get_mib_coords(args, allen_experiments):
-    """
-    Get MI-Brain voxels coords
-    of the experiment injection coordinates.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-
-    Return
-    ------
-    list: MI-Brain coords
-    """
-    # Loading transform matrix
-    tx_mat = './utils/transformations_allen2avgt/allen2avgtAffine_{}.mat'
-    file_mat = tx_mat.format(args.res)
-
-    # Defining invert transformation
-    itx = ants.read_transform(file_mat).invert()
-
-    # Converting injection coordinates position to voxels
-    allen_pir_um = loc_injection_coordinates(args, allen_experiments)[1]
-    allen_pir_vox = [allen_pir_um[0]/args.res, allen_pir_um[1]/args.res,
-                     allen_pir_um[2]/args.res]
-
-    # Converting injection coordinates voxels position to ras
-    p, i, r = 13200//args.res, 8000//args.res, 11400//args.res
-    x, y, z = allen_pir_vox[0], allen_pir_vox[1], allen_pir_vox[2]
-    x_, y_, z_ = z, p-x, i-y
-    allen_ras_vox = [x_, y_, z_]
-
-    # Converting injection coordinates voxels ras position to mi-brain voxels
-    mib_vox = itx.apply_to_point(allen_ras_vox)
-
-    return mib_vox
-
-
-def save_mib_coords(dic, path):
-    """
-    Saving MI-brain injection coordinates coords
-    in a json file
-
-    Parameters
-    ----------
-    dic: dictionnary
-        Json content.
-    path: string or path to file
-        Path to the output file.
-    """
-    # Saving into json file
-    json_object = json.dumps(dic, indent=4)
-    with open(path, "w") as outfile:
-        outfile.write(json_object)
-
-
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -367,7 +128,7 @@ def main():
     # API
     mca = MouseConnectivityApi()
     # experiments from Cache
-    allen_experiments = get_mcc(args)
+    allen_experiments = get_mcc(args)[0]
 
     # Verifying arguments
     check_args(parser, args)
@@ -380,14 +141,14 @@ def main():
     args.dir.mkdir(exist_ok=True, parents=True)
 
     # AVGT settings
-    avgt_file = './utils/AVGT.nii.gz'
-    avgt_affine = nib.load(avgt_file).affine
-    avgt_vol = nib.load(avgt_file).get_fdata().astype(np.float32)
+    avgt = load_avgt
+    avgt_affine = avgt.affine
 
     # Experiment infos
-    roi = allen_experiments.loc[args.id]['structure-abbrev']
-    loc = loc_injection_coordinates(args, allen_experiments)[0]
-    pos = loc_injection_coordinates(args, allen_experiments)[1]
+    # injection region, location, position (inj_coords_um)
+    roi = get_injection_infos(allen_experiments, args.id)[0]
+    loc = get_injection_infos(allen_experiments, args.id)[2]
+    pos = get_injection_infos(allen_experiments, args.id)[1]
 
     # Creating and Saving MI-brain injection coordinates coords in json file
 
@@ -406,7 +167,9 @@ def main():
            "allen_micron": pos, "mibrain_voxels": mib_coords}
 
     # Saving in json file
-    save_mib_coords(dic, coords_file)
+    json_object = json.dumps(dic, indent=4)
+    with open(coords_file, "w") as outfile:
+        outfile.write(json_object)
 
     # Choosing the downloaded resolution
     if args.res == 100:
@@ -442,7 +205,7 @@ def main():
         os.remove(nrrd_file)
 
         # Transforming manually to RAS+
-        allen_vol = pretransform_PIR_to_RAS(allen_vol)
+        allen_vol = pretransform_vol_PIR_RAS(allen_vol)
 
         # Loading allen volume converting to float32
         allen_vol = allen_vol.astype(np.float32)
@@ -451,7 +214,7 @@ def main():
         warped_vol = registrate_allen2avgt_ants(
             args=args,
             allen_vol=allen_vol,
-            avgt_vol=avgt_vol)
+            smooth=args.smooth)
 
         # Deleting negatives values if bSpline method was used (--smooth)
         if args.smooth:
@@ -472,10 +235,9 @@ def main():
         check_file_exists(parser, args, roi_file)
 
         # Converting the coordinates in voxels depending the resolution
-        inj_coord_um = loc_injection_coordinates(args, allen_experiments)[1]
-        inj_coord_voxels = (inj_coord_um[0]/args.res,
-                            inj_coord_um[1]/args.res,
-                            inj_coord_um[2]/args.res)
+        inj_coord_voxels = (pos[0]/args.res,
+                            pos[1]/args.res,
+                            pos[2]/args.res)
 
         # Configuring the bounding box
         bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
@@ -487,13 +249,13 @@ def main():
             radius=400//args.res).astype(np.float32)
 
         # Transforming manually to RAS+
-        roi_sphere_allen = pretransform_PIR_to_RAS(roi_sphere_allen)
+        roi_sphere_allen = pretransform_vol_PIR_RAS(roi_sphere_allen)
 
         # Applying ANTsPyX registration
         roi_sphere_avgt = registrate_allen2avgt_ants(
             args=args,
             allen_vol=roi_sphere_allen,
-            avgt_vol=avgt_vol)
+            smooth=args.smooth)
 
         # Deleting non needed interpolated values
         roi_sphere_avgt = roi_sphere_avgt.astype(np.int32)
