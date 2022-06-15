@@ -21,18 +21,13 @@
 """
 
 import argparse
-from email.policy import default
 import json
 import logging
 
 import os
 from pathlib import Path
-from re import A
-from tabnanny import check
-from matplotlib.ft2font import LOAD_LINEAR_DESIGN
 
 import numpy as np
-import pandas as pd
 
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 import nrrd
