@@ -16,11 +16,16 @@ def add_resolution_arg(parser):
                              'Using -r <value> will set '
                              'the resolution to value.')
 
+
 def add_output_dir_arg(parser):
     parser.add_argument('-d', '--dir', default=".",
-                        help='Path of the ouptut file directory is . by default.\n'
-                             'Using --dir <dir> will change the output file\'s '
-                             'directory or create a new one if does not exits.')
+                        help='Path of the ouptut file directory is . '
+                             'by default.\n'
+                             'Using --dir <dir> will change '
+                             'the output file\'s '
+                             'directory or create a new one '
+                             'if does not exits.')
+
 
 def add_cache_arg(parser):
     parser.add_argument('-c', '--nocache', action="store_true",
