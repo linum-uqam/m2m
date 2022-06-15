@@ -35,11 +35,8 @@ import numpy as np
 import pandas as pd
 
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
-from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
-
 import nibabel as nib
 import nrrd
-import ants
 
 from utils.control import (add_cache_arg, add_output_dir_arg,
                            add_overwrite_arg, add_resolution_arg,
@@ -141,7 +138,7 @@ def main():
     args.dir.mkdir(exist_ok=True, parents=True)
 
     # AVGT settings
-    avgt = load_avgt
+    avgt = load_avgt()
     avgt_affine = avgt.affine
 
     # Experiment infos
