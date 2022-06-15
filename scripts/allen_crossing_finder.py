@@ -66,10 +66,15 @@ import nrrd
 from utils.control import (add_cache_arg, add_output_dir_arg,
                            add_overwrite_arg, add_resolution_arg,
                            check_file_exists)
-from utils.transform import (load_avgt, pretransform_vol_PIR_RAS,
-                             registrate_allen2avgt_ants, get_allen_coords)
 
-from utils.util import (get_injection_infos, get_mcc)
+from utils.transform import (pretransform_vol_PIR_RAS,
+                             registrate_allen2avgt_ants,
+                             get_allen_coords)
+
+from utils.util import (get_injection_infos,
+                        get_mcc,
+                        load_avgt,
+                        save_nii)
 
 EPILOG = """
 Author : Mahdi
@@ -335,10 +340,6 @@ def main():
     args.dir = Path(args.dir)
     args.dir.mkdir(exist_ok=True, parents=True)
 
-    # AVGT settings
-    avgt = load_avgt()
-    avgt_affine = avgt.affine
-
     # Getting Allen coords
     allen_red_coords = get_allen_coords(args.red)
     allen_green_coords = get_allen_coords(args.green)
@@ -484,15 +485,10 @@ def main():
             allen_vol=blue_vol)
 
     # Saving Niftis files
-    red_img = nib.Nifti1Image(warped_red, avgt_affine)
-    nib.save(red_img, nifti_red)
-
-    green_img = nib.Nifti1Image(warped_green, avgt_affine)
-    nib.save(green_img, nifti_green)
-
+    save_nii(warped_red, nifti_red)
+    save_nii(warped_green, nifti_green)
     if args.blue:
-        blue_img = nib.Nifti1Image(warped_blue, avgt_affine)
-        nib.save(blue_img, nifti_blue)
+        save_nii(warped_blue, nifti_blue)
 
     # Creating RBGA volume (combining maps)
     rgb_vol = np.zeros((164, 212, 158, 1, 1),
@@ -523,8 +519,7 @@ def main():
                                             255)
 
     # Saving Nifti
-    rgb_img = nib.Nifti1Image(rgb_vol, avgt_affine)
-    nib.save(rgb_img, nifti_rgb)
+    save_nii(rgb_vol, nifti_rgb)
 
     # Getting Mouse Brain structures ids and names
     # in structure set id "Mouse Connectivity - Target Search"
@@ -679,8 +674,7 @@ def main():
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Saving Nifti file
-        msk = nib.Nifti1Image(warped_mask_combined, avgt_affine)
-        nib.save(msk, xrois_nifti)
+        save_nii(warped_mask_combined, xrois_nifti)
 
 
 if __name__ == "__main__":

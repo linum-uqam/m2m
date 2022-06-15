@@ -41,10 +41,16 @@ import nrrd
 from utils.control import (add_cache_arg, add_output_dir_arg,
                            add_overwrite_arg, add_resolution_arg,
                            check_file_exists)
-from utils.transform import (load_avgt, pretransform_vol_PIR_RAS,
-                             registrate_allen2avgt_ants, get_mib_coords)
 
-from utils.util import (get_injection_infos, get_mcc, draw_spherical_mask)
+from utils.transform import (pretransform_vol_PIR_RAS,
+                             registrate_allen2avgt_ants,
+                             get_mib_coords)
+
+from utils.util import (get_injection_infos,
+                        get_mcc,
+                        draw_spherical_mask,
+                        load_avgt,
+                        save_nii)
 
 EPILOG = """
 Author : Mahdi
@@ -137,10 +143,6 @@ def main():
     args.dir = Path(args.dir)
     args.dir.mkdir(exist_ok=True, parents=True)
 
-    # AVGT settings
-    avgt = load_avgt()
-    avgt_affine = avgt.affine
-
     # Experiment infos
     # injection region, location, position (inj_coords_um)
     roi = get_injection_infos(allen_experiments, args.id)[0]
@@ -218,8 +220,7 @@ def main():
             warped_vol[warped_vol < 0] = 0
 
         # Creating and Saving the Nifti volume
-        img = nib.Nifti1Image(warped_vol, avgt_affine)
-        nib.save(img, nifti_file)
+        save_nii(warped_vol, nifti_file)
 
     # Creating and Saving the spherical mask if --roi was used
     if args.roi:
@@ -258,8 +259,7 @@ def main():
         roi_sphere_avgt = roi_sphere_avgt.astype(np.int32)
 
         # Creating and Saving the Nifti spherical mask
-        sphere = nib.Nifti1Image(roi_sphere_avgt, avgt_affine)
-        nib.save(sphere, roi_file)
+        save_nii(roi_sphere_avgt, roi_file)
 
 
 if __name__ == "__main__":
