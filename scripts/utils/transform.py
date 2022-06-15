@@ -1,14 +1,7 @@
 import numpy as np
 import ants
-import nibabel as nib
 
-from utils.util import get_injection_infos
-
-def load_avgt():
-    """
-    Load AVGT reference template.
-    """
-    return nib.load('./AVGT.nii.gz')
+from utils.util import (get_injection_infos, load_avgt)
 
 
 def pretransform_vol_PIR_RAS(vol):

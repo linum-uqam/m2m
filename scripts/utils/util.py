@@ -1,7 +1,32 @@
 import os
 import pandas as pd
 import numpy as np
+import nibabel as nib
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
+
+
+def load_avgt():
+    """
+    Load AVGT reference template.
+    """
+    return nib.load('./AVGT.nii.gz')
+
+
+def save_nii(vol, path):
+    """
+    Create a Nifti image and
+    save it.
+
+    Parameters
+    ----------
+    vol: ndarray
+        Image data.
+    path: string
+        Path to the output file.
+    """
+    affine = load_avgt().affine
+    img = nib.Nifti1Image(vol, affine)
+    nib.save(img, path)
 
 
 def get_mcc(args):
