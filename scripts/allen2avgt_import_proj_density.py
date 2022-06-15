@@ -48,7 +48,6 @@ from utils.transform import (pretransform_vol_PIR_RAS,
 from utils.util import (get_injection_infos,
                         get_mcc,
                         draw_spherical_mask,
-                        load_avgt,
                         save_nii)
 
 EPILOG = """
