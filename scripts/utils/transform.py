@@ -98,8 +98,8 @@ def registrate_allen2avgt_ants(args, allen_vol, smooth=False):
     # Moving : Allen volume
     # Fixed : AVGT volume
     avgt_vol = load_avgt().get_fdata().astype(np.float32)
-    fixed = ants.from_numpy(avgt_vol).resample_image((164, 212, 158), 1, 0)
-    moving = ants.from_numpy(allen_vol).resample_image((164, 212, 158), 1, 0)
+    fixed = ants.from_numpy(avgt_vol)
+    moving = ants.from_numpy(allen_vol)
 
     # Loading pre-calculated transformations (ANTsPyx registration)
     tx_nifti = './transformations_allen2avgt/allen2avgt_{}.nii.gz'
