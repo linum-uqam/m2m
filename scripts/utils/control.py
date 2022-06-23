@@ -54,3 +54,20 @@ def check_file_exists(parser, args, path):
     if path_dir and not os.path.isdir(path_dir):
         parser.error('Directory {}/ \n for a given output file '
                      'does not exists.'.format(path_dir))
+
+
+def check_input_file(parser, args, path):
+    """
+    Assert that all inputs exist. If not, print parser's usage and exit.
+
+    Parameters
+    ----------
+    parser: argparse.ArgumentParser object
+        Parser.
+    args: argparse namespace
+        Argument list.
+    path: string or path to file
+        Required path to be checked.
+    """
+    if not os.path.isfile(path):
+            parser.error('Input file {} does not exist'.format(path))
