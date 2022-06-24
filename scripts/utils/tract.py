@@ -8,7 +8,7 @@ from utils.util import load_avgt
 def get_allen_tract():
     """
     """
-    fname = "./data/avgt_wildtype_tractogram.trk"
+    fname = "./data/avgt/avgt_wildtype_tractogram.trk"
     return load_tractogram(fname)
 
 

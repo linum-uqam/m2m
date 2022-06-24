@@ -9,7 +9,7 @@ def load_avgt():
     """
     Load AVGT reference template.
     """
-    return nib.load('./AVGT.nii.gz')
+    return nib.load('./data/AVGT.nii.gz')
 
 
 def save_nii(vol, path):
