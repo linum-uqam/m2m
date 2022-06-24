@@ -5,7 +5,6 @@
 """
 
 import argparse
-import json
 import logging
 
 import os
@@ -38,9 +37,9 @@ def _build_arg_parser():
                         'Precise its center and radius.')
     p.add_argument('--center', nargs=3, type=int,
                    help='Center of the spherical mask.\n'
-                        'MI-brain voxels coordinates')
+                        'MI-brain coordinates (in voxels)')
     p.add_argument('--radius', type=float,
-                   help='Radius of the spherical mask.')
+                   help='Radius of the spherical mask (in voxels).')
     p.add_argument('--download_sphere', action="store_true",
                    help='Download the spherical mask.\n'
                         '.nii.gz output')
