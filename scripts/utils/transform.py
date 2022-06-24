@@ -54,7 +54,7 @@ def pretransform_point_PIR_RAS(point, res):
 def pretransform_point_RAS_PIR(point, res):
     """
     Transform a point in the Allen Mouse Brain Atlas
-    reference space in RAS+ (voxels) to the Allen 
+    reference space in RAS+ (voxels) to the Allen
     Mouse Brain Atlas PIR reference space (microns).
 
     Parameters
@@ -196,4 +196,3 @@ def get_allen_coords(mib_coords, res=25):
     allen_pir = pretransform_point_RAS_PIR(allen_ras, res)
 
     return list(map(int, allen_pir))
-

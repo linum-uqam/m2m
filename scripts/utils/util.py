@@ -87,7 +87,7 @@ def get_injection_infos(allen_experiments, id):
     pos = allen_experiments.loc[id]['injection-coordinates']
     if pos[2] >= 11400/2:
         loc = 'R'
-    else: 
+    else:
         loc = 'L'
 
     return roi, pos, loc
