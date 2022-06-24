@@ -13,15 +13,18 @@ from pathlib import Path
 import numpy as np
 import nibabel as nib
 
-from utils.control import (add_output_dir_arg,
+import sys
+sys.path.append(".")
+
+from module.control import (add_output_dir_arg,
                            add_overwrite_arg,
                            check_input_file,
                            check_file_exists)
 
-from utils.util import (draw_spherical_mask,
+from module.util import (draw_spherical_mask,
                         load_avgt, save_nii)
 
-from utils.tract import filter_tract_near_roi
+from module.tract import filter_tract_near_roi
 
 EPILOG = """
 Author : Mahdi

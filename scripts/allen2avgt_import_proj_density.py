@@ -32,15 +32,18 @@ import numpy as np
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 import nrrd
 
-from utils.control import (add_cache_arg, add_output_dir_arg,
+import sys
+sys.path.append(".")
+
+from module.control import (add_cache_arg, add_output_dir_arg,
                            add_overwrite_arg, add_resolution_arg,
                            check_file_exists)
 
-from utils.transform import (pretransform_vol_PIR_RAS,
+from module.transform import (pretransform_vol_PIR_RAS,
                              registrate_allen2avgt_ants,
                              get_mib_coords)
 
-from utils.util import (get_injection_infos,
+from module.util import (get_injection_infos,
                         get_mcc,
                         draw_spherical_mask,
                         save_nii)
