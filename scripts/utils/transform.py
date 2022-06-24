@@ -76,15 +76,34 @@ def pretransform_point_RAS_PIR(point, res):
     return [x_, y_, z_]
 
 
-def registrate_allen2avgt_ants(args, allen_vol, smooth=False):
+def load_allen2avgt_transformations(res):
+    """
+    Load ANTsPy transform file.
+
+    Parameters
+    ----------
+    res: int in [25, 50 ,100]
+        Resolution of the transformation.
+        Depending the resolution of the file to register.
+
+    Return
+    ------
+    list: Transform list.
+    """
+    tx_nifti = './data/transformations_allen2avgt/allen2avgt_{}.nii.gz'
+    tx_mat = './data/transformations_allen2avgt/allen2avgtAffine_{}.mat'
+    return [tx_nifti.format(res), tx_mat.format(res)]
+
+
+def registrate_allen2avgt_ants(res, allen_vol, smooth=False):
     """
     Align a 3D allen volume on AVGT.
     Using ANTsPyX registration.
 
     Parameters
     ----------
-    args: argparse namespace
-        Argument list.
+    res: int in [25, 50 ,100]
+        Resolution of the transformation.
     allen_vol: float32 ndarray
         Allen volume to registrate.
     smooth: boolean
@@ -102,10 +121,7 @@ def registrate_allen2avgt_ants(args, allen_vol, smooth=False):
     moving = ants.from_numpy(allen_vol)
 
     # Loading pre-calculated transformations (ANTsPyx registration)
-    tx_nifti = './transformations_allen2avgt/allen2avgt_{}.nii.gz'
-    tx_mat = './transformations_allen2avgt/allen2avgtAffine_{}.mat'
-    transformations = [tx_nifti.format(args.res),
-                       tx_mat.format(args.res)]
+    transformations = load_allen2avgt_transformations(res)
 
     # Applying thoses transformations
     interp = 'nearestNeighbor'
