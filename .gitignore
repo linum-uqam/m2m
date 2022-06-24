@@ -131,12 +131,13 @@ dmypy.json
 # Nifti compiled
 /niftis
 
+# Tract compiled
+/tracts
+
 # Images
 /examples/images
-
 !/examples/notebooks/*.ipynb
 
 # High volume data
-
 /data/allen
 /data/avgt
