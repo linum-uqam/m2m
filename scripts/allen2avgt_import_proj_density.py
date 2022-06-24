@@ -176,7 +176,7 @@ def main():
 
         # Applying ANTsPyX registration
         warped_vol = registrate_allen2avgt_ants(
-            args=args,
+            res=args.res,
             allen_vol=allen_vol,
             smooth=args.smooth)
 
@@ -216,7 +216,7 @@ def main():
 
         # Applying ANTsPyX registration
         roi_sphere_avgt = registrate_allen2avgt_ants(
-            args=args,
+            res=args.res,
             allen_vol=roi_sphere_allen,
             smooth=args.smooth)
 

@@ -470,16 +470,16 @@ def main():
 
     # Applying ANTsPyX registration
     warped_red = registrate_allen2avgt_ants(
-        args=args,
+        res=args.res,
         allen_vol=red_vol)
 
     warped_green = registrate_allen2avgt_ants(
-        args=args,
+        res=args.res,
         allen_vol=green_vol)
 
     if args.blue:
         warped_blue = registrate_allen2avgt_ants(
-            args=args,
+            res=args.res,
             allen_vol=blue_vol)
 
     # Saving Niftis files
@@ -664,7 +664,7 @@ def main():
 
         # Applying ANTsPy registration
         warped_mask_combined = registrate_allen2avgt_ants(
-            args=args,
+            res=args.res,
             allen_vol=mask_combined)
 
         # Improving display in MI-Brain

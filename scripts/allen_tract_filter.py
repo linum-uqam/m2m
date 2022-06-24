@@ -119,7 +119,7 @@ def main():
         out_ = "allen_wildtype_in_sphere_{}_{}_{}_{}_tractogram.trk"
         out_tract = out_.format(x, y, z, args.radius)
         check_file_exists(parser, args, out_tract)
-
+########## MANQUE LE DIR
     # Saving the filtered tract
     filter_tract_near_roi(mask=mask, fname=out_tract)
 
