@@ -1,5 +1,12 @@
 # stage-2022-mahdi
 
+## Docker
+
+* Clone this repository on a virtual environement and run
+```bash
+pip install -e .
+```
+
 ## Installation avec poetry
 * On utilise [poetry](https://python-poetry.org/) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
 * Pour installer l'environnement lors de l'initialisation du projet
