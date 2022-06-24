@@ -150,8 +150,7 @@ def get_mib_coords(args, allen_experiments):
     list: MI-Brain coords
     """
     # Loading transform matrix
-    tx_mat = './transformations_allen2avgt/allen2avgtAffine_{}.mat'
-    file_mat = tx_mat.format(args.res)
+    file_mat = load_allen2avgt_transformations(args.res)[1]
 
     # Defining invert transformation
     itx = ants.read_transform(file_mat).invert()
@@ -177,8 +176,8 @@ def get_allen_coords(mib_coords, res=25):
 
     Parameters
     ----------
-    args: argparse namespace
-        Argument list.
+    mib_coords: tuple
+        MI-Brain voxel coordinates.
     res: int
         Resolution of the transformation matrix.
 
@@ -187,7 +186,7 @@ def get_allen_coords(mib_coords, res=25):
     list: Allen coordinates in micron.
     """
     # Reading transform matrix
-    file_mat = f'./transformations_allen2avgt/allen2avgtAffine_{res}.mat'
+    file_mat = load_allen2avgt_transformations(res)[1]
     tx = ants.read_transform(file_mat)
 
     # Getting allen voxels RAS+ coords
