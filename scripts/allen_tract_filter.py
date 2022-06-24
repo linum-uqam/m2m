@@ -86,18 +86,19 @@ def main():
     # if --mask
     if args.mask:
         # Checking input file
-        check_input_file(parser, args, args.mask)
+        check_input_file(parser, args.mask)
         if not args.mask.endswith('.nii.gz'):
             parser.error('Invalid --mask format.\n'
                          '(.nii.gz) required.')
 
         # Preparing output file
-        out_ = "allen_wildtype_in_{}_tractogram.trk"
+        out_ = "avgt_wildtype_in_{}_tractogram.trk"
         mask_path = args.mask
         mask_name = os.path.basename(mask_path)
         index_of_dot = mask_name.rindex('_')
         mask_name_without_extension = mask_name[:index_of_dot]
-        out_tract = out_.format(mask_name_without_extension)
+        out_tract = os.path.join(args.dir,
+                                 out_.format(mask_name_without_extension))
         check_file_exists(parser, args, out_tract)
 
         # Loading the binary mask
@@ -116,10 +117,11 @@ def main():
             center=center)
 
         # Preparing output file
-        out_ = "allen_wildtype_in_sphere_{}_{}_{}_{}_tractogram.trk"
-        out_tract = out_.format(x, y, z, args.radius)
+        out_ = "avgt_wildtype_in_sphere_{}_{}_{}_{}_tractogram.trk"
+        out_tract = os.path.join(args.dir,
+                                 out_.format(x, y, z, args.radius))
         check_file_exists(parser, args, out_tract)
-########## MANQUE LE DIR
+
     # Saving the filtered tract
     filter_tract_near_roi(mask=mask, fname=out_tract)
 
