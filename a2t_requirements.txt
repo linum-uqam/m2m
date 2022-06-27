@@ -5,7 +5,6 @@ argon2-cffi==20.1.0
 async_generator==1.10
 attrs==21.4.0
 backcall==0.2.0
-blas==1.1
 bleach==4.1.0
 blosc==1.16.3
 brotlipy==0.7.0
