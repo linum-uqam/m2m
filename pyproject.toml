@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "3.6.13"
+python = "^3.9"
 allensdk = "^2.13.4"
 antspyx = "^0.3.2"
 jupyter = "^1.0.0"
