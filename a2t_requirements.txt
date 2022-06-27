@@ -3,7 +3,7 @@ jupyter==1.0.0
 antspyx==0.3.2
 dipy==0.16.0
 fury==0.8.0
-gfortran==11.2.0
+gfortran
 libblas==3.9.0
 liblapack==3.9.0
 libpng==1.6.37
