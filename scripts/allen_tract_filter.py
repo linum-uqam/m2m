@@ -16,15 +16,15 @@ import nibabel as nib
 import sys
 sys.path.append(".")
 
-from module.control import (add_output_dir_arg,
+from allen2tract.control import (add_output_dir_arg,
                            add_overwrite_arg,
                            check_input_file,
                            check_file_exists)
 
-from module.util import (draw_spherical_mask,
+from allen2tract.util import (draw_spherical_mask,
                         load_avgt, save_nii)
 
-from module.tract import filter_tract_near_roi
+from allen2tract.tract import filter_tract_near_roi
 
 EPILOG = """
 Author : Mahdi

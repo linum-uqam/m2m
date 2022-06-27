@@ -3,7 +3,7 @@ import os
 from setuptools import setup, find_packages
 
 
-with open('requirements.txt') as f:
+with open('a2t_requirements.txt') as f:
     required_dependencies = f.read().splitlines()
     external_dependencies = []
     for dependency in required_dependencies:
@@ -15,7 +15,7 @@ with open('requirements.txt') as f:
             external_dependencies.append(dependency)
 
 # Get version and release info, which is all stored in module/version.py
-ver_file = os.path.join('module', 'version.py')
+ver_file = os.path.join('allen2tract', 'version.py')
 with open(ver_file) as f:
     exec(f.read())
 opts = dict(name=NAME,

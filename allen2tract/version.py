@@ -26,12 +26,12 @@ CLASSIFIERS = ["Development Status :: 1 - Planning",
                "Topic :: Scientific/Engineering"]
 
 # Short description:
-description = "module: allen2avgt tools"
+description = "allen2tract: allen2avgt tools"
 # Long description (for the pypi page)
 long_description = """
 Module
 ======
-Module is a small library containing tools and utilities to
+Allen2Tract is a small library containing tools and utilities to
 quickly work with AllenSDK, Tractograms, MI-Brain, AVGT template.
 """
 

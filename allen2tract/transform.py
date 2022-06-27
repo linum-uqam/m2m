@@ -1,7 +1,7 @@
 import numpy as np
 import ants
 
-from module.util import (get_injection_infos, load_avgt)
+from allen2tract.util import (get_injection_infos, load_avgt)
 
 
 def pretransform_vol_PIR_RAS(vol):

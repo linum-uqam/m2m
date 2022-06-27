@@ -2,7 +2,7 @@ import numpy as np
 from dipy.io.streamline import load_tractogram, save_tractogram
 from dipy.tracking.utils import near_roi
 
-from module.util import load_avgt
+from allen2tract.util import load_avgt
 
 
 def get_allen_tract():

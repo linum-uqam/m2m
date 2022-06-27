@@ -1,4 +1,4 @@
-FROM python:3.8 as builder
+FROM python:3.6.13
 
 WORKDIR /stage-2022-mahdi
 RUN pip install -e .

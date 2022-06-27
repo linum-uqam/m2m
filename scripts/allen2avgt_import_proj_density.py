@@ -35,15 +35,15 @@ import nrrd
 import sys
 sys.path.append(".")
 
-from module.control import (add_cache_arg, add_output_dir_arg,
+from allen2tract.control import (add_cache_arg, add_output_dir_arg,
                            add_overwrite_arg, add_resolution_arg,
                            check_file_exists)
 
-from module.transform import (pretransform_vol_PIR_RAS,
+from allen2tract.transform import (pretransform_vol_PIR_RAS,
                              registrate_allen2avgt_ants,
                              get_mib_coords)
 
-from module.util import (get_injection_infos,
+from allen2tract.util import (get_injection_infos,
                         get_mcc,
                         draw_spherical_mask,
                         save_nii)
