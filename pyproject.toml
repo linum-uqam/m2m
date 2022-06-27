@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "stage-2022-mahdi"
+name = "module"
 version = "0.1.0"
-description = "Allen2Tract, stage UQAM/Bordeaux (E2022)"
+description = "allen2avgt tools"
 authors = ["mahdi <mah.abha8@gmail.com>"]
 packages = [
     { include = "module" },
@@ -9,7 +9,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "3.8.0"
+python = "^3.9"
 allensdk = "^2.13.4"
 antspyx = "^0.3.2"
 jupyter = "^1.0.0"
