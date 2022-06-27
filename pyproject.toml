@@ -2,7 +2,11 @@
 name = "stage-2022-mahdi"
 version = "0.1.0"
 description = "Allen2Tract, stage UQAM/Bordeaux (E2022)"
-authors = ["Joël Lefebvre <lefebvre.joel@uqam.ca>"]
+authors = ["mahdi <mah.abha8@gmail.com>"]
+packages = [
+    { include = "module" },
+    { include = "module/*.py" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
