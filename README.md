@@ -1,6 +1,6 @@
 # stage-2022-mahdi
 
-## Docker
+## Installation du paquet
 
 * Clone this repository on a virtual environement and run
 ```bash
