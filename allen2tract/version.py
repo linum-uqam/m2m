@@ -35,7 +35,7 @@ Allen2Tract is a small library containing tools and utilities to
 quickly work with AllenSDK, Tractograms, MI-Brain, AVGT template.
 """
 
-NAME = "module"
+NAME = "allen2tract"
 MAINTAINER = "Mahdi"
 MAINTAINER_EMAIL = "mah.abha8@gmail.com"
 DESCRIPTION = description
