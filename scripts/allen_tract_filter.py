@@ -2,6 +2,22 @@
 # -*- coding: utf-8 -*-
 
 """
+    Extract a bundle of streamlines from the Allen wildtype tractogram.\n
+    Keep streamlines if any coordinate in the streamline is within
+    the distance between the center of each voxel
+    and the corner of the voxel.\n
+
+    Streamlines in a sphere: 
+
+    >>> allen_tract_filter.py --sphere --center x y z
+    >>> --radius r --dir dir
+
+    Use --donwload_sphere to download the spherical mask
+
+    Streamlines in a binary mask:
+
+    >>> allen_tract_filter.py --in_mask path_to_mask
+    >>> --dir dir
 """
 
 import argparse
