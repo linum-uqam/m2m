@@ -10,7 +10,10 @@ RUN apt -y install jq
 RUN apt -y install rename
 
 WORKDIR /
-COPY . .
+ENV A2T_VERSION="main"
+RUN wget https://github.com/linum-uqam/stage-2022-mahdi/archive/${A2T_VERSION}.zip
+RUN unzip ${A2T_VERSION}.zip
+RUN mv stage-2022-mahdi-${A2T_VERSION} allen2tract
 
 WORKDIR /stage-2022-mahdi
 RUN pip install -e .
