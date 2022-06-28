@@ -7,6 +7,25 @@
 pip install -e .
 ```
 
+## Remarque
+Pour importer `ANTsPy` à votre projet, vous aurez probablement besoin de libraires supplémentaires
+* MacOS
+
+```bash
+brew install libpng openblas lapack
+```
+
+* Linux
+
+```bash
+sudo apt-get install libpng-dev libblas-dev liblapack-dev
+```
+
+Si tout cela ne fonctionne pas, installez les librairies dans l'environement virtuel
+* Conda
+```
+conda install openblas lapack libpng
+```
 ## Installation avec poetry
 * On utilise [poetry](https://python-poetry.org/) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
 * Pour installer l'environnement lors de l'initialisation du projet
@@ -47,18 +66,4 @@ conda env update --file environment.yml #--prune pour désinstaller les dépenda
 
 ```bash
 pip install -r requirements.txt
-```
-
-## Remarque
-Pour importer `ANTsPy` à votre projet, vous aurez probablement besoin de libraires supplémentaires
-* MacOS
-
-```bash
-brew install libpng openblas lapack
-```
-
-* Linux
-
-```bash
-sudo apt-get install libpng-dev libblas-dev liblapack-dev
 ```
