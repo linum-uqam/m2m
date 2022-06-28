@@ -9,5 +9,8 @@ RUN apt -y install libgl1-mesa-glx
 RUN apt -y install jq
 RUN apt -y install rename
 
+WORKDIR /
+COPY . .
+
 WORKDIR /stage-2022-mahdi
 RUN pip install -e .
