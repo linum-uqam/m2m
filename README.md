@@ -54,11 +54,11 @@ Pour importer `ANTsPy` à votre projet, vous aurez probablement besoin de librai
 * MacOS
 
 ```bash
-brew install libpng
+brew install libpng openblas lapack
 ```
 
 * Linux
 
 ```bash
-sudo apt-get install libpng-dev
+sudo apt-get install libpng-dev libblas-dev liblapack-dev
 ```
