@@ -65,16 +65,16 @@ import sys
 sys.path.append(".")
 
 from allen2tract.control import (add_cache_arg, add_output_dir_arg,
-                           add_overwrite_arg, add_resolution_arg,
-                           check_file_exists)
+                                 add_overwrite_arg, add_resolution_arg,
+                                 check_file_exists)
 
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
-                             registrate_allen2avgt_ants,
-                             get_allen_coords)
+                                   registrate_allen2avgt_ants,
+                                   get_allen_coords)
 
 from allen2tract.util import (get_injection_infos,
-                        get_mcc,
-                        save_nii)
+                              get_mcc,
+                              save_nii)
 
 EPILOG = """
 Author : Mahdi

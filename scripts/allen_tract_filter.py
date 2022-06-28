@@ -17,12 +17,12 @@ import sys
 sys.path.append(".")
 
 from allen2tract.control import (add_output_dir_arg,
-                           add_overwrite_arg,
-                           check_input_file,
-                           check_file_exists)
+                                 add_overwrite_arg,
+                                 check_input_file,
+                                 check_file_exists)
 
 from allen2tract.util import (draw_spherical_mask,
-                        load_avgt, save_nii)
+                              load_avgt, save_nii)
 
 from allen2tract.tract import filter_tract_near_roi
 
@@ -100,7 +100,7 @@ def main():
                          '(.nii.gz) required.')
 
         # Preparing output file
-        out_ = "avgt_wildtype_in_{}_tractogram.trk"
+        out_ = "avgt_wildtype_in_{}.trk"
         mask_path = args.in_mask
         mask_name = os.path.basename(mask_path)
         index_of_dot = mask_name.rindex('_')
@@ -120,12 +120,12 @@ def main():
 
         # Drawing the spherical mask
         mask = draw_spherical_mask(
-            shape = load_avgt().shape,
+            shape=load_avgt().shape,
             radius=args.radius,
             center=center)
 
         # Preparing output file
-        out_ = "avgt_wildtype_in_sphere_{}_{}_{}_r{}_tractogram.trk"
+        out_ = "avgt_wildtype_in_sphere_{}_{}_{}_r{}.trk"
         out_tract = os.path.join(args.dir,
                                  out_.format(x, y, z, args.radius))
         check_file_exists(parser, args, out_tract)
@@ -134,7 +134,7 @@ def main():
             # Saving the spherical mask
             out_ = "spherical_mask_{}_{}_{}_r{}.nii.gz"
             out_sphere = os.path.join(args.dir,
-                                     out_.format(x, y, z, args.radius))
+                                      out_.format(x, y, z, args.radius))
             check_file_exists(parser, args, out_sphere)
 
             save_nii(mask.astype(np.int32), out_sphere)
