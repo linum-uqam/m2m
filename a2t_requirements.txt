@@ -7,5 +7,6 @@ matplotlib==2.2.*
 nibabel==3.0.*
 numpy==1.21.*
 pynrrd==0.4.*
+Cython==0.29.*
 scipy==1.2.*
 simplejson==3.17.*
