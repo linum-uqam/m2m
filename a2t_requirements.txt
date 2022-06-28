@@ -3,16 +3,11 @@ jupyter==1.0.0
 antspyx==0.3.2
 dipy==0.16.0
 fury==0.8.0
-gfortran
-libblas==3.9.0
-liblapack==3.9.0
-libpng==1.6.37
 matplotlib==3.1.1
 nibabel==3.0.1
 nilearn==0.7.1
 nipype==1.4.2
 numpy==1.14.5
-openblas==0.3.3
 pandas==0.19.2
 plotly==5.6.0
 pynrrd==0.4.2
