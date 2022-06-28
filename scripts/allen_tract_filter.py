@@ -7,7 +7,7 @@
     the distance between the center of each voxel
     and the corner of the voxel.\n
 
-    Streamlines in a sphere: 
+    Streamlines in a sphere:
 
     >>> allen_tract_filter.py --sphere --center x y z
     >>> --radius r --dir dir
