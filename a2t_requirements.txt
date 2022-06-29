@@ -6,7 +6,9 @@ fury==0.7.*
 future==0.17.*
 matplotlib==3.1.*
 nibabel==3.0.*
-numpy>=1.12.*
+Cython==0.29.*
+cmake==3.22.*
+numpy
 dask==1.2.*
 scikit-learn==0.22.*
 statsmodels==0.10.2
