@@ -7,9 +7,9 @@ from allen2tract.util import load_avgt
 
 def get_allen_tract():
     """
-    Load avgt_wildtype_tractogram.trk
+    Load avgt_wildtype_clean.trk
     """
-    fname = "./data/avgt/avgt_wildtype_tractogram.trk"
+    fname = "./data/avgt/avgt_wildtype_clean.trk"
     return load_tractogram(fname)
 
 
