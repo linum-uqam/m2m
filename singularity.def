@@ -1,2 +1,2 @@
 BootStrap: docker
-From: linum-uqam/docker-allen2tract:latest
+From: linum-uqam/docker-stage-2022-mahdi:latest
