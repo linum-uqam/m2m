@@ -17,3 +17,5 @@ RUN mv stage-2022-mahdi-${A2T_VERSION} allen2tract
 
 WORKDIR /stage-2022-mahdi
 RUN pip install -e .
+
+RUN RUN sed -i '41s/.*/backend : Agg/' /usr/local/lib/python3.7/site-packages/matplotlib/mpl-data/matplotlibrc
