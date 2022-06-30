@@ -12,7 +12,7 @@ Pour importer `ANTsPy` à votre projet, vous aurez probablement besoin de librai
 * MacOS
 
 ```bash
-brew install libpng openblas lapack
+brew install libpng openblas lapack gfortran
 ```
 
 * Linux
@@ -24,7 +24,7 @@ sudo apt-get install libpng-dev libblas-dev liblapack-dev
 Si tout cela ne fonctionne pas, installez les librairies dans l'environement virtuel
 * Conda
 ```
-conda install openblas lapack libpng
+conda install libpng libblas liblapack
 ```
 ## Installation avec poetry
 * On utilise [poetry](https://python-poetry.org/) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
