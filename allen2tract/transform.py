@@ -196,3 +196,41 @@ def get_allen_coords(mib_coords, res=25):
     allen_pir = pretransform_point_RAS_PIR(allen_ras, res)
 
     return list(map(int, allen_pir))
+
+
+def registrate_allen_streamlines(streamlines):
+    """
+    Align allen streamlines on the AVGT.
+
+    Parameters
+    ----------
+    streamlines: array of arrays
+        Streamlines array.
+
+    Returns
+    -------
+    array of arrays:
+        Registered streamlines
+    """
+
+    # Affine : allen PIR mm to allen RAS voxels
+    B = np.array([[ 0.05,  0,        0    ],
+                 [  0,    -0.05,     0    ],
+                 [  0,     0,       -0.05 ]])
+    
+    # Transformation : allen RAS voxels to avgt RAS voxels
+    mat = load_allen2avgt_transformations(res=50)[1]
+    itx = ants.read_transform(mat).invert()
+
+    # Loop : Transforming streamlines
+    new_streamlines = []
+    for sl in streamlines:
+        new_streamline = []
+        for point in sl:
+            allenRASvox = np.linalg.inv(B) @ point
+            avgtRASvox = itx.apply_to_point(allenRASvox)
+            new_streamline.append(avgtRASvox)
+        new_streamlines.append(new_streamline)
+
+    return new_streamlines
+
