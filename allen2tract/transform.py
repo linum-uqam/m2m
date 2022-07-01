@@ -214,10 +214,10 @@ def registrate_allen_streamlines(streamlines):
     """
 
     # Affine : allen PIR mm to allen RAS voxels
-    B = np.array([[ 0.05,  0,        0    ],
-                 [  0,    -0.05,     0    ],
-                 [  0,     0,       -0.05 ]])
-    
+    B = np.array([[0.05,  0,        0],
+                  [0,    -0.05,     0],
+                  [0,     0,       -0.05]])
+
     # Transformation : allen RAS voxels to avgt RAS voxels
     mat = load_allen2avgt_transformations(res=50)[1]
     itx = ants.read_transform(mat).invert()
@@ -233,4 +233,3 @@ def registrate_allen_streamlines(streamlines):
         new_streamlines.append(new_streamline)
 
     return new_streamlines
-

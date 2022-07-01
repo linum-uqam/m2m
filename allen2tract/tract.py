@@ -81,4 +81,3 @@ def filter_tract_near_roi(mask, fname):
 
 
 
-
