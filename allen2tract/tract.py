@@ -14,6 +14,14 @@ def get_avgt_wildtype():
 
 
 def get_tract(fname):
+    """
+    Load a tractogram
+
+    Parameters
+    ----------
+    fname: string
+        Path to trk file.
+    """
     return load_tractogram(fname)
 
 
@@ -33,6 +41,20 @@ def get_header(tract):
 
 def save_tract(fname, streamlines,
                affine, header):
+    """
+    Save tractrogram file
+
+    Parameters
+    ----------
+    fname: string
+        Path to output file.
+    streamlines: array of arrays
+        Streamlines to save.
+    affine: ndarray 4x4
+        to_rasmm() affine.
+    header: metadata
+        Metadata of tractogram (optional).
+    """
     save_tractogram(
         fname=fname,
         streamlines=streamlines,
