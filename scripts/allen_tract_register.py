@@ -76,7 +76,7 @@ def main():
     # Registrating streamlines
     new_streamlines = registrate_allen_streamlines(
                                             get_streamlines(tract))
-    
+
     # Creating affine for MI-Brain display
     rotation = np.array([
         [1,  0,  0, 0],
@@ -85,10 +85,10 @@ def main():
         [0,  0,  0, 1]
         ])
     translation = np.array([
-        [1, 0, 0,  0  ],
+        [1, 0, 0,  0],
         [0, 1, 0, -212],
         [0, 0, 1, -158],
-        [0, 0, 0,  1  ]
+        [0, 0, 0,  1]
         ])
     affine = load_avgt().affine @ rotation @ translation
 
