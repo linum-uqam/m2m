@@ -100,6 +100,3 @@ def filter_tract_near_roi(mask, fname):
         affine=np.eye(4),
         header=get_header(avgt_wildtype)
     )
-
-
-
