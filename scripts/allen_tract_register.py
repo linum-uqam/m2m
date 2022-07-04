@@ -9,7 +9,7 @@
     them : https://github.com/scilus/scilpy
 
     >>> allen_tract_register.py path/to/input.trk
-    --dir outputdir/
+        path/to/output.trk
 """
 
 import argparse
@@ -24,8 +24,7 @@ import nibabel as nib
 import sys
 sys.path.append(".")
 
-from allen2tract.control import (add_output_dir_arg,
-                                 add_overwrite_arg,
+from allen2tract.control import (add_overwrite_arg,
                                  check_input_file,
                                  check_file_exists)
 
@@ -45,7 +44,7 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
     p.add_argument('in_tract', help='Path to allen tractogram (trk)')
-    add_output_dir_arg(p)
+    p.add_argument('out_tract', help='Path to output tractogram (trk)')
     add_overwrite_arg(p)
     return p
 
@@ -58,17 +57,8 @@ def main():
     # Verying args validity
     check_input_file(parser, args.in_tract)
 
-    # Configuring output directory
-    args.dir = Path(args.dir)
-    args.dir.mkdir(exist_ok=True, parents=True)
-
     # Configuring output files
-    out_ = "avgt_{}.trk"
-    in_name = os.path.basename(args.in_tract)
-    index_dot = in_name.rindex('.')
-    out_name = in_name[:index_dot]
-    out_tract = os.path.join(args.dir, out_.format(out_name))
-    check_file_exists(parser, args, out_tract)
+    check_file_exists(parser, args, args.out_tract)
 
     # Loading tractogram
     tract = get_tract(args.in_tract)
@@ -94,7 +84,7 @@ def main():
 
     # Saving tractogram
     save_tract(
-        fname=out_tract,
+        fname=args.out_tract,
         streamlines=new_streamlines,
         affine=affine,
         header=get_header(get_avgt_wildtype())
