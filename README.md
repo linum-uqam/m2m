@@ -2,13 +2,13 @@
 
 ## Installation du paquet
 
-* Clone this repository on a virtual environement and run
+* Cloner ce dépôt sur un environnement virtuel et executer
 ```bash
 pip install -e .
 ```
-
+(Si cela échoue, essayer python 3.7.0 sur l'environnement)
 ## Remarque
-Pour importer `ANTsPy` à votre projet, vous aurez probablement besoin de libraires supplémentaires
+Vous aurez probablement besoin de libraires supplémentaires
 * MacOS
 
 ```bash
