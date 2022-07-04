@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib  
+matplotlib.use('TkAgg')
 import ants
 
 from allen2tract.util import (get_injection_infos, load_avgt)
