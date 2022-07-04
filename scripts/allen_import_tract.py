@@ -18,9 +18,11 @@ sys.path.append(".")
 
 from allen2tract.streamlines import AllenStreamLines
 
-from allen2tract.control import (add_output_dir_arg,
+from allen2tract.control import (add_cache_arg, add_output_dir_arg,
                                  add_overwrite_arg,
                                  check_file_exists)
+
+from allen2tract.util import get_mcc
 
 EPILOG = """
 Author : Mahdi
@@ -35,6 +37,7 @@ def _build_arg_parser():
                         'Connectivity Atlas dataset.')
     add_output_dir_arg(p)
     add_overwrite_arg(p)
+    add_cache_arg(p)
     return p
 
 
@@ -49,6 +52,17 @@ def main():
 
     # Configuring cache dir
     cache_dir = Path().home() / "allen2tract/data"
+
+    # Getting allen experiments
+    allen_experiments = get_mcc(args)[0]
+
+    # Verifying experiment id
+    ids = allen_experiments.id
+    for id in args.ids:
+        if id not in ids:
+            parser.error("Experiment {} doesn't exist.\n"
+                         "Please check: https://connectivity.brain-map.org/"
+                         "".format(id))
 
     # Preparing filename
     str_ids = str(args.ids[0])
