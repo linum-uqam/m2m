@@ -83,9 +83,12 @@ def get_injection_infos(allen_experiments, id):
     list: coordinates of the injection coordinates
     string: Injection location (R or L).
     """
-    roi = allen_experiments.loc[id]['structure-abbrev']
-    pos = allen_experiments.loc[id]['injection-coordinates']
-    if pos[2] >= 11400/2:
+    roi = allen_experiments.loc[id].structure_abbrev
+    inj_x = allen_experiments.loc[id].injection_x
+    inj_y = allen_experiments.loc[id].injection_y
+    inj_z = allen_experiments.loc[id].injection_z
+    pos = [inj_x, inj_y, inj_z]
+    if inj_z >= 11400/2:
         loc = 'R'
     else:
         loc = 'L'
