@@ -21,12 +21,13 @@
     >>> python allen2avgt_import_proj_density.py id --infos
     >>> python allen2avgt_import_proj_density.py id --infos --dir dir
 
-    Save a binarised projection density map.
+    Save a binarized projection density map.
 
     >>> python allen2avgt_import_proj_density.py id --bin --threshold
     >>> python allen2avgt_import_proj_density.py id --bin --threshold --res r
 
-    . . .
+    By default, all files are downloaded.
+    If --not_all is set, only the files specified like above will be output.
 """
 
 import argparse
@@ -68,50 +69,34 @@ def _build_arg_parser():
     p.add_argument('id', type=int,
                    help='Experiment id in the Allen Mouse Brain '
                         'Connectivity Atlas dataset.')
-    p.add_argument('--map', action='store_true',
-                   help='Save the projeciton density map of the experiment.\n'
-                        '(.nii.gz)')
     p.add_argument('--smooth', action="store_true",
                    help='Interpolation method for the registration '
                         'is nearestNeighbor by default.\n'
                         'Using --smooth will change the method to bSpline.')
-    p.add_argument('--roi', action='store_true',
-                   help='Save a spherical mask at the injection coordinates\n'
-                        'of the experiment. (.nii.gz)')
-    p.add_argument('--bin', action="store_true",
-                   help='Binarise the projection density map (.nii.gz)'
-                        'with a certain --threshold.')
     p.add_argument('--threshold', type=float, default=.5,
                    help='Treshold for the binarised map.')
-    p.add_argument('--infos', action="store_true",
-                   help='Save informations about the experiment:\n'
-                        '- Injeciton coordinates (MI-Brain, Allen)\n'
-                        '- Hemisphere (L or R)\n'
-                        '- Injeciton ROI\n')
+    p.add_argument('--not_all', action="store_true",
+                   help='If set, only saves the files specified')
     add_resolution_arg(p)
     add_output_dir_arg(p)
     add_cache_arg(p)
     add_overwrite_arg(p)
+    g = p.add_argument_group(title='File flags')
+    g.add_argument('--map', action="store_true",
+                   help='Save the projeciton density map of the experiment '
+                        '(.nii.gz)')
+    g.add_argument('--roi', action="store_true",
+                   help='Save a spherical mask at the injection coordinates'
+                        'of the experiment (.nii.gz)')
+    g.add_argument('--bin', action="store_true",
+                   help='Save a binarized projection density map (.nii.gz)'
+                        'with a certain --threshold.')
+    g.add_argument('--infos', action="store_true",
+                   help='Save informations about the experiment (.json):\n'
+                        '- Injeciton coordinates (MI-Brain, Allen)\n'
+                        '- Hemisphere (L or R)\n'
+                        '- Injeciton ROI\n')
     return p
-
-
-def check_args(parser, args):
-    """
-    Verify that the arguments are called the right way
-
-    Parameters
-    ----------
-    parser: argparse.ArgumentParser object
-        Parser.
-    args: argparse namespace
-        Argument list.
-    """
-    if not args.map and not args.roi and not args.infos and not args.bin:
-        parser.error("Please precise the file to download. \n"
-                     "Use --map to download the projection density map.\n"
-                     "Use --roi to download the spherical roi mask.\n"
-                     "User --infos to download the experiment infos.\n"
-                     "Use --bin to download the binarised map.")
 
 
 def main():
@@ -124,9 +109,6 @@ def main():
     mca = MouseConnectivityApi()
     # experiments from Cache
     allen_experiments = get_mcc(args)[0]
-
-    # Verifying arguments
-    check_args(parser, args)
 
     # Verifying experiment id
     ids = allen_experiments.id
@@ -145,48 +127,61 @@ def main():
     loc = get_injection_infos(allen_experiments, args.id)[2]
     pos = get_injection_infos(allen_experiments, args.id)[1]
 
-    # Creating and Saving MI-brain injection coordinates coords in json file
+    # Configuring outputs filenames
+    args_list = [args.map, args.roi, args.infos, args.bin]
 
+    if not args.not_all:
+        args.map = True
+        args.roi = True
+        args.infos = True
+        args.bin = True
+
+    if args.not_all and not any(args_list):
+        parser.error("Please precise at least one file to download. \n"
+                     "Use --map to download the projection density map.\n"
+                     "Use --roi to download the spherical roi mask.\n"
+                     "User --infos to download the experiment infos.\n"
+                     "Use --bin to download the binarised map.")
+
+    file_map = args.dir / "{}_{}_{}_proj_density_{}.nii.gz"\
+               .format(args.id, roi, loc, args.res)
+    if args.smooth:
+        file_map = args.dir / "{}_{}_{}_proj_density_{}_bSpline.nii.gz"\
+                   .format(args.id, roi, loc, args.res)
+    file_roi = args.dir / "{}_{}_{}_spherical_mask_{}.nii.gz"\
+               .format(args.id, roi, loc, args.res)
+    file_infos = args.dir / "{}_{}_{}_inj_coords_{}.json"\
+                 .format(args.id, roi, loc, args.res)
+    file_bin = args.dir / "{}_{}_{}_proj_density_{}_bin{}.nii.gz"\
+               .format(args.id, roi, loc, args.res, args.threshold)
+
+    file_list = [file_map, file_roi, file_infos, file_bin]
+
+    # Verifying if files exists
+    for file in file_list:
+        if args_list[file_list.index(file)]:
+            check_file_exists(parser, args, file)
+
+    # Creating and Saving MI-brain injection coordinates coords in json file
     # Saving experiments infos if --infos was used
     if args.infos:
-        # Configuring file name
-        json_ = "{}_{}_{}_inj_coords_{}.json"
-        coords_file = args.dir / json_.format(args.id, roi, loc, args.res)
-
-        # Verifying if file already exist
-        check_file_exists(parser, args, coords_file)
-
         # Getting mi-brain voxel coordinates
         mib_coords = get_mib_coords(args, allen_experiments)
 
         # Creating json content
-        dic = {"id": args.id, "roi": roi, "location": loc,
-               "allen_micron": pos, "mibrain_voxels": mib_coords}
+        dic = {"id": str(args.id), "roi": roi, "location": loc,
+               "allen_micron": str(pos), "mibrain_voxels": str(mib_coords)}
 
         # Saving in json file
         json_object = json.dumps(dic, indent=4)
-        with open(coords_file, "w") as outfile:
+        with open(file_infos, "w") as outfile:
             outfile.write(json_object)
 
     # Downloading and Saving the projection density map if --map was used
     if args.map or args.bin:
         # Configuring files names
-        nrrd_ = "{}_{}_{}_proj_density_{}.nrrd"
-        nifti_ = "{}_{}_{}_proj_density_{}.nii.gz"
-        smooth_ = "{}_{}_{}_proj_density_{}_bSpline.nii.gz"
-        bin_ = "{}_{}_{}_proj_density_{}_bin{}.nii.gz"
-
-        nrrd_file = args.dir / nrrd_.format(args.id, roi, loc, args.res)
-        nifti_file = args.dir / nifti_.format(args.id, roi, loc, args.res)
-        if args.smooth:
-            nifti_file = args.dir / smooth_.format(args.id, roi, loc, args.res)
-        if args.bin:
-            bin_file = args.dir / bin_.format(args.id, roi, loc, args.res,
-                                              args.threshold)
-            check_file_exists(parser, args, bin_file)
-
-        # Verifying if output already exist
-        check_file_exists(parser, args, nifti_file)
+        nrrd_file = args.dir / "{}_{}_{}_proj_density_{}.nrrd"\
+                .format(args.id, roi, loc, args.res)
 
         # Downloading projection density (API)
         mca.download_projection_density(
@@ -216,23 +211,15 @@ def main():
 
         if args.map:
             # Creating and Saving the Nifti map
-            save_nii(warped_vol, nifti_file)
+            save_nii(warped_vol, file_map)
 
         if args.bin:
             # Creating and Saving the Nifti bin map
             bin_vol = (warped_vol >= args.threshold).astype(np.int32)
-            save_nii(bin_vol, bin_file)
+            save_nii(bin_vol, file_bin)
 
     # Creating and Saving the spherical mask if --roi was used
     if args.roi:
-        # Configuring file name
-        roi_ = "{}_{}_{}_spherical_mask_{}.nii.gz"
-
-        roi_file = args.dir / roi_.format(args.id, roi, loc, args.res)
-
-        # Verifying if output already exist
-        check_file_exists(parser, args, roi_file)
-
         # Converting the coordinates in voxels depending the resolution
         inj_coord_voxels = (pos[0]/args.res,
                             pos[1]/args.res,
@@ -260,7 +247,7 @@ def main():
         roi_sphere_avgt = roi_sphere_avgt.astype(np.int32)
 
         # Creating and Saving the Nifti spherical mask
-        save_nii(roi_sphere_avgt, roi_file)
+        save_nii(roi_sphere_avgt, file_roi)
 
 
 if __name__ == "__main__":
