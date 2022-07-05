@@ -44,7 +44,7 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
     p.add_argument('in_nrrd', help='Path to allen template (.nrrd)')
-    p.add_argument('out_nii', help='Path to registred template (.nii.gz)')
+    p.add_argument('out_nii', help='Path to transformed template (.nii.gz)')
     p.add_argument('res', type=int, choices=[25, 50, 100],
                    help='Resolution of input template')
     add_overwrite_arg(p)
