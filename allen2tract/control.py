@@ -32,6 +32,12 @@ def add_cache_arg(parser):
                         help='Update the Allen Mouse Brain Connectivity Cache')
 
 
+def add_reference_arg(parser):
+    parser.add_argument('reference',
+                        help='Reference anatomy of tractogramme\n'
+                             '(.nii.gz)')
+
+
 def check_file_exists(parser, args, path):
     """
     Verify that output does not exist or that if it exists, -f should be used.

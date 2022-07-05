@@ -2,22 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-    Extract a bundle of streamlines from the Allen wildtype tractogram.\n
+    Extract a bundle of streamlines from a tractogram.\n
     Keep streamlines if any coordinate in the streamline is within
     the distance between the center of each voxel
     and the corner of the voxel.\n
 
     Streamlines in a sphere:
 
-    >>> allen_tract_filter.py --sphere --center x y z
-    >>> --radius r --dir dir
+    >>> allen_tract_filter.py path/to/input.trk path/to/output.trk
+    >>> path/to/reference.nii.gz
+    >>> --sphere --center x y z --radius r --dir dir
 
-    Use --donwload_sphere to download the spherical mask
+    Use --donwload_sphere to download the spherical mask and
+    precise its path
 
     Streamlines in a binary mask:
 
-    >>> allen_tract_filter.py --in_mask path_to_mask
-    >>> --dir dir
+    >>> allen_tract_filter.py path/to/input.trk path/to/output.trk
+    >>> path/to/reference.nii.gz --in_mask path_to_mask
 """
 
 import argparse
@@ -32,10 +34,10 @@ import nibabel as nib
 import sys
 sys.path.append(".")
 
-from allen2tract.control import (add_output_dir_arg,
-                                 add_overwrite_arg,
+from allen2tract.control import (add_overwrite_arg,
                                  check_input_file,
-                                 check_file_exists)
+                                 check_file_exists,
+                                 add_reference_arg)
 
 from allen2tract.util import (draw_spherical_mask,
                               load_avgt, save_nii)
@@ -50,6 +52,8 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
+    p.add_argument('in_tract', help='Path to allen tractogram (trk)')
+    p.add_argument('out_tract', help='Path to output tractogram (trk)')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--sphere', action="store_true",
                    help='Keep streamlines inside a spherical mask.\n'
@@ -59,13 +63,12 @@ def _build_arg_parser():
                         'MI-brain coordinates (in voxels)')
     p.add_argument('--radius', type=float,
                    help='Radius of the spherical mask (in voxels).')
-    p.add_argument('--download_sphere', action="store_true",
-                   help='Download the spherical mask.\n'
-                        '.nii.gz output')
+    p.add_argument('--download_sphere',
+                   help='Path to .nii.gz spherical mask')
     g.add_argument('--in_mask',
                    help='Keep streamlines inside a ROI.\n'
                         'Path to .nii.gz binary mask.')
-    add_output_dir_arg(p)
+    add_reference_arg(p)
     add_overwrite_arg(p)
     return p
 
@@ -103,9 +106,13 @@ def main():
     # Verying args validity
     check_args(parser, args)
 
-    # Configuring output directory
-    args.dir = Path(args.dir)
-    args.dir.mkdir(exist_ok=True, parents=True)
+    # Checking input tract
+    check_input_file(parser, args.in_tract)
+
+    # Checking outputs
+    check_file_exists(parser, args, args.out_tract)
+    if args.download_sphere:
+        check_file_exists(parser, args, args.download_sphere)
 
     # if --mask
     if args.in_mask:
@@ -114,16 +121,6 @@ def main():
         if not args.in_mask.endswith('.nii.gz'):
             parser.error('Invalid --mask format.\n'
                          '(.nii.gz) required.')
-
-        # Preparing output file
-        out_ = "avgt_wildtype_in_{}.trk"
-        mask_path = args.in_mask
-        mask_name = os.path.basename(mask_path)
-        index_of_dot = mask_name.rindex('_')
-        mask_name_without_extension = mask_name[:index_of_dot]
-        out_tract = os.path.join(args.dir,
-                                 out_.format(mask_name_without_extension))
-        check_file_exists(parser, args, out_tract)
 
         # Loading the binary mask
         mask = nib.load(args.in_mask).get_fdata()
@@ -140,23 +137,14 @@ def main():
             radius=args.radius,
             center=center)
 
-        # Preparing output file
-        out_ = "avgt_wildtype_in_sphere_{}_{}_{}_r{}.trk"
-        out_tract = os.path.join(args.dir,
-                                 out_.format(x, y, z, args.radius))
-        check_file_exists(parser, args, out_tract)
-
         if args.download_sphere:
             # Saving the spherical mask
-            out_ = "spherical_mask_{}_{}_{}_r{}.nii.gz"
-            out_sphere = os.path.join(args.dir,
-                                      out_.format(x, y, z, args.radius))
-            check_file_exists(parser, args, out_sphere)
-
-            save_nii(mask.astype(np.int32), out_sphere)
+            save_nii(mask.astype(np.int32), args.download_sphere)
 
     # Saving the filtered tract
-    filter_tract_near_roi(mask=mask, fname=out_tract)
+    filter_tract_near_roi(mask=mask, in_tract=args.in_tract,
+                          out_tract=args.out_tract,
+                          reference=args.reference)
 
 
 if __name__ == "__main__":

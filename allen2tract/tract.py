@@ -1,19 +1,14 @@
+from curses.ascii import SP
 import numpy as np
+import nibabel as nib
 from dipy.io.streamline import load_tractogram, save_tractogram
 from dipy.tracking.utils import near_roi
+from dipy.io.stateful_tractogram import StatefulTractogram, Space
 
 from allen2tract.util import load_avgt
 
 
-def get_avgt_wildtype():
-    """
-    Load avgt_wildtype_clean.trk
-    """
-    fname = "./data/avgt/avgt_wildtype_clean.trk"
-    return load_tractogram(fname)
-
-
-def get_tract(fname):
+def get_tract(fname, reference):
     """
     Load a tractogram
 
@@ -21,26 +16,14 @@ def get_tract(fname):
     ----------
     fname: string
         Path to trk file.
+    reference:
+        .nii.gz file reference of the trk.
     """
-    return load_tractogram(fname)
-
-
-def get_streamlines(tract):
-    """
-    Get streamlines datas of the tractogram
-    """
-    return tract[0]
-
-
-def get_header(tract):
-    """
-    Get metadatas of the tractogram
-    """
-    return tract[1]
+    return load_tractogram(fname, reference)
 
 
 def save_tract(fname, streamlines,
-               affine, header):
+               reference, space):
     """
     Save tractrogram file
 
@@ -50,20 +33,23 @@ def save_tract(fname, streamlines,
         Path to output file.
     streamlines: array of arrays
         Streamlines to save.
-    affine: ndarray 4x4
-        to_rasmm() affine.
-    header: metadata
-        Metadata of tractogram (optional).
+    reference:
+        .nii.gz file reference of the trk.
+    space:
+        StatefulTractogram space.
     """
-    save_tractogram(
-        fname=fname,
+    sft = StatefulTractogram(
         streamlines=streamlines,
-        affine=affine,
-        header=header
+        reference=str(reference),
+        space=space
+    )
+    save_tractogram(
+        filename=fname,
+        sft=sft
     )
 
 
-def filter_tract_near_roi(mask, fname):
+def filter_tract_near_roi(mask, in_tract, out_tract, reference):
     """
     Save a bundle of streamlines passing
     through the binary mask
@@ -72,31 +58,38 @@ def filter_tract_near_roi(mask, fname):
     ----------
     mask: ndarray
         Binary mask.
-    fname: string
-        Path to the output file
+    int_tract: string
+        Path to the input trk
+    out_tract: string
+        Path to the output trk
+    reference:
+        .nii.gz file reference of the trk.
     """
     # Getting avgt wildtype tractogram
-    avgt_wildtype = get_avgt_wildtype()
+    tract = get_tract(in_tract, reference)
+
+    # Loading reference
+    ref = nib.load(reference)
 
     # Filtering streamlines
     # Keeping only the ones that pass through the roi
     through_roi = near_roi(
-        streamlines=get_streamlines(avgt_wildtype),
-        affine=load_avgt().affine,
+        streamlines=tract.streamlines,
+        affine=ref.affine,
         region_of_interest=mask
     )
 
     # Writting streamlines array sequence
     streamlines_through_roi = []
-    for i in range(len(get_streamlines(avgt_wildtype))):
+    for i in range(len(tract.streamlines)):
         if through_roi[i]:
             streamlines_through_roi.append(
-                get_streamlines(avgt_wildtype)[i])
+                tract.streamlines[i])
 
     # Saving the tractogram
     save_tract(
-        fname=fname,
+        fname=out_tract,
         streamlines=streamlines_through_roi,
-        affine=np.eye(4),
-        header=get_header(avgt_wildtype)
+        reference=str(reference),
+        space=Space.RASMM
     )
