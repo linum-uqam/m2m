@@ -108,6 +108,7 @@ def main():
 
     # Checking input tract
     check_input_file(parser, args.in_tract)
+    check_input_file(parser, args.reference)
 
     # Checking outputs
     check_file_exists(parser, args, args.out_tract)
