@@ -48,7 +48,6 @@ def _build_arg_parser():
     g.add_argument('--ids_csv', help='Path to a csv file containing ids')
     g.add_argument('--ids', type=int, nargs='+',help='List of experiment ids.')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
-    add_output_dir_arg(p)
     add_overwrite_arg(p)
     add_cache_arg(p)
     return p
@@ -58,10 +57,6 @@ def main():
     # Building argparser
     parser = _build_arg_parser()
     args = parser.parse_args()
-
-    # Configuring output directory
-    args.dir = Path(args.dir)
-    args.dir.mkdir(exist_ok=True, parents=True)
 
     # Configuring cache dir
     cache_dir = Path().home() / "allen2tract/data"
