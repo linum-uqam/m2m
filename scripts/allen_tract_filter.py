@@ -11,7 +11,7 @@
 
     >>> allen_tract_filter.py path/to/input.trk path/to/output.trk
     >>> path/to/reference.nii.gz
-    >>> --sphere --center x y z --radius r --dir dir
+    >>> --sphere --center x y z --radius r
 
     Use --donwload_sphere to download the spherical mask and
     precise its path
