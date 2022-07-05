@@ -5,6 +5,9 @@
     Download all streamlines for each Allen mouse brain
     connectivity atlas experiments and combine into a single tractogram
 
+    Please use allen_tract_transform.py to align your tractogram on your
+    reference before using it in other scripts.
+
     >>> allen_import_tract id1 id2 id3 id4 ... --dir dir
    """
 

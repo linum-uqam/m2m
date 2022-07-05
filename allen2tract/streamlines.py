@@ -1,10 +1,10 @@
+from calendar import c
 import numpy as np
 import gzip
 import json
 import requests
 import nibabel as nib
 from pathlib import Path
-from dipy.io.streamline import save_tractogram
 from allen2tract.tract import save_tract
 
 
@@ -159,20 +159,21 @@ class AllenStreamLines(object):
         sl = []
         for i in range(len(self.streamlines_list)):
             this_s = self.streamlines_list[i].copy()
-            this_s[:, 0] = self.streamlines_list[i][:, 0] / rx
-            this_s[:, 1] = self.streamlines_list[i][:, 1] / ry
-            this_s[:, 2] = self.streamlines_list[i][:, 2] / rz
+            # PIR to RAS
+            this_s[:, 1] = self.streamlines_list[i][:, 0] / rx
+            this_s[:, 2] = self.streamlines_list[i][:, 1] / -ry
+            this_s[:, 0] = self.streamlines_list[i][:, 2] / -rz
+            # this_s[:, 0] = self.streamlines_list[i][:, 0] / rx
+            # this_s[:, 1] = self.streamlines_list[i][:, 1] / ry
+            # this_s[:, 2] = self.streamlines_list[i][:, 2] / rz
             sl.append(this_s)
-
-        # Load the reference affine
-        affine = nib.load(reference).affine
 
         # Save the tractogram
         save_tract(
             fname=str(filename),
             streamlines=sl,
-            affine=affine,
-            header=None
+            reference=reference,
+            check_bbox=False,
             )
 
     def remove_cache(self):

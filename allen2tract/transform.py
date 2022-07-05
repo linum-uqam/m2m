@@ -220,6 +220,12 @@ def registrate_allen_streamlines(streamlines):
                   [0,    -0.05,     0],
                   [0,     0,       -0.05]])
 
+    # Rotation matrix for MI-Brain display
+    rotation = np.array([
+        [1,  0,  0],
+        [0, -1,  0],
+        [0,  0, -1]])
+
     # Transformation : allen RAS voxels to avgt RAS voxels
     mat = load_allen2avgt_transformations(res=50)[1]
     itx = ants.read_transform(mat).invert()
@@ -229,9 +235,13 @@ def registrate_allen_streamlines(streamlines):
     for sl in streamlines:
         new_streamline = []
         for point in sl:
-            allenRASvox = np.linalg.inv(B) @ point
+            allenRASmm = [point[1], point[2], point[0]]
+            allenRASvox = np.linalg.inv(B) @ allenRASmm
             avgtRASvox = itx.apply_to_point(allenRASvox)
-            new_streamline.insert(0,avgtRASvox)
+            mib_point = avgtRASvox @ rotation
+            mib_point[1] += 212
+            mib_point[2] += 158
+            new_streamline.append(mib_point)
         new_streamlines.append(new_streamline)
 
     return new_streamlines
