@@ -34,7 +34,7 @@ def add_cache_arg(parser):
 
 def add_reference_arg(parser):
     parser.add_argument('reference',
-                        help='Reference anatomy of tractogramme\n'
+                        help='Reference anatomy of tractogram\n'
                              '(.nii.gz)')
 
 

@@ -8,7 +8,8 @@ from dipy.io.stateful_tractogram import StatefulTractogram, Space
 from allen2tract.util import load_avgt
 
 
-def get_tract(fname, reference):
+def get_tract(fname, reference,
+              check_bbox=True, check_hdr=True):
     """
     Load a tractogram
 
@@ -16,14 +17,22 @@ def get_tract(fname, reference):
     ----------
     fname: string
         Path to trk file.
-    reference:
+    reference: string
         .nii.gz file reference of the trk.
+    check_bbox: bool
+        Check bounding box validity.
+    check_hdr: bool
+        Check header validity.
     """
-    return load_tractogram(fname, reference)
+    tract = load_tractogram(fname, reference,
+                            trk_header_check=check_hdr,
+                            bbox_valid_check=check_bbox)
+    return tract
 
 
 def save_tract(fname, streamlines,
-               reference, space):
+               reference, space=None,
+               check_bbox=True):
     """
     Save tractrogram file
 
@@ -33,11 +42,16 @@ def save_tract(fname, streamlines,
         Path to output file.
     streamlines: array of arrays
         Streamlines to save.
-    reference:
+    reference: string
         .nii.gz file reference of the trk.
-    space:
+    space: enum
         StatefulTractogram space.
+    check_bbox: bool
+        Check bounding box validity.
     """
+    if space == None:
+        space = Space.VOX
+
     sft = StatefulTractogram(
         streamlines=streamlines,
         reference=str(reference),
@@ -45,7 +59,8 @@ def save_tract(fname, streamlines,
     )
     save_tractogram(
         filename=fname,
-        sft=sft
+        sft=sft,
+        bbox_valid_check=check_bbox
     )
 
 
@@ -62,7 +77,7 @@ def filter_tract_near_roi(mask, in_tract, out_tract, reference):
         Path to the input trk
     out_tract: string
         Path to the output trk
-    reference:
+    reference: string
         .nii.gz file reference of the trk.
     """
     # Getting avgt wildtype tractogram
