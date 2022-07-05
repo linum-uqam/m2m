@@ -9,7 +9,14 @@
           Please use allen_tract_transform.py to align your tractogram on your
           reference before using it in other scripts.
 
-    >>> allen_import_tract path/to/ids.csv path/to/output.trk
+    Using a csv file from : https://connectivity.brain-map.org/
+
+    >>> allen_import_tract --csv_ids path/to/ids.csv path/to/output.trk
+
+    Setting ids manually: 
+
+    >>> allen_import_tract path/to/output.trk --ids id1 id2 id3 . . .
+    Important: the script should be called in this specific order
    """
 
 import argparse
@@ -37,7 +44,9 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
-    p.add_argument('in_ids', help='Path to a csv file containing ids')
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument('--ids_csv', help='Path to a csv file containing ids')
+    g.add_argument('--ids', type=int, nargs='+',help='List of experiment ids.')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
     add_output_dir_arg(p)
     add_overwrite_arg(p)
@@ -59,7 +68,10 @@ def main():
 
     # Verifying output file
     check_file_exists(parser, args, args.out_tract)
-    in_ids = pd.read_csv(args.in_ids).id.tolist()
+    if args.ids:
+        in_ids = args.ids
+    if args.ids_csv:
+        in_ids = pd.read_csv(args.ids_csv).id.tolist()
 
     # Getting allen experiments
     allen_experiments = get_mcc(args)[0]
