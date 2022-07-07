@@ -31,7 +31,7 @@ class AllenStreamLines(object):
         self.cache = cache
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
-        self.reference = "data/allen/allen_template_50_ras.nii.gz"
+        self.reference = "data/allen_template_50_ras.nii.gz"
 
     def download(self, experiment_ids, force=False):
         """
