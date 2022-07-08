@@ -49,7 +49,7 @@ def save_tract(fname, streamlines,
     check_bbox: bool
         Check bounding box validity.
     """
-    if space == None:
+    if space is None:
         space = Space.VOX
 
     sft = StatefulTractogram(

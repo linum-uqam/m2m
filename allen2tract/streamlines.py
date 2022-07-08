@@ -5,7 +5,9 @@ import json
 import requests
 import nibabel as nib
 from pathlib import Path
+import os
 from allen2tract.tract import save_tract
+from allen2tract.control import get_cached_dir
 
 
 class AllenStreamLines(object):
@@ -31,7 +33,8 @@ class AllenStreamLines(object):
         self.cache = cache
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
-        self.reference = "data/allen_template_50_ras.nii.gz"
+        self.reference = os.path.join(get_cached_dir("data"),
+                                      "allen_template_50_ras.nii.gz")
 
     def download(self, experiment_ids, force=False):
         """

@@ -3,13 +3,15 @@ import pandas as pd
 import numpy as np
 import nibabel as nib
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
+from allen2tract.control import get_cached_dir
 
 
 def load_avgt():
     """
     Load AVGT reference template.
     """
-    return nib.load('./data/AVGT.nii.gz')
+    avgt_file = os.path.join(get_cached_dir("data"), 'AVGT.nii.gz')
+    return nib.load(avgt_file)
 
 
 def save_nii(vol, path):
@@ -47,14 +49,18 @@ def get_mcc(args):
         Allen Mouse Connectivity experiments
         Allen Mouse Brain structure tree
     """
-    experiments_path = './cache/allen_mouse_conn_experiments.json'
-    manifest_path = './cache/mouse_conn_manifest.json'
-    structures_path = './cache/structures.json'
+    experiments_path = os.path.join(get_cached_dir("cache"),
+                                    'allen_mouse_conn_experiments.json')
+    manifest_path = os.path.join(get_cached_dir("cache"),
+                                 'mouse_conn_manifest.json')
+    structures_path = os.path.join(get_cached_dir("cache"), 'structures.json')
 
     if args.nocache:
-        if os.path.isfile(experiments_path) and os.path.isfile(manifest_path):
+        if os.path.isfile(experiments_path):
             os.remove(experiments_path)
+        if os.path.isfile(manifest_path):
             os.remove(manifest_path)
+        if os.path.isfile(structures_path):
             os.remove(structures_path)
 
     mcc = MouseConnectivityCache(manifest_file=manifest_path)

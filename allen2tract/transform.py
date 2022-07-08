@@ -1,9 +1,10 @@
 import numpy as np
-import matplotlib  
+import os
+from allen2tract.util import (get_injection_infos, load_avgt)
+from allen2tract.control import get_cached_dir
+import matplotlib
 matplotlib.use('TkAgg')
 import ants
-
-from allen2tract.util import (get_injection_infos, load_avgt)
 
 
 def pretransform_vol_PIR_RAS(vol):
@@ -92,8 +93,12 @@ def load_allen2avgt_transformations(res):
     ------
     list: Transform list.
     """
-    tx_nifti = './data/transformations_allen2avgt/allen2avgt_{}.nii.gz'
-    tx_mat = './data/transformations_allen2avgt/allen2avgtAffine_{}.mat'
+    tx_nifti = os.path.join(get_cached_dir(
+                    os.path.join("data", "transformations_allen2avgt")),
+                    'allen2avgt_{}.nii.gz')
+    tx_mat = os.path.join(get_cached_dir(
+                    os.path.join("data", "transformations_allen2avgt")),
+                    'allen2avgtAffine_{}.mat')
     return [tx_nifti.format(res), tx_mat.format(res)]
 
 
