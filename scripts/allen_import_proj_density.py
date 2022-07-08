@@ -43,8 +43,10 @@ from allen2tract.control import (add_cache_arg, add_output_dir_arg,
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_mib_coords)
-from allen2tract.util import (download_proj_density_vol, get_injection_infos,
-                              draw_spherical_mask, get_mcc_exps,
+from allen2tract.allensdk_utils import (download_proj_density_vol,
+                                        get_injection_infos,
+                                        get_mcc_exps)
+from allen2tract.util import (draw_spherical_mask, 
                               save_nii)
 
 EPILOG = """

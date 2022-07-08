@@ -1,11 +1,7 @@
-from curses.ascii import SP
-import numpy as np
 import nibabel as nib
 from dipy.io.streamline import load_tractogram, save_tractogram
 from dipy.tracking.utils import near_roi
 from dipy.io.stateful_tractogram import StatefulTractogram, Space
-
-from allen2tract.util import load_avgt
 
 
 def get_tract(fname, reference,

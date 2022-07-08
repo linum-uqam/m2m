@@ -1,6 +1,7 @@
 import numpy as np
 import os
-from allen2tract.util import (get_injection_infos, load_avgt)
+from allen2tract.util import load_avgt
+from allen2tract.allensdk_utils import get_injection_infos
 from allen2tract.control import get_cached_dir
 import matplotlib
 matplotlib.use('TkAgg')

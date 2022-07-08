@@ -30,7 +30,7 @@ from allen2tract.control import (add_cache_arg,
                                  add_overwrite_arg,
                                  check_file_exists,
                                  get_cache_dir)
-from allen2tract.util import get_mcc, get_mcc_exps
+from allen2tract.allensdk_utils import get_mcc_exps
 
 EPILOG = """
 Author : Mahdi

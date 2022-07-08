@@ -59,13 +59,14 @@ from allen2tract.control import (add_cache_arg, add_output_dir_arg,
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_allen_coords)
-from allen2tract.util import (download_proj_density_vol,
-                              download_struct_mask_vol,
-                              get_structure_parents_infos,
-                              get_unionized_list,
-                              get_injection_infos,
-                              get_mcc_exps, get_mcc_stree,
-                              save_nii, search_experiments)
+from allen2tract.allensdk_utils import (download_proj_density_vol,
+                                        download_struct_mask_vol,
+                                        get_structure_parents_infos,
+                                        get_unionized_list,
+                                        get_injection_infos,
+                                        get_mcc_exps, get_mcc_stree,
+                                        search_experiments)
+from allen2tract.util import save_nii
 
 EPILOG = """
 Author : Mahdi
