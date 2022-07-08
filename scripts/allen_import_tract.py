@@ -30,7 +30,7 @@ from allen2tract.control import (add_cache_arg,
                                  add_overwrite_arg,
                                  check_file_exists,
                                  get_cache_dir)
-from allen2tract.util import get_mcc
+from allen2tract.util import get_mcc, get_mcc_exps
 
 EPILOG = """
 Author : Mahdi
@@ -65,7 +65,7 @@ def main():
         in_ids = pd.read_csv(args.ids_csv).id.tolist()
 
     # Getting allen experiments
-    allen_experiments = get_mcc(args.nocache)[0]
+    allen_experiments = get_mcc_exps(args.nocache)
 
     # Verifying experiment id
     ids = allen_experiments.id

@@ -52,10 +52,6 @@ from pathlib import Path
 from tabnanny import check
 import numpy as np
 import pandas as pd
-from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
-from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
-from allensdk.api.queries.tree_search_api import TreeSearchApi
-import nrrd
 import sys
 from allen2tract.control import (add_cache_arg, add_output_dir_arg,
                                  add_overwrite_arg, add_resolution_arg,
@@ -65,9 +61,11 @@ from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    get_allen_coords)
 from allen2tract.util import (download_proj_density_vol,
                               download_struct_mask_vol,
+                              get_structure_parents_infos,
+                              get_unionized_list,
                               get_injection_infos,
-                              get_mcc,
-                              save_nii)
+                              get_mcc_exps, get_mcc_stree,
+                              save_nii, search_experiments)
 
 EPILOG = """
 Author : Mahdi
@@ -148,40 +146,6 @@ def check_args(parser, args):
                          'x, y, z values must be in [164, 212, 158].')
 
 
-def search_experiments(args, seed_point):
-    """
-    Retrieve Allen experiments
-    from a seed point.\n
-    Using `injection coordinate search` or
-    `spatial search`.
-
-    Parameters
-    ----------
-    args: argparse namespace
-        Argument list.
-    seed_point: list of int
-        Coordinate of the seed point
-        in Allen reference space.
-
-    Return
-    ------
-    dic: Allen experiments founded.
-    """
-    mca = MouseConnectivityApi()
-
-    # Injection coordinate search
-    if args.injection:
-        exps = mca.experiment_injection_coordinate_search(
-            seed_point=seed_point)
-
-    # Spatial search
-    if args.spatial:
-        exps = mca.experiment_spatial_search(
-            seed_point=seed_point)
-
-    return exps
-
-
 def get_experiment_id(experiments, index, color):
     """
     Retrieve an experiment id at a specific index in a list of
@@ -210,111 +174,6 @@ def get_experiment_id(experiments, index, color):
     return id
 
 
-def get_unionized_list(exp_id, struct_ids):
-    """
-    Get the unionized structures
-    of an Allen experiment.
-
-    Parameters
-    ----------
-    exp_id: long
-        Id of Allen experiment.
-    struct_ids: list
-        Ids of structures in Allen
-        Mouse Brain Atlas.
-
-    Returns
-    -------
-    dataframe: Unionized structures.
-    """
-    # Diving mouse brain structures ids
-    # into 5 arrays (for API call purposes)
-    struct_ids_a = struct_ids[0:len(struct_ids)//5]
-    struct_ids_b = struct_ids[len(struct_ids)//5:len(struct_ids)*2//5]
-    struct_ids_c = struct_ids[len(struct_ids)*2//5:len(struct_ids)*3//5]
-    struct_ids_d = struct_ids[len(struct_ids)*3//5:len(struct_ids)*4//5]
-    struct_ids_e = struct_ids[len(struct_ids)*4//5:len(struct_ids)]
-
-    # Getting structures unionized
-    mca = MouseConnectivityApi()
-    unionizes_a = mca.get_structure_unionizes(
-        experiment_ids=[exp_id],
-        is_injection=False,
-        structure_ids=struct_ids_a)
-    unionizes_b = mca.get_structure_unionizes(
-        experiment_ids=[exp_id],
-        is_injection=False,
-        structure_ids=struct_ids_b)
-    unionizes_c = mca.get_structure_unionizes(
-        experiment_ids=[exp_id],
-        is_injection=False,
-        structure_ids=struct_ids_c)
-    unionizes_d = mca.get_structure_unionizes(
-        experiment_ids=[exp_id],
-        is_injection=False,
-        structure_ids=struct_ids_d)
-    unionizes_e = mca.get_structure_unionizes(
-        experiment_ids=[exp_id],
-        is_injection=False,
-        structure_ids=struct_ids_e)
-
-    # Creating dataframes
-    unionizes_a = pd.DataFrame(unionizes_a)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_b = pd.DataFrame(unionizes_b)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_c = pd.DataFrame(unionizes_c)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_d = pd.DataFrame(unionizes_d)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-    unionizes_e = pd.DataFrame(unionizes_e)[
-        ['hemisphere_id',
-         'structure_id',
-         'projection_density']]
-
-    # Returning concat dataframe
-    fnames = [unionizes_a, unionizes_b, unionizes_c,
-              unionizes_d, unionizes_e]
-    return pd.concat(fnames)
-
-
-def get_structure_parents_infos(structure_id):
-    """
-    Get the path of ids and names of the
-    parents of a Allen Mouse Brain Atlas structure.
-
-    Parameters
-    ----------
-    structure_id: long
-        Allen Mouse Brain Atlas structure id.
-
-    Returns
-    -------
-    string: Path of parents ids's
-    string: Path of parents names's
-    """
-    # Getting ancestor tree of the structure
-    tsa = TreeSearchApi()
-    tree = tsa.get_tree(kind='Structure', db_id=structure_id,
-                        ancestors=True)
-    df_tree = pd.DataFrame(tree)
-
-    # Retrieving parents ids and names path
-    parents_ids_path = df_tree.structure_id_path[len(df_tree)-1]
-    parents = df_tree.safe_name[0:len(df_tree)].tolist()
-    parents_names_path = " / ".join(map(str, parents))
-
-    return parents_ids_path, parents_names_path
-
-
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -324,8 +183,8 @@ def main():
     check_args(parser, args)
 
     # Getting experiments from Mouse Connectivity Cache
-    allen_experiments = get_mcc(args.nocache)[0]
-    stree = get_mcc(args.nocache)[1]
+    allen_experiments = get_mcc_exps(args.nocache)
+    stree = get_mcc_stree(args.nocache)
 
     # Configuring output directory
     args.dir = Path(args.dir)
@@ -338,10 +197,13 @@ def main():
         allen_blue_coords = get_allen_coords(args.blue)
 
     # Searching Allen experiments
-    red_exps = search_experiments(args, allen_red_coords)
-    green_exps = search_experiments(args, allen_green_coords)
+    red_exps = search_experiments(args.injection, args.spatial,
+                                  allen_red_coords)
+    green_exps = search_experiments(args.injection, args.spatial,
+                                    allen_green_coords)
     if args.blue:
-        blue_exps = search_experiments(args, allen_blue_coords)
+        blue_exps = search_experiments(args.injection, args.spatial,
+                                       allen_blue_coords)
 
     # Retrieving experiments ids
     red_id = get_experiment_id(red_exps, 0, "red")

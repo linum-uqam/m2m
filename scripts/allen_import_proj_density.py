@@ -44,8 +44,7 @@ from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_mib_coords)
 from allen2tract.util import (download_proj_density_vol, get_injection_infos,
-                              get_mcc,
-                              draw_spherical_mask,
+                              draw_spherical_mask, get_mcc_exps,
                               save_nii)
 
 EPILOG = """
@@ -95,7 +94,7 @@ def main():
     args = parser.parse_args()
 
     # Getting experiments from Cache
-    allen_experiments = get_mcc(args.nocache)[0]
+    allen_experiments = get_mcc_exps(args.nocache)
 
     # Verifying experiment id
     ids = allen_experiments.id
