@@ -75,3 +75,11 @@ def check_input_file(parser, path):
     """
     if not os.path.isfile(path):
         parser.error('Input file {} does not exist'.format(path))
+
+
+def get_cache_dir():
+    return os.path.join(os.path.expanduser('~'), '.allen2tract')
+
+
+def get_cached_dir(dir):
+    return os.path.join(get_cache_dir(), dir)
