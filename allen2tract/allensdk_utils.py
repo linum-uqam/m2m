@@ -115,6 +115,24 @@ def get_injection_infos(allen_experiments, id):
 
 def download_proj_density_vol(file, id, res, nocache):
     """
+    Download projection density map and store it in cache
+    by default.
+
+    Parameters
+    ----------
+    file:
+        Downloaded filename.
+    id: int
+        Allen mouse connectiviy experiment id.
+    res: int
+        Allen resolution [25, 50, 100]
+    nocache: bool
+        Whether use cache of not
+
+    Returns
+    -------
+    ndarray:
+        Projection density volume.
     """
     cache_dir = Path(get_cached_dir('cache_proj_density'))
     cache_dir.mkdir(exist_ok=True, parents=True)
@@ -131,6 +149,24 @@ def download_proj_density_vol(file, id, res, nocache):
 
 def download_struct_mask_vol(file, id, res, nocache):
     """
+    Download a structure mask and store it in cache
+    by default.
+
+    Parameters
+    ----------
+    file:
+        Downloaded filename.
+    id: int
+        Allen mouse connectiviy experiment id.
+    res: int
+        Allen resolution [25, 50, 100]
+    nocache: bool
+        Whether use cache of not
+
+    Returns
+    -------
+    ndarray:
+        Structure mask volume.
     """
     cache_dir = Path(get_cached_dir('cache_struct_mask'))
     cache_dir.mkdir(exist_ok=True, parents=True)
