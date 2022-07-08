@@ -2,13 +2,13 @@
 
 ## Installation du paquet
 
-* Cloner ce dépôt sur un environnement virtuel et executer
+* Cloner ce dépôt sur un environnement virtuel avec python 3.7.0 et executer
 ```bash
 pip install -e .
 ```
-(Si cela échoue, essayer python 3.7.0 sur l'environnement)
-## Remarque
-Vous aurez probablement besoin de libraires supplémentaires
+
+## Remarque !
+Vous aurez probablement besoin de libraires supplémentaires avant d'installer le paquet
 * MacOS
 
 ```bash
