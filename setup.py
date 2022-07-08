@@ -3,6 +3,23 @@ import os
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
 
+
+def create_cache_dir(dir):
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
+
+
+def configure_cache_dir(src, dest):
+    if os.path.isdir(src):
+        os.rename(src, dest)
+
+
+cache_dir = os.path.join(os.path.expanduser('~'), '.allen2tract')
+create_cache_dir(cache_dir)
+configure_cache_dir("data", os.path.join(cache_dir, "data"))
+configure_cache_dir("cache", os.path.join(cache_dir, "cache"))
+
+
 with open('a2t_requirements.txt') as f:
     required_dependencies = f.read().splitlines()
     external_dependencies = []
@@ -52,7 +69,7 @@ opts = dict(name=NAME,
             platforms=PLATFORMS,
             version=VERSION,
             packages=find_packages(),
-            setup_requires=['cython','numpy'],
+            setup_requires=['cython', 'numpy'],
             install_requires=external_dependencies,
             scripts=SCRIPTS,
             include_package_data=True)
