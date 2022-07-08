@@ -63,7 +63,9 @@ from allen2tract.control import (add_cache_arg, add_output_dir_arg,
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_allen_coords)
-from allen2tract.util import (get_injection_infos,
+from allen2tract.util import (download_proj_density_vol,
+                              download_struct_mask_vol,
+                              get_injection_infos,
                               get_mcc,
                               save_nii)
 
@@ -324,8 +326,6 @@ def main():
     # Getting experiments from Mouse Connectivity Cache
     allen_experiments = get_mcc(args)[0]
     stree = get_mcc(args)[1]
-    # API
-    mca = MouseConnectivityApi()
 
     # Configuring output directory
     args.dir = Path(args.dir)
@@ -379,19 +379,19 @@ def main():
         bloc = get_injection_infos(allen_experiments, blue_id)[2]
 
     # Projection density maps Niftis and Nrrd files
-    nrrd_ = "{}_{}_{}_proj_density_{}.nrrd"
+    nrrd_ = "{}_{}.nrrd"
     nifti_ = "{}_{}_{}_proj_density_{}.nii.gz"
 
-    nrrd_red = subdir / nrrd_.format(red_id, rroi, rloc, args.res)
+    nrrd_red = nrrd_.format(red_id, args.res)
     nifti_red = subdir / nifti_.format(red_id, rroi, rloc, args.res)
     check_file_exists(parser, args, nifti_red)
 
-    nrrd_green = subdir / nrrd_.format(green_id, groi, gloc, args.res)
+    nrrd_green = nrrd_.format(green_id, args.res)
     nifti_green = subdir / nifti_.format(green_id, groi, gloc, args.res)
     check_file_exists(parser, args, nifti_green)
 
     if args.blue:
-        nrrd_blue = subdir / nrrd_.format(blue_id, broi, bloc, args.res)
+        nrrd_blue = nrrd_.format(blue_id, args.res)
         nifti_blue = subdir / nifti_.format(blue_id, broi, bloc, args.res)
         check_file_exists(parser, args, nifti_blue)
 
@@ -424,30 +424,13 @@ def main():
     check_file_exists(parser, args, xrois_json)
 
     # Downloading projetion density maps
-    mca.download_projection_density(
-        nrrd_red,
-        experiment_id=red_id,
-        resolution=args.res)
-
-    mca.download_projection_density(
-        nrrd_green,
-        experiment_id=green_id,
-        resolution=args.res)
-
+    red_vol = download_proj_density_vol(nrrd_red, red_id,
+                                        args.res, args.nocache)
+    green_vol = download_proj_density_vol(nrrd_green, green_id,
+                                          args.res, args.nocache)
     if args.blue:
-        mca.download_projection_density(
-            nrrd_blue,
-            experiment_id=blue_id,
-            resolution=args.res)
-
-    # Getting Allen volumes and deleting nrrd tmps files
-    red_vol, header = nrrd.read(nrrd_red)
-    green_vol, header = nrrd.read(nrrd_green)
-    if args.blue:
-        blue_vol, header = nrrd.read(nrrd_blue)
-        os.remove(nrrd_blue)
-    os.remove(nrrd_red)
-    os.remove(nrrd_green)
+        blue_vol = download_proj_density_vol(nrrd_blue, blue_id,
+                                             args.res, args.nocache)
 
     # Transforming manually to RAS+
     red_vol = pretransform_vol_PIR_RAS(red_vol)
@@ -632,25 +615,16 @@ def main():
 
         # Downloading each ROIs masks
         # then merging them into one X-ROIs mask
-        rsa = ReferenceSpaceApi()
-
         bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
         mask_combined = np.zeros(bbox_allen)
 
         for structure_id in xrois_ids:
             # Creating temporary file
-            mask_nrrd = subdir / f"{structure_id}_mask.nrrd"
+            mask_nrrd = "{}_{}.nrrd".format(structure_id, args.res)
             # Downloading structure mask
-            rsa.download_structure_mask(
-                structure_id=structure_id,
-                ccf_version=rsa.CCF_VERSION_DEFAULT,
-                resolution=args.res,
-                file_name=mask_nrrd
-                )
-            # Adding it in the combined volume
-            mask, header = nrrd.read(mask_nrrd)
+            mask = download_struct_mask_vol(mask_nrrd, structure_id,
+                                            args.res, args.nocache)
             mask_combined += mask
-            os.remove(mask_nrrd)
 
         # Converting X-ROIs mask to RAS+
         mask_combined = pretransform_vol_PIR_RAS(mask_combined)

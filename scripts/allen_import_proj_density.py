@@ -36,8 +36,6 @@ import logging
 import os
 from pathlib import Path
 import numpy as np
-from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
-import nrrd
 import sys
 from allen2tract.control import (add_cache_arg, add_output_dir_arg,
                                  add_overwrite_arg, add_resolution_arg,
@@ -45,7 +43,7 @@ from allen2tract.control import (add_cache_arg, add_output_dir_arg,
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_mib_coords)
-from allen2tract.util import (get_injection_infos,
+from allen2tract.util import (download_proj_density_vol, get_injection_infos,
                               get_mcc,
                               draw_spherical_mask,
                               save_nii)
@@ -96,10 +94,7 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
-    # Mouse Connectivity settings
-    # API
-    mca = MouseConnectivityApi()
-    # experiments from Cache
+    # Getting experiments from Cache
     allen_experiments = get_mcc(args)[0]
 
     # Verifying experiment id
@@ -172,18 +167,11 @@ def main():
     # Downloading and Saving the projection density map if --map was used
     if args.map or args.bin:
         # Configuring files names
-        nrrd_file = args.dir / "{}_{}_{}_proj_density_{}.nrrd"\
-                .format(args.id, roi, loc, args.res)
+        nrrd_file = "{}_{}.nrrd".format(args.id, args.res)
 
         # Downloading projection density (API)
-        mca.download_projection_density(
-            nrrd_file,
-            experiment_id=args.id,
-            resolution=args.res)
-
-        # Loading volume and deleting nrrd tmp file
-        allen_vol, header = nrrd.read(nrrd_file)
-        os.remove(nrrd_file)
+        allen_vol = download_proj_density_vol(nrrd_file, args.id,
+                                              args.res, args.nocache)
 
         # Transforming manually to RAS+
         allen_vol = pretransform_vol_PIR_RAS(allen_vol)

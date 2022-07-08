@@ -1,8 +1,12 @@
 import os
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import nibabel as nib
 from allensdk.core.mouse_connectivity_cache import MouseConnectivityCache
+from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
+from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
+import nrrd
 from allen2tract.control import get_cached_dir
 
 
@@ -138,3 +142,37 @@ def draw_spherical_mask(shape, radius, center):
 
     # the inner part of the sphere will have distance below or equal to 1
     return vol <= 1.0
+
+
+def download_proj_density_vol(file, id, res, nocache):
+    cache_dir = Path(get_cached_dir('cache_proj_density'))
+    cache_dir.mkdir(exist_ok=True, parents=True)
+    if not os.path.isfile(cache_dir / file):
+        mca = MouseConnectivityApi()
+        mca.download_projection_density(
+            cache_dir / file,
+            experiment_id=id,
+            resolution=res)
+    vol, hdr = nrrd.read(cache_dir / file)
+    if nocache:
+        os.remove(cache_dir / file)
+    return vol
+
+
+def download_struct_mask_vol(file, id, res, nocache):
+    cache_dir = Path(get_cached_dir('cache_struct_mask'))
+    cache_dir.mkdir(exist_ok=True, parents=True)
+    if not os.path.isfile(cache_dir / file):
+        rsa = ReferenceSpaceApi()
+        rsa.download_structure_mask(
+            structure_id=id,
+            ccf_version=rsa.CCF_VERSION_DEFAULT,
+            resolution=res,
+            file_name=cache_dir / file
+                )
+    vol, hdr = nrrd.read(cache_dir / file)
+    if nocache:
+        os.remove(cache_dir / file)
+    return vol
+
+                
