@@ -95,7 +95,7 @@ def main():
     args = parser.parse_args()
 
     # Getting experiments from Cache
-    allen_experiments = get_mcc(args)[0]
+    allen_experiments = get_mcc(args.nocache)[0]
 
     # Verifying experiment id
     ids = allen_experiments.id

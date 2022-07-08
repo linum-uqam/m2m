@@ -35,7 +35,7 @@ def save_nii(vol, path):
     nib.save(img, path)
 
 
-def get_mcc(args):
+def get_mcc(nocache):
     """
     Get Allen Mouse Connectivity Cache.\n
     Get either experiments or structure tree.
@@ -44,8 +44,8 @@ def get_mcc(args):
 
     Parameters
     ----------
-    args: argparse namespace
-        Argument list.
+    nocache: bool
+        Whether use cache of not
 
     Return
     ------
@@ -59,7 +59,7 @@ def get_mcc(args):
                                  'mouse_conn_manifest.json')
     structures_path = os.path.join(get_cached_dir("cache"), 'structures.json')
 
-    if args.nocache:
+    if nocache:
         if os.path.isfile(experiments_path):
             os.remove(experiments_path)
         if os.path.isfile(manifest_path):

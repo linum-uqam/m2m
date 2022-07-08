@@ -324,8 +324,8 @@ def main():
     check_args(parser, args)
 
     # Getting experiments from Mouse Connectivity Cache
-    allen_experiments = get_mcc(args)[0]
-    stree = get_mcc(args)[1]
+    allen_experiments = get_mcc(args.nocache)[0]
+    stree = get_mcc(args.nocache)[1]
 
     # Configuring output directory
     args.dir = Path(args.dir)
