@@ -47,31 +47,22 @@ import argparse
 from email.policy import default
 import json
 import logging
-
 import os
 from pathlib import Path
 from tabnanny import check
-
 import numpy as np
 import pandas as pd
-
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 from allensdk.api.queries.tree_search_api import TreeSearchApi
-
 import nrrd
-
 import sys
-sys.path.append(".")
-
 from allen2tract.control import (add_cache_arg, add_output_dir_arg,
                                  add_overwrite_arg, add_resolution_arg,
                                  check_file_exists)
-
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_allen_coords)
-
 from allen2tract.util import (get_injection_infos,
                               get_mcc,
                               save_nii)

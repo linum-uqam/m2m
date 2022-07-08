@@ -24,24 +24,17 @@
 
 import argparse
 import logging
-
 import os
 from pathlib import Path
-
 import numpy as np
 import nibabel as nib
-
 import sys
-sys.path.append(".")
-
 from allen2tract.control import (add_overwrite_arg,
                                  check_input_file,
                                  check_file_exists,
                                  add_reference_arg)
-
 from allen2tract.util import (draw_spherical_mask,
                               load_avgt, save_nii)
-
 from allen2tract.tract import filter_tract_near_roi
 
 EPILOG = """

@@ -13,7 +13,7 @@
 
     >>> allen_import_tract --csv_ids path/to/ids.csv path/to/output.trk
 
-    Setting ids manually: 
+    Setting ids manually:
 
     >>> allen_import_tract path/to/output.trk --ids id1 id2 id3 . . .
     Important: the script should be called in this specific order
@@ -24,16 +24,12 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import os
-
 import sys
-sys.path.append(".")
-
 from allen2tract.streamlines import AllenStreamLines
-
-from allen2tract.control import (add_cache_arg, add_output_dir_arg,
+from allen2tract.control import (add_cache_arg,
                                  add_overwrite_arg,
-                                 check_file_exists)
-
+                                 check_file_exists,
+                                 get_cache_dir)
 from allen2tract.util import get_mcc
 
 EPILOG = """
@@ -46,7 +42,7 @@ def _build_arg_parser():
                                 epilog=EPILOG, description=__doc__)
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--ids_csv', help='Path to a csv file containing ids')
-    g.add_argument('--ids', type=int, nargs='+',help='List of experiment ids.')
+    g.add_argument('--ids', type=int, nargs='+', help='List of experiment ids.')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
     add_overwrite_arg(p)
     add_cache_arg(p)
@@ -59,7 +55,7 @@ def main():
     args = parser.parse_args()
 
     # Configuring cache dir
-    cache_dir = Path().home() / "allen2tract/data"
+    cache_dir = get_cache_dir()
 
     # Verifying output file
     check_file_exists(parser, args, args.out_tract)
@@ -80,7 +76,7 @@ def main():
                          "".format(id))
 
     # Initializing and downloading the streamlines
-    s = AllenStreamLines(cache_dir / "cache_streamlines")
+    s = AllenStreamLines(os.path.join(cache_dir, "cache_streamlines"))
     s.download(in_ids)
 
     # Save the streamlines as a .trk file

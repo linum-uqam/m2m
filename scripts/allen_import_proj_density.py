@@ -33,26 +33,18 @@
 import argparse
 import json
 import logging
-
 import os
 from pathlib import Path
-
 import numpy as np
-
 from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 import nrrd
-
 import sys
-sys.path.append(".")
-
 from allen2tract.control import (add_cache_arg, add_output_dir_arg,
                                  add_overwrite_arg, add_resolution_arg,
                                  check_file_exists)
-
 from allen2tract.transform import (pretransform_vol_PIR_RAS,
                                    registrate_allen2avgt_ants,
                                    get_mib_coords)
-
 from allen2tract.util import (get_injection_infos,
                               get_mcc,
                               draw_spherical_mask,
@@ -144,16 +136,16 @@ def main():
                      "Use --bin to download the binarised map.")
 
     file_map = args.dir / "{}_{}_{}_proj_density_{}.nii.gz"\
-               .format(args.id, roi, loc, args.res)
+                          .format(args.id, roi, loc, args.res)
     if args.smooth:
         file_map = args.dir / "{}_{}_{}_proj_density_{}_bSpline.nii.gz"\
-                   .format(args.id, roi, loc, args.res)
+                              .format(args.id, roi, loc, args.res)
     file_roi = args.dir / "{}_{}_{}_spherical_mask_{}.nii.gz"\
-               .format(args.id, roi, loc, args.res)
+                          .format(args.id, roi, loc, args.res)
     file_infos = args.dir / "{}_{}_{}_inj_coords_{}.json"\
-                 .format(args.id, roi, loc, args.res)
+                            .format(args.id, roi, loc, args.res)
     file_bin = args.dir / "{}_{}_{}_proj_density_{}_bin{}.nii.gz"\
-               .format(args.id, roi, loc, args.res, args.threshold)
+                          .format(args.id, roi, loc, args.res, args.threshold)
 
     file_list = [file_map, file_roi, file_infos, file_bin]
 

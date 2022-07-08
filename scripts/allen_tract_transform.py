@@ -14,23 +14,16 @@
 
 import argparse
 import logging
-
 import os
 from pathlib import Path
-
 import numpy as np
 import nibabel as nib
-
 import sys
-sys.path.append(".")
-
 from allen2tract.control import (add_overwrite_arg,
                                  check_input_file,
                                  check_file_exists,
                                  add_reference_arg)
-
 from allen2tract.tract import (get_tract, save_tract)
-
 from allen2tract.transform import registrate_allen_streamlines
 
 EPILOG = """
@@ -64,7 +57,7 @@ def main():
 
     # Loading in tractogram
     tract = get_tract(args.in_tract, 'same',
-                     check_bbox=False, check_hdr=False)
+                      check_bbox=False, check_hdr=False)
 
     # Registrating streamlines
     new_streamlines = registrate_allen_streamlines(tract.streamlines)

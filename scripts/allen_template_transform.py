@@ -15,23 +15,16 @@
 
 import argparse
 import logging
-
 import os
 from pathlib import Path
-
 import numpy as np
 import nibabel as nib
 import nrrd
-
 import sys
-sys.path.append(".")
-
 from allen2tract.control import (add_overwrite_arg,
                                  check_input_file,
                                  check_file_exists)
-
 from allen2tract.util import save_nii
-
 from allen2tract.transform import (registrate_allen2avgt_ants,
                                    pretransform_vol_PIR_RAS)
 
