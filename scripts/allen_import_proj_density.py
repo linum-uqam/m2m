@@ -46,7 +46,7 @@ from allen2tract.transform import (pretransform_vol_PIR_RAS,
 from allen2tract.allensdk_utils import (download_proj_density_vol,
                                         get_injection_infos,
                                         get_mcc_exps)
-from allen2tract.util import (draw_spherical_mask, 
+from allen2tract.util import (draw_spherical_mask,
                               save_nii)
 
 EPILOG = """
@@ -102,8 +102,9 @@ def main():
     ids = allen_experiments.id
 
     if args.id not in ids:
-        parser.error("This experiment id doesn't exist. \n"
-                     "Please check : https://connectivity.brain-map.org/")
+        parser.error("This experiment id : {}, doesn't exist. \n"
+                     "Please check : https://connectivity.brain-map.org/"
+                     .format(args.id))
 
     # Configuring output directory
     args.dir = Path(args.dir)
@@ -117,6 +118,10 @@ def main():
 
     # Configuring outputs filenames
     args_list = [args.map, args.roi, args.infos, args.bin]
+
+    if not args.not_all and any(args_list):
+        parser.error("Please specify --not_all to download "
+                     "a specific file")
 
     if not args.not_all:
         args.map = True
