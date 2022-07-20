@@ -6,7 +6,7 @@ from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 from allensdk.api.queries.tree_search_api import TreeSearchApi
 import nrrd
-from allen2tract.control import get_cached_dir
+from allen2tract.control import (get_cached_dir, get_cache_dir)
 
 
 def get_mcc(nocache, res):
@@ -175,6 +175,38 @@ def download_struct_mask_vol(file, id, res, nocache):
         rsa.download_structure_mask(
             structure_id=id,
             ccf_version=rsa.CCF_VERSION_DEFAULT,
+            resolution=res,
+            file_name=cache_dir / file
+                )
+    vol, hdr = nrrd.read(cache_dir / file)
+    if nocache:
+        os.remove(cache_dir / file)
+    return vol
+
+
+def download_template_vol(file, res, nocache):
+    """
+    Download allen template and store it in cache
+    by default.
+
+    Parameters
+    ----------
+    file:
+        Downloaded filename.
+    res: int
+        Allen resolution [25, 50, 100]
+    nocache: bool
+        Whether use cache of not
+
+    Returns
+    -------
+    ndarray:
+        Allen template volume.
+    """
+    cache_dir = Path(get_cache_dir())
+    if not os.path.isfile(cache_dir / file):
+        rsa = ReferenceSpaceApi()
+        rsa.download_template_volume(
             resolution=res,
             file_name=cache_dir / file
                 )

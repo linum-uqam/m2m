@@ -6,6 +6,7 @@ from allen2tract.control import get_cached_dir
 import matplotlib
 matplotlib.use('TkAgg')
 import ants
+import nibabel as nib
 
 
 def pretransform_vol_PIR_RAS(vol):
@@ -29,6 +30,35 @@ def pretransform_vol_PIR_RAS(vol):
     vol = np.flip(vol, axis=1)
 
     return vol
+
+
+def pretransform_vol_PIR_UserDataSpace(vol, user_vol):
+    """
+    Transform a PIR reference space to User Data Space.
+
+    Parameters
+    ----------
+    vol: ndarray
+        PIR volume to transform.
+    user_vol: volume (from nib.load())
+        X-oriented volume.
+
+    Return
+    ------
+    ndarray: vol
+        Transformed volume into User Data Space
+    """
+    ornt_pir = nib.orientations.axcodes2ornt(('P', 'I', 'R'))
+
+    user_axcodes = nib.aff2axcodes(user_vol.affine)
+    ornt_user = nib.orientations.axcodes2ornt(user_axcodes)
+
+    ornt_pir2user = nib.orientations.ornt_transform(ornt_pir, ornt_user)
+
+    vol_reorient = nib.orientations.apply_orientation(vol,
+                                                      ornt_pir2user)
+
+    return vol_reorient
 
 
 def pretransform_point_PIR_RAS(point, res):
@@ -141,6 +171,33 @@ def registrate_allen2avgt_ants(res, allen_vol, smooth=False):
                                           interpolator=interp)
 
     return warped_moving.numpy()
+
+
+def compute_transform_matrix(moving_vol, fixed_vol):
+    """
+    Compute an Affine transformation matrix
+    to align Allen average template on User template.
+    Using ANTsPyX registration.
+
+    Parameters
+    ----------
+    moving_vol: volume
+        Allen volume (from nrrd.read()).
+    fixed_vol: volume
+        Fixed volume (from nib.load()).
+
+    Return
+    ------
+    string: Path of the transform matrix.
+    """
+    moving = ants.from_numpy(moving_vol.astype(np.float32))
+    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32))
+
+    mytx = ants.registration(fixed=fixed, 
+                             moving=moving,
+                             type_of_transform='Affine')
+
+    return mytx['fwdtransforms'][0]
 
 
 def get_mib_coords(args, allen_experiments):

@@ -13,6 +13,18 @@ def load_avgt():
     return nib.load(avgt_file)
 
 
+def load_user_template(template_file):
+    """
+    Load User reference template.
+
+    Parameters
+    ----------
+    template_file: string
+        Path to template.
+    """
+    return nib.load(template_file)
+
+
 def save_nii(vol, path):
     """
     Create a Nifti image and
