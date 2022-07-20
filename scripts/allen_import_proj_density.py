@@ -2,32 +2,32 @@
 # -*- coding: utf-8 -*-
 
 """
+    By default, download all File flags (see arguments).
+    Select a resolution if needed.
+
+    >>> allen2avgt_import_proj_density.py id
+
+    If --not_all is set, only the files specified will be output.
+
     Import a projection density map of an experiment in the
     Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
 
-    >>> python allen2avgt_import_proj_density.py id --map
-    >>> python allen2avgt_import_proj_density.py id --map -r res --dir dir
-    >>> python allen2avgt_import_proj_density.py id --map --smooth
+    >>> allen2avgt_import_proj_density.py id --not_all --map
+    >>> allen2avgt_import_proj_density.py id --not_all --map --smooth
 
     Download a spherical roi mask located at the injection coordinates of an
     experiment in the Allen Mouse Brain Connectivity Atlas and
     align it on the Average Template.
 
-    >>> python allen2avgt_import_proj_density.py id --roi
-    >>> python allen2avgt_import_proj_density.py id --roi -r res --dir dir
+    >>> allen2avgt_import_proj_density.py id --not_all --roi
 
     Save experiment injection coordinates (Allen and MI-Brain) in a json file.
 
-    >>> python allen2avgt_import_proj_density.py id --infos
-    >>> python allen2avgt_import_proj_density.py id --infos --dir dir
+    >>> allen2avgt_import_proj_density.py id --not_all --infos
 
     Save a binarized projection density map.
 
-    >>> python allen2avgt_import_proj_density.py id --bin --threshold
-    >>> python allen2avgt_import_proj_density.py id --bin --threshold --res r
-
-    By default, all files are downloaded.
-    If --not_all is set, only the files specified like above will be output.
+    >>> allen2avgt_import_proj_density.py id --not_all --bin --threshold
 """
 
 import argparse
