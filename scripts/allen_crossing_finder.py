@@ -25,48 +25,60 @@
     Examples:
     ---------
 
+    Important: Select the same resolution as your matrix
+
     2 colors:
 
     Injection coordinate search: (--injection)
 
-    >>> allen_crossing_finder.py --red x y z --green x y z
+    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> --red x y z --green x y z
     >>> --injection --dir dir
+    >>> --res resolution
 
     Spatial search: (--spatial):
 
-    >>> allen_crossing_finder.py --red x y z --green x y z
+    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> --red x y z --green x y z
     >>> --spatial --dir dir
+    >>> --res resolution
 
     3 colors:
 
-    >>> allen_crossing_finder.py --red x y z --green x y z
-    >>> --blue x y z --injection --dir dir
+    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> --red x y z --green x y z --blue x y z
+    >>> --injection --dir dir
+    >>> --res resolution
 """
 
 import argparse
-from email.policy import default
 import json
-import logging
-import os
 from pathlib import Path
-from tabnanny import check
 import numpy as np
 import pandas as pd
 import sys
-from allen2tract.control import (add_cache_arg, add_output_dir_arg,
-                                 add_overwrite_arg, add_resolution_arg,
-                                 check_file_exists)
-from allen2tract.transform import (pretransform_vol_PIR_RAS,
-                                   registrate_allen2avgt_ants,
-                                   get_allen_coords)
+from allen2tract.control import (add_cache_arg,
+                                 add_output_dir_arg,
+                                 add_overwrite_arg,
+                                 add_resolution_arg,
+                                 check_file_exists,
+                                 add_matrix_arg,
+                                 add_reference_arg,
+                                 check_input_file)
+from allen2tract.transform import (pretransform_vol_PIR_UserDataSpace,
+                                   registrate_allen2UserDataSpace,
+                                   get_allen_coords,
+                                   select_allen_bbox)
 from allen2tract.allensdk_utils import (download_proj_density_vol,
                                         download_struct_mask_vol,
                                         get_structure_parents_infos,
                                         get_unionized_list,
                                         get_injection_infos,
-                                        get_mcc_exps, get_mcc_stree,
+                                        get_mcc_exps,
+                                        get_mcc_stree,
                                         search_experiments)
-from allen2tract.util import save_nii
+from allen2tract.util import (save_nifti,
+                              load_user_template)
 
 EPILOG = """
 Author : Mahdi
@@ -76,6 +88,8 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
+    add_matrix_arg(p)
+    add_reference_arg(p)
     p.add_argument('--red', nargs=3, type=int, required=True,
                    help='MI-Brain voxels coordinates of first experiment.\n'
                         'First experiment will be colored in red.')
@@ -183,6 +197,13 @@ def main():
     # Verying args validity
     check_args(parser, args)
 
+    # Loading reference
+    check_input_file(parser, args.reference)
+    user_vol = load_user_template(args.reference)
+
+    # Checking file mat
+    check_input_file(parser, args.file_mat)
+
     # Getting experiments from Mouse Connectivity Cache
     allen_experiments = get_mcc_exps(args.nocache)
     stree = get_mcc_stree(args.nocache)
@@ -192,10 +213,16 @@ def main():
     args.dir.mkdir(exist_ok=True, parents=True)
 
     # Getting Allen coords
-    allen_red_coords = get_allen_coords(args.red)
-    allen_green_coords = get_allen_coords(args.green)
+    allen_red_coords = get_allen_coords(args.red, args.res,
+                                        args.file_mat, user_vol,
+                                        select_allen_bbox(args.res))
+    allen_green_coords = get_allen_coords(args.green, args.res,
+                                          args.file_mat, user_vol,
+                                          select_allen_bbox(args.res))
     if args.blue:
-        allen_blue_coords = get_allen_coords(args.blue)
+        allen_blue_coords = get_allen_coords(args.blue, args.res,
+                                             args.file_mat, user_vol,
+                                             select_allen_bbox(args.res))
 
     # Searching Allen experiments
     red_exps = search_experiments(args.injection, args.spatial,
@@ -296,10 +323,10 @@ def main():
                                              args.res, args.nocache)
 
     # Transforming manually to RAS+
-    red_vol = pretransform_vol_PIR_RAS(red_vol)
-    green_vol = pretransform_vol_PIR_RAS(green_vol)
+    red_vol = pretransform_vol_PIR_UserDataSpace(red_vol, user_vol)
+    green_vol = pretransform_vol_PIR_UserDataSpace(green_vol, user_vol)
     if args.blue:
-        blue_vol = pretransform_vol_PIR_RAS(blue_vol)
+        blue_vol = pretransform_vol_PIR_UserDataSpace(blue_vol, user_vol)
 
     # Converting Allen volumes to float32
     red_vol = red_vol.astype(np.float32)
@@ -308,33 +335,31 @@ def main():
         blue_vol = blue_vol.astype(np.float32)
 
     # Applying ANTsPyX registration
-    warped_red = registrate_allen2avgt_ants(
-        res=args.res,
-        allen_vol=red_vol)
-
-    warped_green = registrate_allen2avgt_ants(
-        res=args.res,
-        allen_vol=green_vol)
-
+    warped_red = registrate_allen2UserDataSpace(args.file_mat,
+                                                red_vol, user_vol)
+    warped_green = registrate_allen2UserDataSpace(args.file_mat,
+                                                  green_vol, user_vol)
     if args.blue:
-        warped_blue = registrate_allen2avgt_ants(
-            res=args.res,
-            allen_vol=blue_vol)
+        warped_blue = registrate_allen2UserDataSpace(args.file_mat,
+                                                     blue_vol, user_vol)
 
     # Saving Niftis files
-    save_nii(warped_red, nifti_red)
-    save_nii(warped_green, nifti_green)
+    save_nifti(warped_red, user_vol.affine, nifti_red)
+    save_nifti(warped_green, user_vol.affine, nifti_green)
     if args.blue:
-        save_nii(warped_blue, nifti_blue)
+        save_nifti(warped_blue, user_vol.affine, nifti_blue)
+
+    # Retrieving user_volume shape
+    user_shape = user_vol.shape
 
     # Creating RBGA volume (combining maps)
-    rgb_vol = np.zeros((164, 212, 158, 1, 1),
+    rgb_vol = np.zeros((user_shape[0], user_shape[1], user_shape[2], 1, 1),
                        [('R', 'u1'), ('G', 'u1'), ('B', 'u1'), ('A', 'u1')])
 
     # Filling the volume with RBG values
-    for i in range(164):
-        for j in range(212):
-            for k in range(158):
+    for i in range(user_shape[0]):
+        for j in range(user_shape[1]):
+            for k in range(user_shape[2]):
                 if args.blue:
                     if warped_red[i, j, k] == 0 and \
                        warped_green[i, j, k] == 0 and \
@@ -356,7 +381,7 @@ def main():
                                             255)
 
     # Saving Nifti
-    save_nii(rgb_vol, nifti_rgb)
+    save_nifti(rgb_vol, user_vol.affine, nifti_rgb)
 
     # Getting Mouse Brain structures ids and names
     # in structure set id "Mouse Connectivity - Target Search"
@@ -478,7 +503,7 @@ def main():
 
         # Downloading each ROIs masks
         # then merging them into one X-ROIs mask
-        bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
+        bbox_allen = select_allen_bbox(args.res)
         mask_combined = np.zeros(bbox_allen)
 
         for structure_id in xrois_ids:
@@ -490,19 +515,19 @@ def main():
             mask_combined += mask
 
         # Converting X-ROIs mask to RAS+
-        mask_combined = pretransform_vol_PIR_RAS(mask_combined)
+        mask_combined = pretransform_vol_PIR_UserDataSpace(mask_combined,
+                                                           user_vol)
 
         # Applying ANTsPy registration
-        warped_mask_combined = registrate_allen2avgt_ants(
-            res=args.res,
-            allen_vol=mask_combined)
+        warped_mask_combined = registrate_allen2UserDataSpace(
+            args.file_mat, mask_combined, user_vol)
 
         # Improving display in MI-Brain
         warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
         warped_mask_combined[warped_mask_combined > 1] = 1
 
         # Saving Nifti file
-        save_nii(warped_mask_combined, xrois_nifti)
+        save_nifti(warped_mask_combined, user_vol.affine, xrois_nifti)
 
 
 if __name__ == "__main__":

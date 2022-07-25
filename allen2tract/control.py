@@ -34,8 +34,12 @@ def add_cache_arg(parser):
 
 def add_reference_arg(parser):
     parser.add_argument('reference',
-                        help='Reference anatomy of tractogram\n'
-                             '(.nii.gz)')
+                        help='Path to reference volume (.nii.gz)')
+
+
+def add_matrix_arg(parser):
+    parser.add_argument('file_mat',
+                         help='Path to transform matrix (.mat)')
 
 
 def check_file_exists(parser, args, path):
