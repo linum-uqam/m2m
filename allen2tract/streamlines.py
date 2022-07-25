@@ -5,6 +5,7 @@ import json
 import requests
 from allen2tract.transform import registrate_allen_streamlines
 import nibabel as nib
+from tqdm import tqdm
 from pathlib import Path
 import os
 from allen2tract.tract import save_tract
@@ -52,7 +53,7 @@ class AllenStreamLines(object):
         if not isinstance(experiment_ids, (list, np.ndarray, tuple)):
             experiment_ids = [experiment_ids]
 
-        for eid in experiment_ids:
+        for eid in tqdm(experiment_ids):
             url = self.make_streamline_request_url(eid)
             jsonpath = self.directory / f"{eid}.json"
             self.files.append(jsonpath)

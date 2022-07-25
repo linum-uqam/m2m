@@ -232,7 +232,7 @@ def get_uzer_coords(allen_coords, bbox_allen, tx, ornt_pir2user, ornt_user2pir):
 
     for i in range(len(user_coords)):
         if user_coords[i] < 0:
-            user_coords[i] += bbox_allen[int(ornt_pir2user[:,0].tolist().index(i))]
+            user_coords[i] += (bbox_allen[int(ornt_pir2user[:,0].tolist().index(i))] - 1)
 
     return tx.invert().apply_to_point(user_coords)
 

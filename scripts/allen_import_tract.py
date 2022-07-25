@@ -85,11 +85,10 @@ def main():
 
     # Verifying experiment id
     ids = allen_experiments.id
-    for id in in_ids:
-        if id not in ids:
-            parser.error("Experiment {} doesn't exist.\n"
-                         "Please check: https://connectivity.brain-map.org/"
-                         "".format(id))
+    if any(x not in ids for x in in_ids):
+        parser.error("Experiment {} doesn't exist.\n"
+                     "Please check: https://connectivity.brain-map.org/"
+                     "".format(id))
 
     # Initializing and downloading the streamlines
     s = AllenStreamLines(args.res, os.path.join(cache_dir, "cache_streamlines"))
