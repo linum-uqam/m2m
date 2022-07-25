@@ -2,24 +2,46 @@
 # -*- coding: utf-8 -*-
 
 """
-    Extract a bundle of streamlines from a tractogram.\n
+    Link to download Allen tractogram (resolution=50):
+    https://drive.google.com/file/d/1E-w9HsdhJxGaC3KcoVCFx8ejcN4DyrFp/view?usp=sharing
+
+    Extract a bundle of streamlines from Allen tractogram.\n
     Keep streamlines if any coordinate in the streamline is within
     the distance between the center of each voxel
     and the corner of the voxel.\n
 
-    Streamlines in a sphere:
+    First call of the script :
+    --------------------------
+    - Download the Allen tractogram
+    - Call : 
+    >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
+        --file_mat path/to/file_mat.mat --in_tract path/to/allentrk.trk
+        [see (a) or (b) to ROI filters]
 
-    >>> allen_tract_filter.py path/to/input.trk path/to/output.trk
-    >>> path/to/reference.nii.gz
+    (note: matrix should be .mat computed at resolution=50)
+
+    ROI filters:
+    ------------
+    (a) Streamlines in a sphere:
+
+    Add to the command line:
     >>> --sphere --center x y z --radius r
-
     Use --donwload_sphere to download the spherical mask and
     precise its path
 
-    Streamlines in a binary mask:
+    (b) Streamlines in a binary mask:
 
-    >>> allen_tract_filter.py path/to/input.trk path/to/output.trk
-    >>> path/to/reference.nii.gz --in_mask path_to_mask
+    Add to the command line:
+    >>> --in_mask path_to_mask
+
+    Ones fist call is done:
+    -----------------------
+    No more need to add --file_mat and --in_tract to the command line
+
+    Example:
+
+    >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
+        [see (a) or (b) to ROI filters]
 """
 
 import argparse
@@ -29,13 +51,23 @@ from pathlib import Path
 import numpy as np
 import nibabel as nib
 import sys
-from allen2tract.control import (add_overwrite_arg,
+from allen2tract.control import (add_matrix_arg,
+                                 add_overwrite_arg,
                                  check_input_file,
                                  check_file_exists,
-                                 add_reference_arg)
+                                 add_reference_arg,
+                                 add_cache_arg,
+                                 add_matrix_arg,
+                                 add_resolution_arg,
+                                 get_cache_dir,
+                                 get_cached_dir)
 from allen2tract.util import (draw_spherical_mask,
-                              load_avgt, save_nii)
-from allen2tract.tract import filter_tract_near_roi
+                              load_user_template,
+                              save_nifti)
+from allen2tract.transform import registrate_allen_streamlines
+from allen2tract.tract import (filter_tract_near_roi,
+                               get_tract,
+                               save_tract)
 
 EPILOG = """
 Author : Mahdi
@@ -45,7 +77,7 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
-    p.add_argument('in_tract', help='Path to allen tractogram (trk)')
+    p.add_argument('--in_tract', help='Path to allen tractogram (trk)')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--sphere', action="store_true",
@@ -61,6 +93,7 @@ def _build_arg_parser():
     g.add_argument('--in_mask',
                    help='Keep streamlines inside a ROI.\n'
                         'Path to .nii.gz binary mask.')
+    p.add_argument('--file_mat', help='Path to transform matrix (.mat)')
     add_reference_arg(p)
     add_overwrite_arg(p)
     return p
@@ -99,14 +132,31 @@ def main():
     # Verying args validity
     check_args(parser, args)
 
-    # Checking input tract
-    check_input_file(parser, args.in_tract)
+    # Loading reference
     check_input_file(parser, args.reference)
+    user_vol = load_user_template(args.reference)
 
     # Checking outputs
     check_file_exists(parser, args, args.out_tract)
     if args.download_sphere:
         check_file_exists(parser, args, args.download_sphere)
+
+    # Aligning and saving allen tractogram in user data space (first call of script)
+    trk_file = os.path.join(get_cached_dir("data"),"allen_wildtype_transfromed.trk")
+    if args.in_tract and args.file_mat and not os.path.isfile(trk_file):
+        # Checking file mat
+        check_input_file(parser, args.file_mat)
+        # Checking input tract
+        check_input_file(parser, args.in_tract)
+        trk_reference = os.path.join(get_cached_dir("data"), 'allen_template_50_ras.nii.gz')
+        trk = get_tract(args.in_tract, trk_reference, False, False)
+        trk.to_vox()
+        sl = registrate_allen_streamlines(trk.streamlines, args.file_mat, user_vol, 50)
+        save_tract(trk_file, sl, args.reference, check_bbox=False)
+    elif (not args.in_tract or not args.file_mat) and not os.path.isfile(trk_file):
+        parser.error("Please use --in_tract and --file_mat at first call (see -h)")
+    elif (args.in_tract or args.file_mat) and os.path.isfile(trk_file):
+        parser.error("Allen trk already saved in your data space, no more need to use --in_tract and --file_mat")
 
     # if --mask
     if args.in_mask:
@@ -127,16 +177,16 @@ def main():
 
         # Drawing the spherical mask
         mask = draw_spherical_mask(
-            shape=load_avgt().shape,
+            shape=user_vol.shape,
             radius=args.radius,
             center=center)
 
         if args.download_sphere:
             # Saving the spherical mask
-            save_nii(mask.astype(np.int32), args.download_sphere)
+            save_nifti(mask.astype(np.int32), args.download_sphere)
 
     # Saving the filtered tract
-    filter_tract_near_roi(mask=mask, in_tract=args.in_tract,
+    filter_tract_near_roi(mask=mask, in_tract=trk_file,
                           out_tract=args.out_tract,
                           reference=args.reference)
 
