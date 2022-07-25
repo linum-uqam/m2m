@@ -199,6 +199,7 @@ def convert_point_to_vox(point, res):
 def get_user_coords(allen_coords, res, file_mat, user_vol, allen_bbox,
                     to_vox=False):
     """
+    refactor ? pour tps d'exec
     """
     if to_vox:
         # Converting injection coordinates position to voxels
@@ -231,7 +232,7 @@ def get_uzer_coords(allen_coords, bbox_allen, tx, ornt_pir2user, ornt_user2pir):
 
     for i in range(len(user_coords)):
         if user_coords[i] < 0:
-            user_coords[i] += (bbox_allen[allen_coords.index(abs(user_coords[i]))] - 1)
+            user_coords[i] += bbox_allen[int(ornt_pir2user[:,0].tolist().index(i))]
 
     return tx.invert().apply_to_point(user_coords)
 
@@ -304,27 +305,12 @@ def registrate_allen_streamlines(streamlines,
     array of arrays:
         Registered streamlines
     """
-
-    # Loop : Transforming streamlines
-    print("transforming streamlines ....")
-    # bbox_allen = select_allen_bbox(res)
-    # new_streamlines = []
-    # for sl in tqdm(streamlines):
-    #     new_streamline = []
-    #     for point in sl:
-    #         user_vox = get_user_coords(point, res, file_mat,
-    #                                    user_vol, bbox_allen)
-    #                                    ##### PROBLEM, int indices -> |_|-|_|-|
-    #                                    ##### PROBLEM, float -> /\_/\_/\_/\
-    #         new_streamline.append(user_vox)
-    #     new_streamlines.append(new_streamline)
-    #     ## IL FAUT POUVOIR TRANSFORMER EN USER ORIENT AVANT DE DIPY TRANSFORM
-    #     ## AU MIEUX, transformer les streamlines en volumes de la shape du allen
-######################
     tx = ants.read_transform(file_mat)
     ornt_pir2user = get_ornt_PIR_UserDataSpace(user_vol)
     ornt_user2pir = get_ornt_UserDataSpace_PIR(user_vol)
     bbox_allen = select_allen_bbox(res)
+
+    # Loop : Transforming streamlines
     new_streamlines = []
     for sl in tqdm(streamlines):
         new_streamline = []
@@ -333,48 +319,5 @@ def registrate_allen_streamlines(streamlines,
                                        ornt_pir2user, ornt_user2pir)
             new_streamline.append(user_vox)
         new_streamlines.append(new_streamline)
-#######################
-    # ornt_pir2user = get_ornt_PIR_UserDataSpace(user_vol)
-    # ornt_user2pir = get_ornt_UserDataSpace_PIR(user_vol)
-    # mat = load_matrix_in_any_format(file_mat)
-    # bbox_allen = select_allen_bbox(res)
-    # user_streamlines = []
-    # for sl in tqdm(streamlines):
-    #     user_streamline = []
-    #     for point in sl:
-    #         user_vox = get_uzer_coords(list(point), bbox_allen, file_mat
-    #                                    ornt_pir2user, ornt_user2pir) # to userds
-    #         user_streamline.append(user_vox)
-    #     user_streamlines.append(user_streamline)
-    # new_streamlines = transform_streamlines(user_streamlines, mat)
-########################
-    # # Affine : allen PIR mm to allen RAS voxels
-    # B = np.array([[0.05,  0,        0],
-    #               [0,    -0.05,     0],
-    #               [0,     0,       -0.05]])
-
-    # # Rotation matrix for MI-Brain display
-    # rotation = np.array([
-    #     [1,  0,  0],
-    #     [0, -1,  0],
-    #     [0,  0, -1]])
-
-    # # Transformation : allen RAS voxels to avgt RAS voxels
-    # mat = load_allen2avgt_transformations(res=50)[1]
-    # itx = ants.read_transform(mat).invert()
-
-    # # Loop : Transforming streamlines
-    # new_streamlines = []
-    # for sl in streamlines:
-    #     new_streamline = []
-    #     for point in sl:
-    #         allenRASmm = [point[1], point[2], point[0]]
-    #         allenRASvox = np.linalg.inv(B) @ allenRASmm
-    #         avgtRASvox = itx.apply_to_point(allenRASvox)
-    #         mib_point = avgtRASvox @ rotation
-    #         mib_point[1] += 212
-    #         mib_point[2] += 158
-    #         new_streamline.append(mib_point)
-    #     new_streamlines.append(new_streamline)
 
     return new_streamlines
