@@ -45,6 +45,8 @@ def main():
     # Verying args validity
     check_input_file(parser, args.in_template)
     check_file_exists(parser, args, args.out_mat)
+    if not (args.out_mat).endswith(".mat"):
+        parser.error("out_mat must be .mat file.")
 
     # Downloading allen template 
     nrrd_file = "allen_template_{}.nrrd".format(args.res)
