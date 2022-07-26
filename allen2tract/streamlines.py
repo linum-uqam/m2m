@@ -1,13 +1,11 @@
-from calendar import c
 import numpy as np
 import gzip
 import json
-import requests
-import nibabel as nib
 from pathlib import Path
-import os
+import requests
+from tqdm import tqdm
+from allen2tract.transform import registrate_allen_streamlines
 from allen2tract.tract import save_tract
-from allen2tract.control import get_cached_dir
 
 
 class AllenStreamLines(object):
@@ -15,15 +13,17 @@ class AllenStreamLines(object):
     Class to work with the Allen Mouse Brain Connectivity Streamlines
     Adapted from : https://github.com/BrancoLab/BrainRender
     """
-    def __init__(self, directory="./streamlines", cache=True):
+    def __init__(self, res, directory="./streamlines", cache=True):
         """
         Downloads and save Allen Mouse brain streamlines as .trk files
 
         Parameters
         ----------
-        directory : str, Path()
+        res: int
+            Allen resolution
+        directory: str, Path()
             Directory used to cache the streamline files.
-        cache : boolean
+        cache: boolean
             Keep the raw streamline json files into cache.
         """
         # We are using the streamlines cache from neuroinformatics.nl
@@ -33,8 +33,7 @@ class AllenStreamLines(object):
         self.cache = cache
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
-        self.reference = os.path.join(get_cached_dir("data"),
-                                      "allen_template_50_ras.nii.gz")
+        self.resolution = res
 
     def download(self, experiment_ids, force=False):
         """
@@ -51,7 +50,7 @@ class AllenStreamLines(object):
         if not isinstance(experiment_ids, (list, np.ndarray, tuple)):
             experiment_ids = [experiment_ids]
 
-        for eid in experiment_ids:
+        for eid in tqdm(experiment_ids):
             url = self.make_streamline_request_url(eid)
             jsonpath = self.directory / f"{eid}.json"
             self.files.append(jsonpath)
@@ -134,48 +133,54 @@ class AllenStreamLines(object):
         """
         return self.template_streamline_json_url.format(experiment_id)
 
-    def download_tract(self, filename):
+    def download_tract(self, filename, file_mat,
+                       user_ref, user_vol, res):
         """
-        Save the streamlines as a .trk file
+        Save the streamlines as a .trk file after
+        aligning them on User Data Space.
 
         Parameters
         ----------
         filename: str
             Full path to the output trk.
+        file_mat: str
+            Full path to the transformation matrix.
+        user_ref: str
+            Full path to a reference volume.
+        user_vol: ndarray
+            User volume data
+        res: int
+            Resolution in the Allen [25, 50, 100]
+            Choose the one correponding to the matrix.
         """
-        # Define the reference
-        reference = self.reference
-
-        # Prepare the output file
+        # Preparing the output file
         filename = Path(filename)
         assert filename.suffix == ".trk", "The filename must end with .trk"
         filename.parent.mkdir(parents=True, exist_ok=True)
 
-        # Load the reference and extract the pixel dimensions
-        # Assuming that pixdim is in mm
-        pixdim = nib.load(reference).header["pixdim"]
-        rx = pixdim[1] * 1e3  # X resolution in micron
-        ry = pixdim[2] * 1e3  # Y resolution in micron
-        rz = pixdim[3] * 1e3  # Z resolution in micron
+        # Defining pixel dimension
+        rx = self.resolution  # X resolution in micron
+        ry = self.resolution  # Y resolution in micron
+        rz = self.resolution  # Z resolution in micron
 
-        # Convert the streamline positions to the right resolution
+        # Converting the streamline positions to the right resolution
         sl = []
         for i in range(len(self.streamlines_list)):
             this_s = self.streamlines_list[i].copy()
-            # PIR to RAS
-            this_s[:, 1] = self.streamlines_list[i][:, 0] / rx
-            this_s[:, 2] = self.streamlines_list[i][:, 1] / -ry
-            this_s[:, 0] = self.streamlines_list[i][:, 2] / -rz
-            # this_s[:, 0] = self.streamlines_list[i][:, 0] / rx
-            # this_s[:, 1] = self.streamlines_list[i][:, 1] / ry
-            # this_s[:, 2] = self.streamlines_list[i][:, 2] / rz
+            this_s[:, 0] = self.streamlines_list[i][:, 0] / rx
+            this_s[:, 1] = self.streamlines_list[i][:, 1] / ry
+            this_s[:, 2] = self.streamlines_list[i][:, 2] / rz
             sl.append(this_s)
 
-        # Save the tractogram
+        # Aligning the streamlines on User Data Space
+        aligned_streamlines = registrate_allen_streamlines(
+            sl, file_mat, user_vol, res)
+
+        # Saving the tractogram
         save_tract(
             fname=str(filename),
-            streamlines=sl,
-            reference=reference,
+            streamlines=aligned_streamlines,
+            reference=str(user_ref),
             check_bbox=False,
             )
 

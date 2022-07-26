@@ -1,4 +1,3 @@
-import argparse
 import os
 
 
@@ -9,12 +8,11 @@ def add_overwrite_arg(parser):
 
 
 def add_resolution_arg(parser):
-    parser.add_argument('-r', '--res', type=int, default=100,
+    parser.add_argument('res', type=int,
                         choices=[25, 50, 100],
-                        help='Resolution of the Allen files'
-                             'is 100µm by default.\n'
-                             'Using -r <value> will set '
-                             'the resolution to value.')
+                        help='Resolution of the Allen files \n'
+                             'Please use the same resolution as '
+                             'the transformation matrix.')
 
 
 def add_output_dir_arg(parser):
@@ -34,8 +32,12 @@ def add_cache_arg(parser):
 
 def add_reference_arg(parser):
     parser.add_argument('reference',
-                        help='Reference anatomy of tractogram\n'
-                             '(.nii.gz)')
+                        help='Path to reference volume (.nii.gz)')
+
+
+def add_matrix_arg(parser):
+    parser.add_argument('file_mat',
+                        help='Path to transform matrix (.mat)')
 
 
 def check_file_exists(parser, args, path):

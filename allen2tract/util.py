@@ -1,16 +1,5 @@
-import os
-from pathlib import Path
 import numpy as np
 import nibabel as nib
-from allen2tract.control import get_cached_dir
-
-
-def load_avgt():
-    """
-    Load AVGT reference template.
-    """
-    avgt_file = os.path.join(get_cached_dir("data"), 'AVGT.nii.gz')
-    return nib.load(avgt_file)
 
 
 def load_user_template(template_file):
@@ -25,7 +14,7 @@ def load_user_template(template_file):
     return nib.load(template_file)
 
 
-def save_nii(vol, path):
+def save_nifti(vol, affine, path):
     """
     Create a Nifti image and
     save it.
@@ -34,10 +23,11 @@ def save_nii(vol, path):
     ----------
     vol: ndarray
         Image data.
+    affine: 4x4 array
+        Image affine.
     path: string
         Path to the output file.
     """
-    affine = load_avgt().affine
     img = nib.Nifti1Image(vol, affine)
     nib.save(img, path)
 

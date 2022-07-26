@@ -2,52 +2,60 @@
 # -*- coding: utf-8 -*-
 
 """
-    By default, download all File flags (see arguments).
-    Select a resolution if needed.
+    By default, download all File flags (see arguments) and
+    align them on User Data Space.
 
-    >>> allen2avgt_import_proj_density.py id
+    Important: Select the same resolution as your matrix
+
+    Minimum mandatory requires to call the script : (a)
+    >>> allen2avgt_import_proj_density.py id path/to/matrix.mat 
+        path/to/ref.nii.gz resolution
 
     If --not_all is set, only the files specified will be output.
 
-    Import a projection density map of an experiment in the
-    Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
+    Examples
+    --------
+    ((a) correpond to the previous mandatory command line)
 
-    >>> allen2avgt_import_proj_density.py id --not_all --map
-    >>> allen2avgt_import_proj_density.py id --not_all --map --smooth
+    Import a projection density map of an experiment in the
+    Allen Mouse Brain Connectivity Atlas and align it on UserDataSpace.
+    >>> (a) --not_all --map
+    >>> (a) --not_all --map --smooth
 
     Download a spherical roi mask located at the injection coordinates of an
     experiment in the Allen Mouse Brain Connectivity Atlas and
-    align it on the Average Template.
-
-    >>> allen2avgt_import_proj_density.py id --not_all --roi
+    align it on UserDataSpace.
+    >>> (a) --not_all --roi
 
     Save experiment injection coordinates (Allen and MI-Brain) in a json file.
-
-    >>> allen2avgt_import_proj_density.py id --not_all --infos
+    >>> (a) --not_all --infos
 
     Save a binarized projection density map.
-
-    >>> allen2avgt_import_proj_density.py id --not_all --bin --threshold
+    >>> (a) --not_all --bin --threshold
 """
 
 import argparse
 import json
-import logging
-import os
 from pathlib import Path
 import numpy as np
-import sys
-from allen2tract.control import (add_cache_arg, add_output_dir_arg,
-                                 add_overwrite_arg, add_resolution_arg,
-                                 check_file_exists)
-from allen2tract.transform import (pretransform_vol_PIR_RAS,
-                                   registrate_allen2avgt_ants,
-                                   get_mib_coords)
+from allen2tract.control import (add_cache_arg,
+                                 add_matrix_arg,
+                                 add_output_dir_arg,
+                                 add_overwrite_arg,
+                                 add_reference_arg,
+                                 add_resolution_arg,
+                                 check_file_exists,
+                                 check_input_file)
+from allen2tract.transform import (get_user_coords,
+                                   pretransform_vol_PIR_UserDataSpace,
+                                   registrate_allen2UserDataSpace,
+                                   select_allen_bbox)
 from allen2tract.allensdk_utils import (download_proj_density_vol,
                                         get_injection_infos,
                                         get_mcc_exps)
 from allen2tract.util import (draw_spherical_mask,
-                              save_nii)
+                              load_user_template,
+                              save_nifti,)
 
 EPILOG = """
 Author : Mahdi
@@ -60,6 +68,8 @@ def _build_arg_parser():
     p.add_argument('id', type=int,
                    help='Experiment id in the Allen Mouse Brain '
                         'Connectivity Atlas dataset.')
+    add_reference_arg(p)
+    add_matrix_arg(p)
     p.add_argument('--smooth', action="store_true",
                    help='Interpolation method for the registration '
                         'is nearestNeighbor by default.\n'
@@ -94,6 +104,16 @@ def main():
     # Building argparser
     parser = _build_arg_parser()
     args = parser.parse_args()
+
+    # Loading reference
+    check_input_file(parser, args.reference)
+    if not (args.reference).endswith(".nii") and \
+            not (args.reference).endswith(".nii.gz"):
+        parser.error("reference must be a nifti file.")
+    user_vol = load_user_template(args.reference)
+
+    # Checking file mat
+    check_input_file(parser, args.file_mat)
 
     # Getting experiments from Cache
     allen_experiments = get_mcc_exps(args.nocache)
@@ -152,14 +172,16 @@ def main():
 
     # Verifying if files exists
     for file in file_list:
-        if args_list[file_list.index(file)]:
+        if args_list[file_list.index(file)] or not args.not_all:
             check_file_exists(parser, args, file)
 
     # Creating and Saving MI-brain injection coordinates coords in json file
     # Saving experiments infos if --infos was used
     if args.infos:
         # Getting mi-brain voxel coordinates
-        mib_coords = get_mib_coords(args, allen_experiments)
+        # mib_coords = get_mib_coords(args, allen_experiments)
+        mib_coords = get_user_coords(pos, args.res, args.file_mat,
+                                     user_vol)
 
         # Creating json content
         dic = {"id": str(args.id), "roi": roi, "location": loc,
@@ -180,16 +202,15 @@ def main():
                                               args.res, args.nocache)
 
         # Transforming manually to RAS+
-        allen_vol = pretransform_vol_PIR_RAS(allen_vol)
-
-        # Loading allen volume converting to float32
-        allen_vol = allen_vol.astype(np.float32)
+        allen_vol = pretransform_vol_PIR_UserDataSpace(allen_vol, user_vol)
 
         # Applying ANTsPyX registration
-        warped_vol = registrate_allen2avgt_ants(
-            res=args.res,
-            allen_vol=allen_vol,
-            smooth=args.smooth)
+        warped_vol = registrate_allen2UserDataSpace(
+            args.file_mat,
+            allen_vol,
+            user_vol,
+            args.smooth
+        )
 
         # Deleting negatives values if bSpline method was used (--smooth)
         if args.smooth:
@@ -197,12 +218,12 @@ def main():
 
         if args.map:
             # Creating and Saving the Nifti map
-            save_nii(warped_vol, file_map)
+            save_nifti(warped_vol, user_vol.affine, file_map)
 
         if args.bin:
             # Creating and Saving the Nifti bin map
             bin_vol = (warped_vol >= args.threshold).astype(np.int32)
-            save_nii(bin_vol, file_bin)
+            save_nifti(bin_vol, user_vol.affine, file_bin)
 
     # Creating and Saving the spherical mask if --roi was used
     if args.roi:
@@ -212,28 +233,30 @@ def main():
                             pos[2]/args.res)
 
         # Configuring the bounding box
-        bbox_allen = (13200//args.res, 8000//args.res, 11400//args.res)
+        bbox_allen = select_allen_bbox(args.res)
 
         # Drawing the spherical mask
         roi_sphere_allen = draw_spherical_mask(
             shape=bbox_allen,
             center=inj_coord_voxels,
-            radius=400//args.res).astype(np.float32)
+            radius=400//args.res)
 
         # Transforming manually to RAS+
-        roi_sphere_allen = pretransform_vol_PIR_RAS(roi_sphere_allen)
+        roi_sphere_allen = pretransform_vol_PIR_UserDataSpace(roi_sphere_allen,
+                                                              user_vol)
 
         # Applying ANTsPyX registration
-        roi_sphere_avgt = registrate_allen2avgt_ants(
-            res=args.res,
-            allen_vol=roi_sphere_allen,
-            smooth=args.smooth)
+        roi_sphere_avgt = registrate_allen2UserDataSpace(
+            args.file_mat,
+            roi_sphere_allen,
+            user_vol,
+        )
 
         # Deleting non needed interpolated values
         roi_sphere_avgt = roi_sphere_avgt.astype(np.int32)
 
         # Creating and Saving the Nifti spherical mask
-        save_nii(roi_sphere_avgt, file_roi)
+        save_nifti(roi_sphere_avgt, user_vol.affine, file_roi)
 
 
 if __name__ == "__main__":

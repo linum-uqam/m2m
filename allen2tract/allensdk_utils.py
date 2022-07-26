@@ -12,6 +12,8 @@ from allen2tract.control import (get_cached_dir, get_cache_dir)
 def get_mcc(nocache, res):
     """
     Get Allen Mouse Connectivity Cache.
+    Manifest stored in a hidden folder.
+    Setting nocache to True reset it.
 
     Parameters
     ----------
@@ -34,7 +36,9 @@ def get_mcc(nocache, res):
 
 def get_mcc_exps(nocache):
     """
-    Get Mouse Connectivity Cache experiments
+    Get Mouse Connectivity Cache experiments.
+    Stored in a hidden folder.
+    Setting nocache to True reset it.
 
     Parameters
     ----------
@@ -61,7 +65,9 @@ def get_mcc_exps(nocache):
 
 def get_mcc_stree(nocache):
     """
-    Get allen Mouse Brain structure tree
+    Get allen Mouse Brain structure tree.
+    Json stored in a hidden folder.
+    Setting nocache to True reset it.
 
     Parameters
     ----------
@@ -220,6 +226,7 @@ def get_unionized_list(exp_id, structs_ids):
     """
     Get the unionized structures
     of an Allen experiment.
+    Experiments are cached.
 
     Parameters
     ----------

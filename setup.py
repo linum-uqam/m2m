@@ -11,7 +11,7 @@ def create_cache_dir(dir):
 
 def configure_cache_dir(src, dest):
     if os.path.isdir(src) \
-        and not os.path.isdir(dest):
+            and not os.path.isdir(dest):
         os.rename(src, dest)
 
 
