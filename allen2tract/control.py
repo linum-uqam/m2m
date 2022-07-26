@@ -1,4 +1,3 @@
-import argparse
 import os
 
 
@@ -39,7 +38,7 @@ def add_reference_arg(parser):
 
 def add_matrix_arg(parser):
     parser.add_argument('file_mat',
-                         help='Path to transform matrix (.mat)')
+                        help='Path to transform matrix (.mat)')
 
 
 def check_file_exists(parser, args, path):

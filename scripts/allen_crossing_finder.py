@@ -7,18 +7,18 @@
     Experiments are found by search in the Allen Mouse Brain Connectivity API
     giving two or three MI-Brain voxel coordinates.\n
 
-    Generate projection density maps for each experiments.
+    - Generate projection density maps for each experiments.
     Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
 
-    Generate a RGB projection density volume combining each
+    - Generate a RGB projection density volume combining each
     experiments founded. (--red, --green, --blue).
     At least two colors (coordinates) are mandatory.\n
 
-    Generate a mask at crossing regions if projection density is
+    - Generate a mask at crossing regions if projection density is
     superior to threshold (--threshold) for each experiment founded.
     Masks are download from Allen Mouse Brain Altas.\n
 
-    Generate a json file enumarating each crossing regions.\n
+    - Generate a json file enumarating each crossing regions.\n
 
     All files are stored in a same folder.\n
 
@@ -32,23 +32,20 @@
     Injection coordinate search: (--injection)
 
     >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
-    >>> --red x y z --green x y z
-    >>> --injection --dir dir
-    >>> --res resolution
+        --red x y z --green x y z --injection --dir dir
+        --res resolution
 
     Spatial search: (--spatial):
 
     >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
-    >>> --red x y z --green x y z
-    >>> --spatial --dir dir
-    >>> --res resolution
+        --red x y z --green x y z --spatial --dir dir
+        --res resolution
 
     3 colors:
 
     >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
-    >>> --red x y z --green x y z --blue x y z
-    >>> --injection --dir dir
-    >>> --res resolution
+        --red x y z --green x y z --blue x y z --injection --dir dir
+        --res resolution
 """
 
 import argparse
@@ -214,15 +211,12 @@ def main():
 
     # Getting Allen coords
     allen_red_coords = get_allen_coords(args.red, args.res,
-                                        args.file_mat, user_vol,
-                                        select_allen_bbox(args.res))
+                                        args.file_mat, user_vol)
     allen_green_coords = get_allen_coords(args.green, args.res,
-                                          args.file_mat, user_vol,
-                                          select_allen_bbox(args.res))
+                                          args.file_mat, user_vol)
     if args.blue:
         allen_blue_coords = get_allen_coords(args.blue, args.res,
-                                             args.file_mat, user_vol,
-                                             select_allen_bbox(args.res))
+                                             args.file_mat, user_vol)
 
     # Searching Allen experiments
     red_exps = search_experiments(args.injection, args.spatial,

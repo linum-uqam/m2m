@@ -10,10 +10,15 @@
     the distance between the center of each voxel
     and the corner of the voxel.\n
 
+    Please note that Allen tractogram may have overlapping points, you can
+    use scil_remove_invalid_streamlines to remove them :
+    https://github.com/scilus/scilpy
+
+
     First call of the script :
     --------------------------
     - Download the Allen tractogram
-    - Call : 
+    - Call :
     >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         --file_mat path/to/file_mat.mat --in_tract path/to/allentrk.trk
         [see (a) or (b) to ROI filters]
@@ -39,27 +44,18 @@
     No more need to add --file_mat and --in_tract to the command line
 
     Example:
-
     >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         [see (a) or (b) to ROI filters]
 """
 
 import argparse
-import logging
 import os
-from pathlib import Path
 import numpy as np
 import nibabel as nib
-import sys
-from allen2tract.control import (add_matrix_arg,
-                                 add_overwrite_arg,
+from allen2tract.control import (add_overwrite_arg,
                                  check_input_file,
                                  check_file_exists,
                                  add_reference_arg,
-                                 add_cache_arg,
-                                 add_matrix_arg,
-                                 add_resolution_arg,
-                                 get_cache_dir,
                                  get_cached_dir)
 from allen2tract.util import (draw_spherical_mask,
                               load_user_template,
@@ -141,22 +137,42 @@ def main():
     if args.download_sphere:
         check_file_exists(parser, args, args.download_sphere)
 
-    # Aligning and saving allen tractogram in user data space (first call of script)
-    trk_file = os.path.join(get_cached_dir("data"),"allen_wildtype_transfromed.trk")
+    # Setting Allen tractogram (in UserDataSpace) path.
+    # Saving it in first call of script
+    # Reading it in following calls
+    trk_file = os.path.join(get_cached_dir("data"),
+                            "allen_wildtype_transfromed.trk")
+
+    # Aligning and saving allen tractogram in user data space
+    # First call of the script see (-h)
     if args.in_tract and args.file_mat and not os.path.isfile(trk_file):
         # Checking file mat
         check_input_file(parser, args.file_mat)
+
         # Checking input tract
         check_input_file(parser, args.in_tract)
-        trk_reference = os.path.join(get_cached_dir("data"), 'allen_template_50_ras.nii.gz')
+
+        # Loading tractogram
+        trk_reference = os.path.join(get_cached_dir("data"),
+                                     'allen_template_50_ras.nii.gz')
         trk = get_tract(args.in_tract, trk_reference, False, False)
+
+        # Transforming streamlines
         trk.to_vox()
-        sl = registrate_allen_streamlines(trk.streamlines, args.file_mat, user_vol, 50)
+        sl = registrate_allen_streamlines(trk.streamlines,
+                                          args.file_mat, user_vol, 50)
+
+        # Saving the tractogram
         save_tract(trk_file, sl, args.reference, check_bbox=False)
-    elif (not args.in_tract or not args.file_mat) and not os.path.isfile(trk_file):
-        parser.error("Please use --in_tract and --file_mat at first call (see -h)")
+
+    elif (not args.in_tract or not args.file_mat) and \
+            not os.path.isfile(trk_file):
+        parser.error("Please use --in_tract and --file_mat "
+                     "in first call (see -h)")
+
     elif (args.in_tract or args.file_mat) and os.path.isfile(trk_file):
-        parser.error("Allen trk already saved in your data space, no more need to use --in_tract and --file_mat")
+        parser.error("Allen trk already saved in your data space, "
+                     "no more need to use --in_tract and --file_mat")
 
     # if --mask
     if args.in_mask:

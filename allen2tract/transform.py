@@ -1,19 +1,71 @@
-from pickle import GET
 import numpy as np
 from tqdm import tqdm
-import os
-from allen2tract.allensdk_utils import get_injection_infos
 import nibabel as nib
 import matplotlib
 matplotlib.use('TkAgg')
 import ants
-import functools as ftools
-from scipy.io import loadmat
-from dipy.tracking.life import transform_streamlines
+
+
+def select_allen_bbox(res):
+    """
+    Select Allen voxel bounding box
+    corresponding to the resolution.
+
+    Parameters
+    ----------
+    res: int
+        Resolution in Allen [25, 50, 100]
+
+    Returns
+    -------
+    tuple: Allen Bounding Box
+    """
+    return (13200//res, 8000//res, 11400//res)
+
+
+def convert_point_to_vox(point, res):
+    """
+    Convert a Allen point in um to voxels.
+
+    Parameters
+    ----------
+    point: list, tuple
+        Coordinate in um
+    res: int
+        Resolution in the Allen [25, 50, 100]
+    """
+    return [point[0]//res, point[1]//res, point[2]//res]
+
+
+def convert_point_to_um(point, res):
+    """
+    Convert a Allen point in voxels to um.
+
+    Parameters
+    ----------
+    point: list, tuple
+        Coordinate in um
+    res: int
+        Resolution in the Allen [25, 50, 100]
+    """
+    return [point[0]*res, point[1]*res, point[2]*res]
 
 
 def get_ornt_PIR_UserDataSpace(user_vol):
     """
+    Get the orientation transformation
+    from Allen to User DataSpace.
+    Using nibabel.orientations.
+
+    Parameters
+    ----------
+    user_vol: ndarray
+        User volume data array
+
+    Return
+    ------
+    ornt: 3x2 matrix
+        nibabel ornt.
     """
     ornt_pir = nib.orientations.axcodes2ornt(('P', 'I', 'R'))
 
@@ -27,6 +79,19 @@ def get_ornt_PIR_UserDataSpace(user_vol):
 
 def get_ornt_UserDataSpace_PIR(user_vol):
     """
+    Get the orientation transformation
+    from UserDataSpace to Allen.
+    Using nibabel.orientations.
+
+    Parameters
+    ----------
+    user_vol: ndarray
+        User volume data array
+
+    Return
+    ------
+    ornt: 3x2 matrix
+        nibabel ornt.
     """
     ornt_pir = nib.orientations.axcodes2ornt(('P', 'I', 'R'))
 
@@ -56,8 +121,8 @@ def pretransform_vol_PIR_UserDataSpace(vol, user_vol):
     """
     vol_reorient = nib.orientations.apply_orientation(
         vol,
-        get_ornt_PIR_UserDataSpace(user_vol)) # passer en para # checker l'impact autres scripts
-    
+        get_ornt_PIR_UserDataSpace(user_vol))
+
     return vol_reorient
 
 
@@ -79,20 +144,32 @@ def pretransform_vol_UserDataSpace_PIR(user_vol, vol):
     """
     vol_reorient = nib.orientations.apply_orientation(
         vol,
-        get_ornt_UserDataSpace_PIR(user_vol)) # passer en para pour accelerer
+        get_ornt_UserDataSpace_PIR(user_vol))
 
     return vol_reorient
-
-
-def select_allen_bbox(res):
-    """
-    """
-    return (13200//res, 8000//res, 11400//res)
 
 
 def pretransform_point_PIR_UserDataSpace(point,
                                          allen_bbox, user_vol):
     """
+    Applying nibabel ornt codes to retrieve allen_coords
+    in UserDataSpace orientation (ex: PIR->RAS)
+
+    Process: Create a fake Allen volume, place the point,
+    reorient the volume, get the max of the array
+
+    Parameters
+    ----------
+    point: tuple, list of ints
+        Coordinate in the Allen
+    allen_bbox: tuple
+        Allen bounding box
+    user_vol: ndarray
+        User volume data array
+
+    Returns
+    -------
+    list: Coordinates in UserDataSpace orientation
     """
     # Creating a fake volume to reorient the point
     fake_allen_vol = np.zeros(allen_bbox, np.int32)
@@ -110,6 +187,25 @@ def pretransform_point_PIR_UserDataSpace(point,
 def pretransform_point_UserDataSpace_PIR(point,
                                          allen_bbox, user_vol):
     """
+    Applying nibabel ornt codes to retrieve Allen coords
+    in UserDataSpace orientation in Allen orientation (ex: RAS->PIR)
+
+    Process: Create a fake Allen volume, reorient the volume,
+    place the point, revert the orientation of the volume,
+    get the max of the array
+
+    Parameters
+    ----------
+    point: tuple, list of ints
+        Coordinate in the Allen oriented in UserDataSpace
+    allen_bbox: tuple
+        Allen bounding box
+    user_vol: ndarray
+        User volume data array
+
+    Returns
+    -------
+    list: Coordinates in PIR orientation
     """
     # Creating a fake volume to reorient the point
     fake_allen_vol = np.zeros(allen_bbox, np.int32)
@@ -134,7 +230,7 @@ def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol,
 
     Parameters
     ----------
-    file_mat: string
+    file_mat: str
         Path to transform matrix
     allen_vol: ndarray
         Allen volume to registrate.
@@ -190,62 +286,69 @@ def compute_transform_matrix(moving_vol, fixed_vol):
     return mytx['fwdtransforms'][0]
 
 
-def convert_point_to_vox(point, res):
+def get_user_coords(allen_coords, res, file_mat, user_vol):
     """
-    """
-    return [point[0]//res, point[1]//res, point[2]//res]
+    Retrieve the corresponding coordinate in UserDataSpace of
+    a specific location in the Allen.
 
+    Parameters
+    ----------
+    allen_coords: list, tuple
+        Allen coordinate in um
+    res: int
+        Resolution in the Allen [25, 50, 100]
+    file_mat: str
+        Full path to transformation matrix
+    user_vol: ndarray
+        User volume data array
 
-def get_user_coords(allen_coords, res, file_mat, user_vol, allen_bbox,
-                    to_vox=False):
+    Returns
+    -------
+    user_coords: list of ints
+        Coordinates in UserDataSpace in voxels
     """
-    refactor ? pour tps d'exec
-    """
-    if to_vox:
-        # Converting injection coordinates position to voxels
-        allen_pir_vox = convert_point_to_vox(allen_coords, res)
-    else:
-        # Assuming that the point is already in voxel
-        allen_pir_vox = allen_coords
+    # Selecting Allen bounding box
+    allen_bbox = select_allen_bbox(res)
+
+    # Converting injection coordinates position to voxels
+    allen_pir_vox = convert_point_to_vox(allen_coords, res)
     allen_pir_vox = list(map(int, allen_pir_vox))
 
     # Reorienting the point in UserDataSpace
     reoriented_coords = pretransform_point_PIR_UserDataSpace(
         allen_pir_vox, allen_bbox, user_vol)
+
     # Applying invert ANTsPyX transformation on this point
     tx = ants.read_transform(file_mat)
     user_coords = tx.invert().apply_to_point(reoriented_coords)
 
-    if to_vox:
-        return list(map(int, user_coords))
-    else:
-        return user_coords
+    return list(map(int, user_coords))
 
 
-def get_uzer_coords(allen_coords, bbox_allen, tx, ornt_pir2user, ornt_user2pir):
+def get_allen_coords(user_coords, res, file_mat, user_vol):
     """
-    """
-    user_coords = [0, 0, 0]
-    user_coords[int(ornt_pir2user[0][0])] = allen_coords[0] * ornt_user2pir[int(ornt_pir2user[0][0])][1]
-    user_coords[int(ornt_pir2user[1][0])] = allen_coords[1] * ornt_user2pir[int(ornt_pir2user[1][0])][1]
-    user_coords[int(ornt_pir2user[2][0])] = allen_coords[2] * ornt_user2pir[int(ornt_pir2user[2][0])][1]
+    Retrieve the corresponding coordinate in the Allen of
+    a specific location in the UserDataSpace
 
-    for i in range(len(user_coords)):
-        if user_coords[i] < 0:
-            user_coords[i] += (bbox_allen[int(ornt_pir2user[:,0].tolist().index(i))] - 1)
+    Parameters
+    ----------
+    user_coords: list, tuple
+        User coordinate in voxels
+    res: int
+        Resolution in the Allen [25, 50, 100]
+    file_mat: str
+        Full path to transformation matrix
+    user_vol: ndarray
+        User volume data array
 
-    return tx.invert().apply_to_point(user_coords)
+    Returns
+    -------
+    user_coords: list of ints
+        Coordinates in the Allen in um
+    """
+    # Selecting Allen bounding box
+    allen_bbox = select_allen_bbox(res)
 
-def convert_point_to_um(point, res):
-    """
-    """
-    return [point[0]*res, point[1]*res, point[2]*res]
-
-
-def get_allen_coords(user_coords, res, file_mat, user_vol,
-                     allen_bbox):
-    """
-    """
     # Reading transform matrix
     tx = ants.read_transform(file_mat)
 
@@ -260,30 +363,54 @@ def get_allen_coords(user_coords, res, file_mat, user_vol,
     return convert_point_to_um(allen_pir_vox, res)
 
 
-def load_matrix_in_any_format(filepath):
-    _, ext = os.path.splitext(filepath)
-    if ext == '.txt':
-        data = np.loadtxt(filepath)
-    elif ext == '.npy':
-        data = np.load(filepath)
-    elif ext == '.mat':
-        # .mat are actually dictionnary. This function support .mat from
-        # antsRegistration that encode a 4x4 transformation matrix.
-        transfo_dict = loadmat(filepath)
-        lps2ras = np.diag([-1, -1, 1])
+def get_user_coords_sl(allen_coords, bbox_allen,
+                       tx, ornt_pir2user, ornt_user2pir):
+    """
+    Overrided version of `get_user_coords`.
+    Purposes: Retrieving user_coords with the maximum precision in
+    order to right streamlines values.
 
-        rot = transfo_dict['AffineTransform_float_3_3'][0:9].reshape((3, 3))
-        trans = transfo_dict['AffineTransform_float_3_3'][9:12]
-        offset = transfo_dict['fixed']
-        r_trans = (np.dot(rot, offset) - offset - trans).T * [1, 1, -1]
+    Take more parameters to optimise the exectution time.
 
-        data = np.eye(4)
-        data[0:3, 3] = r_trans
-        data[:3, :3] = np.dot(np.dot(lps2ras, rot), lps2ras)
-    else:
-        raise ValueError('Extension {} is not supported'.format(ext))
+    Parameters
+    ----------
+    allen_coords: list, tuple
+        Allen coords in um
+    bbox_allen: list, tuple
+        Allen bounding box
+    tx: ANTsPyX matrix
+        Transformation matrix
+    ornt_pir2user: 3x2 matrix
+        nibabel orientation matrix from allen to user
+    ornt_user2pir: 3x2 matrix
+        nibabel orientation matrix from user to allen
 
-    return data
+    Returns
+    -------
+    user_coords: list of floats
+        User coords with high precision
+    """
+
+    # Using nibabel ornt to reorient the allen_coords in UserDataSpace
+    # without creating a fake volume
+    # Using first column of ornt to change indices of the point
+    # and second column to change the origin (sign and offset)
+    user_coords = [0, 0, 0]
+    user_coords[int(ornt_pir2user[0][0])] = allen_coords[0] * ornt_user2pir[
+        int(ornt_pir2user[0][0])][1]
+    user_coords[int(ornt_pir2user[1][0])] = allen_coords[1] * ornt_user2pir[
+        int(ornt_pir2user[1][0])][1]
+    user_coords[int(ornt_pir2user[2][0])] = allen_coords[2] * ornt_user2pir[
+        int(ornt_pir2user[2][0])][1]
+
+    # Adding the offset on the composant that is negative (sign changed)
+    for i in range(len(user_coords)):
+        if user_coords[i] < 0:
+            user_coords[i] += (bbox_allen[
+                int(ornt_pir2user[:, 0].tolist().index(i))] - 1)
+
+    # Applying tranformation matrix
+    return tx.invert().apply_to_point(user_coords)
 
 
 def registrate_allen_streamlines(streamlines,
@@ -295,16 +422,20 @@ def registrate_allen_streamlines(streamlines,
     ----------
     streamlines: array of arrays
         Streamlines array.
-    $$$$$$$$$$$$$$$$
-    $              $
-    $   REMPLIR !  $
-    $              $
-    $$$$$$$$$$$$$$$$
+    file_mat: str
+        Full path to transformation matrix
+    user_vol: ndarray
+        User volume data array
+    res: int
+        Resolution in the Allen [25, 50, 100]
+        corresponding to the matrix.
+
     Returns
     -------
     array of arrays:
         Registered streamlines
     """
+    # Loading matrix, orientations and bounding box
     tx = ants.read_transform(file_mat)
     ornt_pir2user = get_ornt_PIR_UserDataSpace(user_vol)
     ornt_user2pir = get_ornt_UserDataSpace_PIR(user_vol)
@@ -315,8 +446,8 @@ def registrate_allen_streamlines(streamlines,
     for sl in tqdm(streamlines):
         new_streamline = []
         for point in sl:
-            user_vox = get_uzer_coords(list(point), bbox_allen, tx,
-                                       ornt_pir2user, ornt_user2pir)
+            user_vox = get_user_coords_sl(list(point), bbox_allen, tx,
+                                          ornt_pir2user, ornt_user2pir)
             new_streamline.append(user_vox)
         new_streamlines.append(new_streamline)
 

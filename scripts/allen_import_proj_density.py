@@ -178,8 +178,7 @@ def main():
         # Getting mi-brain voxel coordinates
         # mib_coords = get_mib_coords(args, allen_experiments)
         mib_coords = get_user_coords(pos, args.res, args.file_mat,
-                                     user_vol, select_allen_bbox(args.res),
-                                     True)
+                                     user_vol)
 
         # Creating json content
         dic = {"id": str(args.id), "roi": roi, "location": loc,

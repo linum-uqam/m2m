@@ -1,8 +1,5 @@
-import os
-from pathlib import Path
 import numpy as np
 import nibabel as nib
-from allen2tract.control import get_cached_dir
 
 
 def load_user_template(template_file):

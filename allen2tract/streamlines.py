@@ -1,13 +1,10 @@
-from calendar import c
 import numpy as np
 import gzip
 import json
-import requests
-from allen2tract.transform import registrate_allen_streamlines
-import nibabel as nib
-from tqdm import tqdm
 from pathlib import Path
-import os
+import requests
+from tqdm import tqdm
+from allen2tract.transform import registrate_allen_streamlines
 from allen2tract.tract import save_tract
 
 
@@ -137,24 +134,26 @@ class AllenStreamLines(object):
         return self.template_streamline_json_url.format(experiment_id)
 
     def download_tract(self, filename, file_mat,
-                       user_ref, user_vol, allen_vol,
-                       res):
+                       user_ref, user_vol, res):
         """
-        Save the streamlines as a .trk file
+        Save the streamlines as a .trk file after
+        aligning them on User Data Space.
 
         Parameters
         ----------
         filename: str
             Full path to the output trk.
-        refrence: str
+        file_mat: str
+            Full path to the transformation matrix.
+        user_ref: str
             Full path to a reference volume.
-        $$$$$$$$$$$$$$$$
-        $              $
-        $   REMPLIR !  $
-        $              $
-        $$$$$$$$$$$$$$$$
+        user_vol: ndarray
+            User volume data
+        res: int
+            Resolution in the Allen [25, 50, 100]
+            Choose the one correponding to the matrix.
         """
-        # Prepare the output file
+        # Preparing the output file
         filename = Path(filename)
         assert filename.suffix == ".trk", "The filename must end with .trk"
         filename.parent.mkdir(parents=True, exist_ok=True)
@@ -164,24 +163,20 @@ class AllenStreamLines(object):
         ry = self.resolution  # Y resolution in micron
         rz = self.resolution  # Z resolution in micron
 
-        # Convert the streamline positions to the right resolution
+        # Converting the streamline positions to the right resolution
         sl = []
         for i in range(len(self.streamlines_list)):
             this_s = self.streamlines_list[i].copy()
-            # # # PIR to RAS
-            # this_s[:, 1] = self.streamlines_list[i][:, 0] / rx
-            # this_s[:, 2] = self.streamlines_list[i][:, 1] / ry
-            # this_s[:, 0] = self.streamlines_list[i][:, 2] / rz
             this_s[:, 0] = self.streamlines_list[i][:, 0] / rx
             this_s[:, 1] = self.streamlines_list[i][:, 1] / ry
             this_s[:, 2] = self.streamlines_list[i][:, 2] / rz
             sl.append(this_s)
 
-        # Align the streamlines on User Data Space
+        # Aligning the streamlines on User Data Space
         aligned_streamlines = registrate_allen_streamlines(
             sl, file_mat, user_vol, res)
 
-        # Save the tractogram
+        # Saving the tractogram
         save_tract(
             fname=str(filename),
             streamlines=aligned_streamlines,
