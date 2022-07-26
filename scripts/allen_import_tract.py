@@ -16,12 +16,12 @@
 
     Using a csv file from : https://connectivity.brain-map.org/
     >>> allen_import_tract path/to/output.trk path/to/matrix.mat
-        path/to/reference.nii.gz --res resolution
+        path/to/reference.nii.gz resolution
         --ids_csv path/to/ids.csv
 
     Setting ids manually:
     >>> allen_import_tract path/to/output.trk path/to/matrix.mat
-        path/to/reference.nii.gz --res resolution
+        path/to/reference.nii.gz resolution
         --ids id1 id2 id3 . . .
 
    """
@@ -50,12 +50,12 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
     g = p.add_mutually_exclusive_group(required=True)
+    p.add_argument('out_tract', help='Path to output tractogram (trk)')
     add_matrix_arg(p)
     add_reference_arg(p)
     g.add_argument('--ids_csv', help='Path to a csv file containing ids')
     g.add_argument('--ids', type=int, nargs='+',
                    help='List of experiment ids.')
-    p.add_argument('out_tract', help='Path to output tractogram (trk)')
     add_overwrite_arg(p)
     add_resolution_arg(p)
     add_cache_arg(p)
@@ -72,6 +72,9 @@ def main():
 
     # Loading reference
     check_input_file(parser, args.reference)
+    if not (args.reference).endswith(".nii") or \
+            not (args.reference).endswith(".nii.gz"):
+        parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
 
     # Checking file mat
@@ -79,6 +82,10 @@ def main():
 
     # Verifying output file
     check_file_exists(parser, args, args.out_tract)
+    if not (args.out_tract).endswith(".trk"):
+        parser.error("out_tract must be a trk file.")
+
+    # Retrieving in_ids
     if args.ids:
         in_ids = args.ids
     if args.ids_csv:

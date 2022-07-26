@@ -73,8 +73,9 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
-    p.add_argument('--in_tract', help='Path to allen tractogram (trk)')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
+    p.add_argument('--in_tract', help='Path to allen tractogram (trk)')
+    p.add_argument('--file_mat', help='Path to transform matrix (.mat)')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--sphere', action="store_true",
                    help='Keep streamlines inside a spherical mask.\n'
@@ -89,7 +90,6 @@ def _build_arg_parser():
     g.add_argument('--in_mask',
                    help='Keep streamlines inside a ROI.\n'
                         'Path to .nii.gz binary mask.')
-    p.add_argument('--file_mat', help='Path to transform matrix (.mat)')
     add_reference_arg(p)
     add_overwrite_arg(p)
     return p
@@ -130,10 +130,16 @@ def main():
 
     # Loading reference
     check_input_file(parser, args.reference)
+    if not (args.reference).endswith(".nii") or \
+            not (args.reference).endswith(".nii.gz"):
+        parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
 
     # Checking outputs
     check_file_exists(parser, args, args.out_tract)
+    if not (args.out_tract).endswith(".trk"):
+        parser.error("out_tract must be a trk file.")
+
     if args.download_sphere:
         check_file_exists(parser, args, args.download_sphere)
 

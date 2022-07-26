@@ -8,29 +8,29 @@
     Important: Select the same resolution as your matrix
 
     Minimum mandatory requires to call the script : (a)
-    >>> allen2avgt_import_proj_density.py id path/to/.mat path/to/ref.nii.gz
+    >>> allen2avgt_import_proj_density.py id path/to/matrix.mat 
+        path/to/ref.nii.gz resolution
 
     If --not_all is set, only the files specified will be output.
-    (a) correpond to the previous mandatory command line
+
+    Examples
+    --------
+    ((a) correpond to the previous mandatory command line)
 
     Import a projection density map of an experiment in the
-    Allen Mouse Brain Connectivity Atlas and align it on the Average Template.
-
+    Allen Mouse Brain Connectivity Atlas and align it on UserDataSpace.
     >>> (a) --not_all --map
     >>> (a) --not_all --map --smooth
 
     Download a spherical roi mask located at the injection coordinates of an
     experiment in the Allen Mouse Brain Connectivity Atlas and
-    align it on the Average Template.
-
+    align it on UserDataSpace.
     >>> (a) --not_all --roi
 
     Save experiment injection coordinates (Allen and MI-Brain) in a json file.
-
     >>> (a) --not_all --infos
 
     Save a binarized projection density map.
-
     >>> (a) --not_all --bin --threshold
 """
 
@@ -107,6 +107,9 @@ def main():
 
     # Loading reference
     check_input_file(parser, args.reference)
+    if not (args.reference).endswith(".nii") or \
+            not (args.reference).endswith(".nii.gz"):
+        parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
 
     # Checking file mat

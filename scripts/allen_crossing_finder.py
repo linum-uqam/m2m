@@ -32,20 +32,17 @@
     Injection coordinate search: (--injection)
 
     >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
-        --red x y z --green x y z --injection --dir dir
-        --res resolution
+        resolution --red x y z --green x y z --injection --dir dir
 
     Spatial search: (--spatial):
 
     >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
-        --red x y z --green x y z --spatial --dir dir
-        --res resolution
+        resolution --red x y z --green x y z --spatial --dir dir
 
     3 colors:
 
     >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
-        --red x y z --green x y z --blue x y z --injection --dir dir
-        --res resolution
+        resolution --red x y z --green x y z --blue x y z --injection --dir dir
 """
 
 import argparse
@@ -196,6 +193,9 @@ def main():
 
     # Loading reference
     check_input_file(parser, args.reference)
+    if not (args.reference).endswith(".nii") or \
+            not (args.reference).endswith(".nii.gz"):
+        parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
 
     # Checking file mat
