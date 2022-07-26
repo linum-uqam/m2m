@@ -1,6 +1,6 @@
 # stage-2022-mahdi
 
-## Installation du paquet
+## Installation du paquet (user)
 
 * Cloner ce dépôt sur un environnement virtuel avec python 3.7.0 et executer
 ```bash
@@ -26,7 +26,9 @@ Si tout cela ne fonctionne pas, installez les librairies dans l'environement vir
 ```
 conda install libpng libblas liblapack
 ```
-## Installation avec poetry
+
+## Installation du paquet (dev)
+### Installation avec poetry
 * On utilise [poetry](https://python-poetry.org/) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
 * Pour installer l'environnement lors de l'initialisation du projet
 
@@ -42,7 +44,7 @@ poetry add <nouveau-paquet-python>
 
 * **Note** : Après l'ajout d'une dépendance, ne pas oublié d'ajouter les modifications aux fichiers `pyproject.toml` et `poetry.lock` à l'historique `git`.
 
-## Installation avec Miniconda3
+### Installation avec Miniconda3
 * On utilise [Miniconda3]( https://docs.conda.io/en/latest/miniconda.html) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
 * Pour installer l'environnement lors de l'initialisation du projet
 
