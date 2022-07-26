@@ -279,15 +279,11 @@ def compute_transform_matrix(moving_vol, fixed_vol):
     moving = ants.from_numpy(moving_vol.astype(np.float32))
     fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32))
 
-    # Using SyN (*) because Affine does not handle 25um resolution
-    # (*) Symmetric normalization: Affine + deformable transformation,
-    # with mutual information as optimization metric.
     mytx = ants.registration(fixed=fixed,
                              moving=moving,
-                             type_of_transform='SyN')
+                             type_of_transform='Affine')
 
-    # Returning only the Affine matrix
-    return mytx['fwdtransforms'][1]
+    return mytx['fwdtransforms'][0]
 
 
 def get_user_coords(allen_coords, res, file_mat, user_vol):
