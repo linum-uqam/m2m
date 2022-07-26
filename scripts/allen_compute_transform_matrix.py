@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """
-    Compute an Affine transformation matrix for a specific resolution
-    in the Allen using ANTsPyX to align Allen average template on
-    User reference template.
+    Compute an 3 Affines transformations matrices for each resolution
+    in the Allen (25, 50, 100) using ANTsPyX. 
+
+    Thoses matrices are needed for the other scripts in order 
+    to align Allen data on User Data Space.
 
     >>> allen_compute_transform_matrix.py path/to/reference.nii.gz
-        path/to/matrix.mat resolution
+        path/to/matrix25.mat path/to/matrix50.mat path/to/matrix100.mat
 """
 
 import argparse
@@ -16,8 +18,7 @@ from allen2tract.control import (add_cache_arg,
                                  add_overwrite_arg,
                                  add_reference_arg,
                                  check_input_file,
-                                 check_file_exists,
-                                 add_resolution_arg)
+                                 check_file_exists)
 from allen2tract.transform import (compute_transform_matrix,
                                    pretransform_vol_PIR_UserDataSpace)
 from allen2tract.allensdk_utils import download_template_vol
@@ -32,8 +33,12 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
     add_reference_arg(p)
-    p.add_argument('out_mat', help='Path to output matrix (.mat)')
-    add_resolution_arg(p)
+    p.add_argument('out_mat_25',
+                   help='Path to output matrix (res=25) (.mat)')
+    p.add_argument('out_mat_50',
+                   help='Path to output matrix (res=50) (.mat)')
+    p.add_argument('out_mat_100',
+                   help='Path to output matrix (res=100) (.mat)')
     add_cache_arg(p)
     add_overwrite_arg(p)
     return p
@@ -44,30 +49,45 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
-    # Verying args validity
+    # Checking input reference
     check_input_file(parser, args.reference)
-    if not (args.reference).endswith(".nii") or \
+    if not (args.reference).endswith(".nii") and \
             not (args.reference).endswith(".nii.gz"):
         parser.error("reference must be a nifti file.")
-    check_file_exists(parser, args, args.out_mat)
-    if not (args.out_mat).endswith(".mat"):
-        parser.error("out_mat must be .mat file.")
-
-    # Downloading allen template
-    nrrd_file = "allen_template_{}.nrrd".format(args.res)
-    allen_vol = download_template_vol(nrrd_file, args.res, args.nocache)
-
     # Loading User template
     user_vol = load_user_template(str(args.reference))
 
-    # Pretransform volumes orientations
-    allen_reorient = pretransform_vol_PIR_UserDataSpace(allen_vol, user_vol)
+    # Checking out matrices
+    out_matrices = [args.out_mat_25, args.out_mat_50, args.out_mat_100]
+    for mat in out_matrices:
+        check_file_exists(parser, args, mat)
+        if not (mat).endswith(".mat"):
+            parser.error("{} must be .mat file.".format(mat))
 
-    # Registrating with ANTsPyX
-    affine_mat = compute_transform_matrix(allen_reorient, user_vol)
+    # Configuring resolutions
+    allen_res = [25, 50, 100]
 
-    # Saving the matrix
-    os.rename(affine_mat, args.out_mat)
+    for res in allen_res:
+        # Selectionning the right file to save
+        if res == 25:
+            out_mat = args.out_mat_25
+        elif res == 50:
+            out_mat = args.out_mat_50
+        elif res == 100:
+            out_mat= args.out_mat_100
+
+        # Downloading allen template
+        nrrd_file = "allen_template_{}.nrrd".format(res)
+        allen_vol = download_template_vol(nrrd_file, res, args.nocache)
+
+        # Pretransform volumes orientations
+        allen_reorient = pretransform_vol_PIR_UserDataSpace(allen_vol, user_vol)
+
+        # Registrating with ANTsPyX
+        affine_mat = compute_transform_matrix(allen_reorient, user_vol)
+
+        # Saving the matrix
+        os.rename(affine_mat, out_mat)
 
 
 if __name__ == "__main__":

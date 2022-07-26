@@ -130,7 +130,7 @@ def main():
 
     # Loading reference
     check_input_file(parser, args.reference)
-    if not (args.reference).endswith(".nii") or \
+    if not (args.reference).endswith(".nii") and \
             not (args.reference).endswith(".nii.gz"):
         parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
