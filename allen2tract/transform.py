@@ -276,8 +276,10 @@ def compute_transform_matrix(moving_vol, fixed_vol):
     ------
     string: Path of the transform matrix.
     """
-    moving = ants.from_numpy(moving_vol.astype(np.float32))
-    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32))
+    moving = ants.from_numpy(moving_vol.astype(
+        np.float32)).resample_image(fixed_vol.shape, 1, 0)
+    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(
+        np.float32)).resample_image(fixed_vol.shape, 1, 0)
 
     mytx = ants.registration(fixed=fixed,
                              moving=moving,
