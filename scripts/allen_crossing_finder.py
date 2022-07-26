@@ -26,6 +26,8 @@
     ---------
 
     Important: Select the same resolution as your matrix
+    We higly recommend to work with high resolution (starting from 50)
+    in order to search experiments more precisely.
 
     2 colors:
 
