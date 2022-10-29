@@ -11,7 +11,7 @@ Welcome to allen2tract's documentation!
    :caption: Contents:
 
    usage
-   api
+   module
    scripts
 
 
