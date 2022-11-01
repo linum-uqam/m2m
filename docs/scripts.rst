@@ -9,4 +9,3 @@ Scripts
     scripts/allen_tract_filter
     scripts/allen_import_proj_density
     scripts/allen_import_tract
-    scripts/allen_tract_filter
