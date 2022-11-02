@@ -23,6 +23,6 @@ macosx:
 ``brew install libpng openblas lapack gfortran``
 
 Uses cases
-==========
+----------
 
 WIP
