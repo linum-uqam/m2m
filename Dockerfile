@@ -3,6 +3,9 @@ FROM python:3.7
 RUN apt-get update
 RUN apt-get -y upgrade
 
+# seules ces librairies devraient etre suffisantes
+# apt-get install libpng-dev libblas-dev liblapack-dev
+
 RUN apt -y install libblas-dev
 RUN apt -y install liblapack-dev
 RUN apt -y install libgl1-mesa-glx
