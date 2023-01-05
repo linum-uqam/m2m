@@ -19,6 +19,7 @@
     --------------------------
     - Download the Allen tractogram
     - Call :
+
     >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         --file_mat path/to/file_mat.mat --in_tract path/to/allentrk.trk
         [see (a) or (b) to ROI filters]
@@ -30,13 +31,16 @@
     (a) Streamlines in a sphere:
 
     Add to the command line:
+
     >>> --sphere --center x y z --radius r
+
     Use --donwload_sphere to download the spherical mask and
     precise its path
 
     (b) Streamlines in a binary mask:
 
     Add to the command line:
+
     >>> --in_mask path_to_mask
 
     Ones fist call is done:
@@ -44,6 +48,7 @@
     No more need to add --file_mat and --in_tract to the command line
 
     Example:
+    
     >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         [see (a) or (b) to ROI filters]
 """

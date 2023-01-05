@@ -8,15 +8,15 @@
     giving two or three MI-Brain voxel coordinates.\n
 
     - Generate projection density maps for each experiments.
-    Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
+      Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
 
     - Generate a RGB projection density volume combining each
-    experiments founded. (--red, --green, --blue).
-    At least two colors (coordinates) are mandatory.\n
+      experiments founded. (--red, --green, --blue).
+      At least two colors (coordinates) are mandatory.\n
 
     - Generate a mask at crossing regions if projection density is
-    superior to threshold (--threshold) for each experiment founded.
-    Masks are download from Allen Mouse Brain Altas.\n
+      superior to threshold (--threshold) for each experiment founded.
+      Masks are download from Allen Mouse Brain Altas.\n
 
     - Generate a json file enumarating each crossing regions.\n
 
