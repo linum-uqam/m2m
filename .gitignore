@@ -141,3 +141,7 @@ dmypy.json
 # High volume data
 /data/allen
 /data/avgt
+
+# OS
+.DS_Store
+*/.DS_Store
