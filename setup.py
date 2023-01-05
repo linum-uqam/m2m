@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
@@ -12,7 +13,8 @@ def create_cache_dir(dir):
 def configure_cache_dir(src, dest):
     if os.path.isdir(src) \
             and not os.path.isdir(dest):
-        os.rename(src, dest)
+        shutil.copytree(src, dest)
+        shutil.rmtree(src)
 
 
 cache_dir = os.path.join(os.path.expanduser('~'), '.allen2tract')
