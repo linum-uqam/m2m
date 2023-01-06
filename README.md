@@ -1,14 +1,14 @@
 # stage-2022-mahdi
 
 # Installation
-## Intallation (Docker, recommended)
+## Docker Installation (Recommended)
 
-* Compile the docker image (it is not on docker hub wet, thus cannot be pulled). `allen2tract` will be the name of the compiled docker image. **Note** : for development, you need to compile the image everytime you want to integrate new code change. TODO: Automatize the image compilation on github.
+* Compile the docker image `linum_m2m:latest`
 ```bash
-docker build --pull --rm -t allen2tract .
+docker build --pull --rm -t linum_m2m:latest .
 ```
 
-## Installation du paquet (user)
+## Pip installation (for development)
 
 * Cloner ce dépôt sur un environnement virtuel avec python 3.7.0 et executer
 ```bash
@@ -35,59 +35,44 @@ Si tout cela ne fonctionne pas, installez les librairies dans l'environement vir
 conda install libpng libblas liblapack
 ```
 
-## Installation du paquet (dev)
-### Installation avec poetry
-* On utilise [poetry](https://python-poetry.org/) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
-* Pour installer l'environnement lors de l'initialisation du projet
-
-```bash
-poetry install
-```
-
-* Pour ajouter une dépendance `<nouveau-paquet-python>` à l'environnement
-
-```bash
-poetry add <nouveau-paquet-python>
-```
-
-* **Note** : Après l'ajout d'une dépendance, ne pas oublié d'ajouter les modifications aux fichiers `pyproject.toml` et `poetry.lock` à l'historique `git`.
-
-### Installation avec Miniconda3
-* On utilise [Miniconda3]( https://docs.conda.io/en/latest/miniconda.html) pour gérer l'environnement virtuel python et suivre les dépendances du projet. 
-* Pour installer l'environnement lors de l'initialisation du projet
-
-```bash
-conda env create -f environment.yml
-```
-
-* Pour activer l'environnement
-
-```bash
-conda activate allen2tract
-```
-
-* **Note:** Pour mettre à jour l'environnement après avoir modifié le fichier `environment.yml`
-
-```bash
-conda env update --file environment.yml #--prune pour désinstaller les dépendances retirées du fichier
-```
-
-* Pour ajouter une dépendance `<nouveau-paquet-python>` à l'environnement, l'ajouter dans `requirements.txt`
-
-```bash
-pip install -r requirements.txt
-```
-
 # Usage
 
 ## Docker
-* Example : Import the projection density
+* Display the help for a script
+```bash
+docker run linum_m2m allen_compute_transform_matrix.py --help
+```
+
+* Compute the transform matrix `transform_50micron.mat`, given a user-space reference volume `reference.nii.gz` in the folder `/path/to/local/data`.
+```bash
+docker run -v /path/to/local/data:/data linum_m2m allen_compute_transform_matrix.py /data/reference.nii.gz /data/transform_50micron.mat 50
+```
+* Import the projection density from the experiment id `100140756`. The downloaded data will be save in the `/path/to/local/data/` directory which is binded to the `/data` directory in the docker container.
 
 ```bash
-docker run -v /path/to/local/data:/data allen2tract allen_import_proj_density.py 100140756 
+docker run -v /path/to/local/data:/data linum_m2m allen_import_proj_density.py 100140756 /data/reference.nii.gz /data/transform_50micron.mat 50 -d /data
+```
+
+* Find crossings based on two injection positions, (132,133,69) for the first injection position and (143,94,69) for the second injection position. The injection positions are given in voxel in the user space. For this example, a threshold of 0.07 is used to generate the crossings mask.
+
+```
+docker run -v /path/to/local/data:/data linum_m2m allen_crossing_finder.py /data/transform_50micron.mat /data/reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --dir /data/detected_crossings --threshold 0.07
+```
+
+* Import tracts given an experiment ID.
+
+```bash
+docker run -v /path/to/local/data:/data linum_m2m allen_import_tract.py /data/output_tracts_100140756.trk /data/transform_50micron.mat /data/reference.nii.gz 50 --ids 100140756
 ```
 
 * To execute an image interactively (note that no modification inside the container will be saved)
 ```bash
-docker run --rm -it --entrypoint bash allen2tract
+docker run --rm -it --entrypoint bash linum_m2m
 ```
+
+# TODOs
+* [ ] Configure the automated docker image build to be able to pull it from docker hub.
+* [ ] Find a way to use cache with docker
+* [ ] Document how to use the docker image for development (manually, and with Visual Studio Code)
+* [ ] Document MI-Brain visualization & interaction
+
