@@ -1,5 +1,13 @@
 # stage-2022-mahdi
 
+# Installation
+## Intallation (Docker, recommended)
+
+* Compile the docker image (it is not on docker hub wet, thus cannot be pulled). `allen2tract` will be the name of the compiled docker image. **Note** : for development, you need to compile the image everytime you want to integrate new code change. TODO: Automatize the image compilation on github.
+```bash
+docker build --pull --rm -t allen2tract .
+```
+
 ## Installation du paquet (user)
 
 * Cloner ce dépôt sur un environnement virtuel avec python 3.7.0 et executer
@@ -68,4 +76,18 @@ conda env update --file environment.yml #--prune pour désinstaller les dépenda
 
 ```bash
 pip install -r requirements.txt
+```
+
+# Usage
+
+## Docker
+* Example : Import the projection density
+
+```bash
+docker run -v /path/to/local/data:/data allen2tract allen_import_proj_density.py 100140756 
+```
+
+* To execute an image interactively (note that no modification inside the container will be saved)
+```bash
+docker run --rm -it --entrypoint bash allen2tract
 ```
