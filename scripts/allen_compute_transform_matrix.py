@@ -13,7 +13,7 @@
 """
 
 import argparse
-import os
+import shutil
 from allen2tract.control import (add_cache_arg,
                                  add_overwrite_arg,
                                  add_reference_arg,
@@ -69,7 +69,7 @@ def main():
     affine_mat = compute_transform_matrix(allen_reorient, user_vol)
 
     # Saving the matrix
-    os.rename(affine_mat, args.out_mat)
+    shutil.copy(affine_mat, args.out_mat)
 
 
 if __name__ == "__main__":

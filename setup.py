@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from setuptools import setup, find_packages
 from setuptools.command.build_ext import build_ext
@@ -12,7 +13,8 @@ def create_cache_dir(dir):
 def configure_cache_dir(src, dest):
     if os.path.isdir(src) \
             and not os.path.isdir(dest):
-        os.rename(src, dest)
+        shutil.copytree(src, dest)
+        shutil.rmtree(src)
 
 
 cache_dir = os.path.join(os.path.expanduser('~'), '.allen2tract')
@@ -21,7 +23,7 @@ configure_cache_dir("data", os.path.join(cache_dir, "data"))
 configure_cache_dir("cache", os.path.join(cache_dir, "cache"))
 
 
-with open('a2t_requirements.txt') as f:
+with open('requirements.txt') as f:
     required_dependencies = f.read().splitlines()
     external_dependencies = []
     for dependency in required_dependencies:

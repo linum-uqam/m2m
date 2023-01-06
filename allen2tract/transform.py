@@ -375,7 +375,7 @@ def get_user_coords_sl(allen_coords, bbox_allen,
     Parameters
     ----------
     allen_coords: list, tuple
-        Allen coords in um
+        Allen coords in voxels
     bbox_allen: list, tuple
         Allen bounding box
     tx: ANTsPyX matrix

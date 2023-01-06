@@ -1,21 +1,23 @@
-FROM python:3.7
+# For more information, please refer to https://aka.ms/vscode-docker-python
+FROM python:3.7-slim
 
-RUN apt-get update
-RUN apt-get -y upgrade
+# Keeps Python from generating .pyc files in the container
+ENV PYTHONDONTWRITEBYTECODE=1
 
-RUN apt -y install libblas-dev
-RUN apt -y install liblapack-dev
-RUN apt -y install libgl1-mesa-glx
-RUN apt -y install jq
-RUN apt -y install rename
+# Turns off buffering for easier container logging
+ENV PYTHONUNBUFFERED=1
 
-WORKDIR /
-ENV A2T_VERSION="main"
-RUN wget https://github.com/linum-uqam/stage-2022-mahdi/archive/${A2T_VERSION}.zip
-RUN unzip ${A2T_VERSION}.zip
-RUN mv stage-2022-mahdi-${A2T_VERSION} allen2tract
+# Install pip requirements
+COPY requirements.txt .
+RUN python -m pip install -r requirements.txt
 
-WORKDIR /stage-2022-mahdi
-RUN pip install -e .
+WORKDIR /app
+COPY . /app
 
-RUN RUN sed -i '41s/.*/backend : Agg/' /usr/local/lib/python3.7/site-packages/matplotlib/mpl-data/matplotlibrc
+# Install the module
+RUN python -m pip install .
+
+# Creates a non-root user with an explicit UID and adds permission to access the /app folder
+# For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
+RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
+USER appuser

@@ -8,8 +8,11 @@
     Important: Select the same resolution as your matrix
 
     Minimum mandatory requires to call the script : (a)
-    >>> allen2avgt_import_proj_density.py id path/to/matrix.mat 
-        path/to/ref.nii.gz resolution
+
+    >>> allen_import_proj_density.py id path/to/ref.nii.gz
+        path/to/matrix.mat resolution
+    
+    Find an id here : https://connectivity.brain-map.org/
 
     If --not_all is set, only the files specified will be output.
 
@@ -19,19 +22,25 @@
 
     Import a projection density map of an experiment in the
     Allen Mouse Brain Connectivity Atlas and align it on UserDataSpace.
+    
     >>> (a) --not_all --map
+
     >>> (a) --not_all --map --smooth
 
     Download a spherical roi mask located at the injection coordinates of an
     experiment in the Allen Mouse Brain Connectivity Atlas and
     align it on UserDataSpace.
+
     >>> (a) --not_all --roi
 
     Save experiment injection coordinates (Allen and MI-Brain) in a json file.
+
     >>> (a) --not_all --infos
 
     Save a binarized projection density map.
+
     >>> (a) --not_all --bin --threshold
+    
 """
 
 import argparse

@@ -15,11 +15,13 @@
     Warning: Choose the same resolution as your transformation matrix !
 
     Using a csv file from : https://connectivity.brain-map.org/
+
     >>> allen_import_tract path/to/output.trk path/to/matrix.mat
         path/to/reference.nii.gz resolution
         --ids_csv path/to/ids.csv
 
     Setting ids manually:
+    
     >>> allen_import_tract path/to/output.trk path/to/matrix.mat
         path/to/reference.nii.gz resolution
         --ids id1 id2 id3 . . .
