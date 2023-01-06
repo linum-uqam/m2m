@@ -23,7 +23,7 @@ configure_cache_dir("data", os.path.join(cache_dir, "data"))
 configure_cache_dir("cache", os.path.join(cache_dir, "cache"))
 
 
-with open('a2t_requirements.txt') as f:
+with open('requirements.txt') as f:
     required_dependencies = f.read().splitlines()
     external_dependencies = []
     for dependency in required_dependencies:
