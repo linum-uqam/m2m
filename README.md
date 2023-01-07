@@ -78,10 +78,23 @@ docker run -v /path/to/local/data:/data linumuqam/m2m allen_import_tract.py /dat
 docker run --rm -it --entrypoint bash linumuqam/m2m
 ```
 
+## **Docker (development)**
+To use the docker image for development, you need to replace the module and script source code by your own development version. To do this, we can bind mount the local working directory containing the source code and replace the `/app` source code in the docker image.
+
+* Pull or build the latest version of the `linumuqam/m2m` docker image as explained in the [Installation] section.
+* Make sure you are in the source code directory on your computer
+* Execute your code while mounting the local source code directory. For example, to use your modified version of the `allen_compute_transform_matrix.py` script,
+
+```bash
+docker run -v ${PWD}:/app linumuqam/m2m python scripts/allen_compute_transform_matrix.py --help
+```
+
+Likewise, the docker image can be configured to be used as a Python interpreter by your IDE. Please refer to [these instructions](https://code.visualstudio.com/docs/containers/quickstart-python) for Visual Studio Code and to [these instructions](https://www.jetbrains.com/help/pycharm/using-docker-as-a-remote-interpreter.html) for PyCharm. 
+
 # TODOs
 * [x] Configure the automated docker image build to be able to pull it from docker hub.
+* [x] Document how to use the docker image for development (manually, and with Visual Studio Code)
 * [ ] Find a way to use cache with docker
-* [ ] Document how to use the docker image for development (manually, and with Visual Studio Code)
 * [ ] Document MI-Brain visualization & interaction
 
 # References
