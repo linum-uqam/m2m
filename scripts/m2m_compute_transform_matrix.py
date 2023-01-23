@@ -8,7 +8,7 @@
     Thoses matrices are needed for the other scripts in order 
     to align Allen data on User Data Space.
 
-    >>> allen_compute_transform_matrix.py path/to/reference.nii.gz
+    >>> m2m_compute_transform_matrix.py path/to/reference.nii.gz
         path/to/matrix.mat resolution
 """
 

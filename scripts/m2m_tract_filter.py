@@ -20,7 +20,7 @@
     - Download the Allen tractogram
     - Call :
 
-    >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
+    >>> m2m_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         --file_mat path/to/file_mat.mat --in_tract path/to/allentrk.trk
         [see (a) or (b) to ROI filters]
 
@@ -49,7 +49,7 @@
 
     Example:
     
-    >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
+    >>> m2m_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         [see (a) or (b) to ROI filters]
 """
 

@@ -9,7 +9,7 @@
 
     Minimum mandatory requires to call the script : (a)
 
-    >>> allen_import_proj_density.py id path/to/ref.nii.gz
+    >>> m2m_import_proj_density.py id path/to/ref.nii.gz
         path/to/matrix.mat resolution
     
     Find an id here : https://connectivity.brain-map.org/

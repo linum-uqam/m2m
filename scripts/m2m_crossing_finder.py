@@ -33,17 +33,17 @@
 
     Injection coordinate search: (--injection)
 
-    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> m2m_crossing_finder.py path/to/.mat path/to/ref.nii.gz
         resolution --red x y z --green x y z --injection --dir dir
 
     Spatial search: (--spatial):
 
-    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> m2m_crossing_finder.py path/to/.mat path/to/ref.nii.gz
         resolution --red x y z --green x y z --spatial --dir dir
 
     3 colors:
 
-    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> m2m_crossing_finder.py path/to/.mat path/to/ref.nii.gz
         resolution --red x y z --green x y z --blue x y z --injection --dir dir
 """
 
