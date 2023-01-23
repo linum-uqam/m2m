@@ -64,7 +64,7 @@ docker run -v /path/to/local/data:/data linumuqam/m2m m2m_import_proj_density.py
 * Find crossings based on two injection positions, (132,133,69) for the first injection position and (143,94,69) for the second injection position. The injection positions are given in voxel in the user space. For this example, a threshold of 0.07 is used to generate the crossings mask.
 
 ```
-docker run -v /path/to/local/data:/data linumuqam/m2m allen_crossing_finder.py /data/transform_50micron.mat /data/reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --dir /data/detected_crossings --threshold 0.07
+docker run -v /path/to/local/data:/data linumuqam/m2m m2m_crossing_finder.py /data/transform_50micron.mat /data/reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --dir /data/detected_crossings --threshold 0.07
 ```
 
 * Import tracts given an experiment ID.
@@ -83,7 +83,7 @@ To use the docker image for development, you need to replace the module and scri
 
 * Pull or build the latest version of the `linumuqam/m2m` docker image as explained in the [Installation] section.
 * Make sure you are in the source code directory on your computer
-* Execute your code while mounting the local source code directory. For example, to use your modified version of the `allen_compute_transform_matrix.py` script,
+* Execute your code while mounting the local source code directory. For example, to use your modified version of the `m2m_compute_transform_matrix.py` script,
 
 ```bash
 docker run -v ${PWD}:/app linumuqam/m2m python scripts/m2m_compute_transform_matrix.py --help
