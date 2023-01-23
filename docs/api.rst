@@ -1,40 +1,40 @@
 API
 ===
 
-.. automodule:: allen2tract
+.. automodule:: m2m
 
-allen2tract.allensdk_utils.py
+m2m.allensdk_utils.py
 -----------------------------
 
-.. automodule:: allen2tract.allensdk_utils
+.. automodule:: m2m.allensdk_utils
    :members:
 
-allen2tract.control.py
+m2m.control.py
 ----------------------
 
-.. automodule:: allen2tract.control
+.. automodule:: m2m.control
    :members:
 
-allen2tract.streamlines.py
+m2m.streamlines.py
 --------------------------
 
-.. automodule:: allen2tract.streamlines
+.. automodule:: m2m.streamlines
    :members:
 
-allen2tract.tract.py
+m2m.tract.py
 --------------------
 
-.. automodule:: allen2tract.tract
+.. automodule:: m2m.tract
    :members:
 
-allen2tract.transform.py
+m2m.transform.py
 ------------------------
 
-.. automodule:: allen2tract.transform
+.. automodule:: m2m.transform
    :members:
 
-allen2tract.util.py
+m2m.util.py
 -------------------
 
-.. automodule:: allen2tract.util
+.. automodule:: m2m.util
    :members:

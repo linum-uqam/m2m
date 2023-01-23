@@ -80,7 +80,7 @@ def check_input_file(parser, path):
 
 
 def get_cache_dir():
-    return os.path.join(os.path.expanduser('~'), '.allen2tract')
+    return os.path.join(os.path.expanduser('~'), '.m2m')
 
 
 def get_cached_dir(dir):

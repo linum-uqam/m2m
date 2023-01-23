@@ -33,17 +33,17 @@
 
     Injection coordinate search: (--injection)
 
-    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> m2m_crossing_finder.py path/to/.mat path/to/ref.nii.gz
         resolution --red x y z --green x y z --injection --dir dir
 
     Spatial search: (--spatial):
 
-    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> m2m_crossing_finder.py path/to/.mat path/to/ref.nii.gz
         resolution --red x y z --green x y z --spatial --dir dir
 
     3 colors:
 
-    >>> allen_crossing_finder.py path/to/.mat path/to/ref.nii.gz
+    >>> m2m_crossing_finder.py path/to/.mat path/to/ref.nii.gz
         resolution --red x y z --green x y z --blue x y z --injection --dir dir
 """
 
@@ -53,28 +53,28 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import sys
-from allen2tract.control import (add_cache_arg,
-                                 add_output_dir_arg,
-                                 add_overwrite_arg,
-                                 add_resolution_arg,
-                                 check_file_exists,
-                                 add_matrix_arg,
-                                 add_reference_arg,
-                                 check_input_file)
-from allen2tract.transform import (pretransform_vol_PIR_UserDataSpace,
-                                   registrate_allen2UserDataSpace,
-                                   get_allen_coords,
-                                   select_allen_bbox)
-from allen2tract.allensdk_utils import (download_proj_density_vol,
-                                        download_struct_mask_vol,
-                                        get_structure_parents_infos,
-                                        get_unionized_list,
-                                        get_injection_infos,
-                                        get_mcc_exps,
-                                        get_mcc_stree,
-                                        search_experiments)
-from allen2tract.util import (save_nifti,
-                              load_user_template)
+from m2m.control import (add_cache_arg,
+                         add_output_dir_arg,
+                         add_overwrite_arg,
+                         add_resolution_arg,
+                         check_file_exists,
+                         add_matrix_arg,
+                         add_reference_arg,
+                         check_input_file)
+from m2m.transform import (pretransform_vol_PIR_UserDataSpace,
+                           registrate_allen2UserDataSpace,
+                           get_allen_coords,
+                           select_allen_bbox)
+from m2m.allensdk_utils import (download_proj_density_vol,
+                                download_struct_mask_vol,
+                                get_structure_parents_infos,
+                                get_unionized_list,
+                                get_injection_infos,
+                                get_mcc_exps,
+                                get_mcc_stree,
+                                search_experiments)
+from m2m.util import (save_nifti,
+                      load_user_template)
 
 EPILOG = """
 Author : Mahdi

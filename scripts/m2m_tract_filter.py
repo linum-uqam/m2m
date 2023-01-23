@@ -20,7 +20,7 @@
     - Download the Allen tractogram
     - Call :
 
-    >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
+    >>> m2m_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         --file_mat path/to/file_mat.mat --in_tract path/to/allentrk.trk
         [see (a) or (b) to ROI filters]
 
@@ -49,7 +49,7 @@
 
     Example:
     
-    >>> allen_tract_filter.py path/to/output.trk path/to/reference.nii.gz
+    >>> m2m_tract_filter.py path/to/output.trk path/to/reference.nii.gz
         [see (a) or (b) to ROI filters]
 """
 
@@ -57,18 +57,18 @@ import argparse
 import os
 import numpy as np
 import nibabel as nib
-from allen2tract.control import (add_overwrite_arg,
-                                 check_input_file,
-                                 check_file_exists,
-                                 add_reference_arg,
-                                 get_cached_dir)
-from allen2tract.util import (draw_spherical_mask,
-                              load_user_template,
-                              save_nifti)
-from allen2tract.transform import registrate_allen_streamlines
-from allen2tract.tract import (filter_tract_near_roi,
-                               get_tract,
-                               save_tract)
+from m2m.control import (add_overwrite_arg,
+                         check_input_file,
+                         check_file_exists,
+                         add_reference_arg,
+                         get_cached_dir)
+from m2m.util import (draw_spherical_mask,
+                      load_user_template,
+                      save_nifti)
+from m2m.transform import registrate_allen_streamlines
+from m2m.tract import (filter_tract_near_roi,
+                       get_tract,
+                       save_tract)
 
 EPILOG = """
 Author : Mahdi

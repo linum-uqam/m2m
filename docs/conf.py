@@ -11,9 +11,9 @@ sys.path.insert(1, os.path.abspath("../scripts"))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'allen2tract'
+project = 'm2m'
 copyright = '2022, Mahdi'
-author = 'Mahdi'
+author = 'Mahdi Abou-Hamdan'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

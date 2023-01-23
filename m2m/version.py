@@ -26,24 +26,24 @@ CLASSIFIERS = ["Development Status :: 1 - Planning",
                "Topic :: Scientific/Engineering"]
 
 # Short description:
-description = "allen2tract: allen2avgt tools"
+description = "m2m: Meso to Macro Toolkit"
 # Long description (for the pypi page)
 long_description = """
 Module
 ======
-Allen2Tract is a small library containing tools and utilities to
+m2m is a small library containing tools and utilities to
 quickly work with AllenSDK, Tractograms, MI-Brain, AVGT template.
 """
 
-NAME = "allen2tract"
-MAINTAINER = "Mahdi"
+NAME = "m2m"
+MAINTAINER = "Mahdi Abou-Hamdan"
 MAINTAINER_EMAIL = "mah.abha8@gmail.com"
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description
-URL = "https://github.com/linum-uqam/stage-2022-mahdi"
+URL = "https://github.com/linum-uqam/m2m"
 DOWNLOAD_URL = ""
 LICENSE = "MIT"
-AUTHOR = "Mahdi"
+AUTHOR = "Mahdi Abou-Hamdan"
 AUTHOR_EMAIL = ""
 PLATFORMS = "OS Independent"
 MAJOR = _version_major

@@ -4,8 +4,8 @@ Scripts
 .. toctree::
     :maxdepth: 1
 
-    scripts/allen_compute_transform_matrix
-    scripts/allen_crossing_finder
-    scripts/allen_tract_filter
-    scripts/allen_import_proj_density
-    scripts/allen_import_tract
+    scripts/m2m_compute_transform_matrix
+    scripts/m2m_crossing_finder
+    scripts/m2m_tract_filter
+    scripts/m2m_import_proj_density
+    scripts/m2m_import_tract
