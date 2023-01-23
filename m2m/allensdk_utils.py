@@ -6,7 +6,7 @@ from allensdk.api.queries.mouse_connectivity_api import MouseConnectivityApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 from allensdk.api.queries.tree_search_api import TreeSearchApi
 import nrrd
-from allen2tract.control import (get_cached_dir, get_cache_dir)
+from m2m.control import (get_cached_dir, get_cache_dir)
 
 
 def get_mcc(nocache, res):

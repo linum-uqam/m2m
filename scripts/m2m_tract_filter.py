@@ -57,18 +57,18 @@ import argparse
 import os
 import numpy as np
 import nibabel as nib
-from allen2tract.control import (add_overwrite_arg,
-                                 check_input_file,
-                                 check_file_exists,
-                                 add_reference_arg,
-                                 get_cached_dir)
-from allen2tract.util import (draw_spherical_mask,
-                              load_user_template,
-                              save_nifti)
-from allen2tract.transform import registrate_allen_streamlines
-from allen2tract.tract import (filter_tract_near_roi,
-                               get_tract,
-                               save_tract)
+from m2m.control import (add_overwrite_arg,
+                         check_input_file,
+                         check_file_exists,
+                         add_reference_arg,
+                         get_cached_dir)
+from m2m.util import (draw_spherical_mask,
+                      load_user_template,
+                      save_nifti)
+from m2m.transform import registrate_allen_streamlines
+from m2m.tract import (filter_tract_near_roi,
+                       get_tract,
+                       save_tract)
 
 EPILOG = """
 Author : Mahdi

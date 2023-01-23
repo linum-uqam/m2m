@@ -26,7 +26,7 @@ CLASSIFIERS = ["Development Status :: 1 - Planning",
                "Topic :: Scientific/Engineering"]
 
 # Short description:
-description = "allen2tract: allen2avgt tools"
+description = "m2m: allen2avgt tools"
 # Long description (for the pypi page)
 long_description = """
 Module
@@ -35,7 +35,7 @@ Allen2Tract is a small library containing tools and utilities to
 quickly work with AllenSDK, Tractograms, MI-Brain, AVGT template.
 """
 
-NAME = "allen2tract"
+NAME = "m2m"
 MAINTAINER = "Mahdi"
 MAINTAINER_EMAIL = "mah.abha8@gmail.com"
 DESCRIPTION = description

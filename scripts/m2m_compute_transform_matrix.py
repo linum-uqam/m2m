@@ -14,16 +14,16 @@
 
 import argparse
 import shutil
-from allen2tract.control import (add_cache_arg,
-                                 add_overwrite_arg,
-                                 add_reference_arg,
-                                 check_input_file,
-                                 check_file_exists,
-                                 add_resolution_arg)
-from allen2tract.transform import (compute_transform_matrix,
-                                   pretransform_vol_PIR_UserDataSpace)
-from allen2tract.allensdk_utils import download_template_vol
-from allen2tract.util import load_user_template
+from m2m.control import (add_cache_arg,
+                         add_overwrite_arg,
+                         add_reference_arg,
+                         check_input_file,
+                         check_file_exists,
+                         add_resolution_arg)
+from m2m.transform import (compute_transform_matrix,
+                           pretransform_vol_PIR_UserDataSpace)
+from m2m.allensdk_utils import download_template_vol
+from m2m.util import load_user_template
 
 EPILOG = """
 Author : Mahdi
