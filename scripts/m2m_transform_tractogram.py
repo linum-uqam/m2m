@@ -39,6 +39,8 @@ def _build_arg_parser():
     p.add_argument('file_mat', help='Path to transform matrix (.mat)')
     add_reference_arg(p)
     return p
+
+
 def main():
     # Building argparser
     parser = _build_arg_parser()
@@ -74,6 +76,7 @@ def main():
     # Saving the tractogram
     print("Saving the transformed tractogram")
     save_tract(args.out_tract, streamlines, args.reference, check_bbox=False)
+
 
 if __name__ == "__main__":
     main()
