@@ -8,9 +8,7 @@
     and the corner of the voxel.\n
 
     >>> m2m_tract_filter.py path/to/input.trk path/to/output.trk path/to/reference.nii.gz
-        --file_mat path/to/file_mat.mat [see (a) or (b) to ROI filters]
-
-    (note: matrix should be .mat computed at resolution=50)
+         [see (a) or (b) to ROI filters]
 
     ROI filters:
     ------------
@@ -58,7 +56,6 @@ def _build_arg_parser():
                                 epilog=EPILOG, description=__doc__)
     p.add_argument('in_tract', help='Path to input tractogram (trk)')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
-    p.add_argument('--file_mat', help='Path to transform matrix (.mat)')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--sphere', action="store_true",
                    help='Keep streamlines inside a spherical mask.\n'
