@@ -80,7 +80,7 @@ docker run -v /path/to/local/data:/data linumuqam/m2m python m2m_transform_tract
 
 * Extract a bundle of streamlines from the transformed Allen tractogram.
 ```bash
-docker run -v /path/to/local/data:/data linumuqam/m2m m2m_tract_filter.py /data/input_tractogram.trk /data/output.trk /data/reference.nii.gz --file_mat /data/transform_50micron.mat --sphere --center 132 133 69 --radius 2
+docker run -v /path/to/local/data:/data linumuqam/m2m m2m_tract_filter.py /data/input_tractogram.trk /data/output.trk /data/reference.nii.gz --sphere --center 132 133 69 --radius 2
 ```
 
 * To execute an image interactively (note that no modification inside the container will be saved)
