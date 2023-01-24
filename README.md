@@ -73,9 +73,24 @@ docker run -v /path/to/local/data:/data linumuqam/m2m m2m_crossing_finder.py /da
 docker run -v /path/to/local/data:/data linumuqam/m2m m2m_import_tract.py /data/output_tracts_100140756.trk /data/transform_50micron.mat /data/reference.nii.gz 50 --ids 100140756
 ```
 
+* Transform the Allen tractogram (Wildtype, RAS@50um) to the User's Data Space. Note that this command will take a few minutes to complete, as the tractogram first need to be downloaded and then each streamline have to be transformed to the user data space.
+```bash
+docker run -v /path/to/local/data:/data linumuqam/m2m python m2m_transform_tractogram.py /data/transformed_tractogram.trk /data/transform_50micron.mat /data/reference.nii.gz
+```
+
+* Extract a bundle of streamlines from the transformed Allen tractogram.
+```bash
+docker run -v /path/to/local/data:/data linumuqam/m2m m2m_tract_filter.py /data/input_tractogram.trk /data/output.trk /data/reference.nii.gz --file_mat /data/transform_50micron.mat --sphere --center 132 133 69 --radius 2
+```
+
 * To execute an image interactively (note that no modification inside the container will be saved)
 ```bash
 docker run --rm -it --entrypoint bash linumuqam/m2m
+```
+
+* **Note**: Some scripts will require a cache to accelerate processing. To do this with docker, we can use a docker volume named `m2m_cache` and mount it in the docker's home directory. You can add this option to the previous command to use a cache.
+```bash
+-v m2m_cache:/home/appuser/.m2m 
 ```
 
 ## **Docker (development)**
