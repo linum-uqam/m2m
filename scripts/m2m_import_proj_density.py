@@ -84,7 +84,7 @@ def _build_arg_parser():
                         'is nearestNeighbor by default.\n'
                         'Using --smooth will change the method to bSpline.')
     p.add_argument('--threshold', type=float, default=.5,
-                   help='Treshold for the binarised map.')
+                   help='Threshold for the binarised map.')
     p.add_argument('--not_all', action="store_true",
                    help='If set, only saves the files specified')
     add_resolution_arg(p)
@@ -93,7 +93,7 @@ def _build_arg_parser():
     add_overwrite_arg(p)
     g = p.add_argument_group(title='File flags')
     g.add_argument('--map', action="store_true",
-                   help='Save the projeciton density map of the experiment '
+                   help='Save the projection density map of the experiment '
                         '(.nii.gz)')
     g.add_argument('--roi', action="store_true",
                    help='Save a spherical mask at the injection coordinates'
@@ -103,9 +103,9 @@ def _build_arg_parser():
                         'with a certain --threshold.')
     g.add_argument('--infos', action="store_true",
                    help='Save informations about the experiment (.json):\n'
-                        '- Injeciton coordinates (MI-Brain, Allen)\n'
+                        '- Injection coordinates (MI-Brain, Allen)\n'
                         '- Hemisphere (L or R)\n'
-                        '- Injeciton ROI\n')
+                        '- Injection ROI\n')
     return p
 
 
@@ -218,7 +218,8 @@ def main():
             args.file_mat,
             allen_vol,
             user_vol,
-            args.smooth
+            allen_res=args.res,
+            smooth=args.smooth
         )
 
         # Deleting negatives values if bSpline method was used (--smooth)
@@ -259,6 +260,7 @@ def main():
             args.file_mat,
             roi_sphere_allen,
             user_vol,
+            allen_res=args.res,
         )
 
         # Deleting non needed interpolated values
