@@ -90,7 +90,7 @@ def filter_tract_near_roi(mask, in_tract, out_tract, reference):
         region_of_interest=mask
     )
 
-    # Writting streamlines array sequence
+    # Writing streamlines array sequence
     streamlines_through_roi = []
     for i in range(len(tract.streamlines)):
         if through_roi[i]:

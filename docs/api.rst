@@ -15,6 +15,11 @@ m2m.control.py
 .. automodule:: m2m.control
    :members:
 
+m2m.data.py
+
+.. automodule:: m2m.data
+    :members:
+
 m2m.streamlines.py
 --------------------------
 

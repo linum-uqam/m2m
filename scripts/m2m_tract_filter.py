@@ -2,29 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-    Link to download Allen tractogram (resolution=50):
-    https://drive.google.com/file/d/1E-w9HsdhJxGaC3KcoVCFx8ejcN4DyrFp/view?usp=sharing
-
-    Extract a bundle of streamlines from Allen tractogram.\n
+    Extract a bundle of streamlines from an aligned tractogram.\n
     Keep streamlines if any coordinate in the streamline is within
     the distance between the center of each voxel
     and the corner of the voxel.\n
 
-    Please note that Allen tractogram may have overlapping points, you can
-    use scil_remove_invalid_streamlines to remove them :
-    https://github.com/scilus/scilpy
-
-
-    First call of the script :
-    --------------------------
-    - Download the Allen tractogram
-    - Call :
-
-    >>> m2m_tract_filter.py path/to/output.trk path/to/reference.nii.gz
-        --file_mat path/to/file_mat.mat --in_tract path/to/allentrk.trk
-        [see (a) or (b) to ROI filters]
-
-    (note: matrix should be .mat computed at resolution=50)
+    >>> m2m_tract_filter.py path/to/input.trk path/to/output.trk path/to/reference.nii.gz
+         [see (a) or (b) to ROI filters]
 
     ROI filters:
     ------------
@@ -42,15 +26,6 @@
     Add to the command line:
 
     >>> --in_mask path_to_mask
-
-    Ones fist call is done:
-    -----------------------
-    No more need to add --file_mat and --in_tract to the command line
-
-    Example:
-    
-    >>> m2m_tract_filter.py path/to/output.trk path/to/reference.nii.gz
-        [see (a) or (b) to ROI filters]
 """
 
 import argparse
@@ -62,6 +37,7 @@ from m2m.control import (add_overwrite_arg,
                          check_file_exists,
                          add_reference_arg,
                          get_cached_dir)
+from m2m.data import download_to_cache
 from m2m.util import (draw_spherical_mask,
                       load_user_template,
                       save_nifti)
@@ -78,9 +54,8 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
+    p.add_argument('in_tract', help='Path to input tractogram (trk)')
     p.add_argument('out_tract', help='Path to output tractogram (trk)')
-    p.add_argument('--in_tract', help='Path to allen tractogram (trk)')
-    p.add_argument('--file_mat', help='Path to transform matrix (.mat)')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--sphere', action="store_true",
                    help='Keep streamlines inside a spherical mask.\n'
@@ -135,55 +110,22 @@ def main():
 
     # Loading reference
     check_input_file(parser, args.reference)
-    if not (args.reference).endswith(".nii") and \
-            not (args.reference).endswith(".nii.gz"):
+    if not args.reference.endswith(".nii") and \
+            not args.reference.endswith(".nii.gz"):
         parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
 
+    # Checking inputs
+    if not args.in_tract.endswith(".trk"):
+        parser.error("in_tract must be a trk file.")
+
     # Checking outputs
     check_file_exists(parser, args, args.out_tract)
-    if not (args.out_tract).endswith(".trk"):
+    if not args.out_tract.endswith(".trk"):
         parser.error("out_tract must be a trk file.")
 
     if args.download_sphere:
         check_file_exists(parser, args, args.download_sphere)
-
-    # Setting Allen tractogram (in UserDataSpace) path.
-    # Saving it in first call of script
-    # Reading it in following calls
-    trk_file = os.path.join(get_cached_dir("data"),
-                            "allen_wildtype_transfromed.trk")
-
-    # Aligning and saving allen tractogram in user data space
-    # First call of the script see (-h)
-    if args.in_tract and args.file_mat and not os.path.isfile(trk_file):
-        # Checking file mat
-        check_input_file(parser, args.file_mat)
-
-        # Checking input tract
-        check_input_file(parser, args.in_tract)
-
-        # Loading tractogram
-        trk_reference = os.path.join(get_cached_dir("data"),
-                                     'allen_template_50_ras.nii.gz')
-        trk = get_tract(args.in_tract, trk_reference, False, False)
-
-        # Transforming streamlines
-        trk.to_vox()
-        sl = registrate_allen_streamlines(trk.streamlines,
-                                          args.file_mat, user_vol, 50)
-
-        # Saving the tractogram
-        save_tract(trk_file, sl, args.reference, check_bbox=False)
-
-    elif (not args.in_tract or not args.file_mat) and \
-            not os.path.isfile(trk_file):
-        parser.error("Please use --in_tract and --file_mat "
-                     "in first call (see -h)")
-
-    elif (args.in_tract or args.file_mat) and os.path.isfile(trk_file):
-        parser.error("Allen trk already saved in your data space, "
-                     "no more need to use --in_tract and --file_mat")
 
     # if --mask
     if args.in_mask:
@@ -213,7 +155,7 @@ def main():
             save_nifti(mask.astype(np.int32), args.download_sphere)
 
     # Saving the filtered tract
-    filter_tract_near_roi(mask=mask, in_tract=trk_file,
+    filter_tract_near_roi(mask=mask, in_tract=args.in_tract,
                           out_tract=args.out_tract,
                           reference=args.reference)
 
