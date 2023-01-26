@@ -7,7 +7,7 @@
     Experiments are found by search in the Allen Mouse Brain Connectivity API
     giving two or three MI-Brain voxel coordinates.\n
 
-    - Generate projection density maps for each experiments.
+    - Generate projection density maps for each experiment.
       Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
 
     - Generate a RGB projection density volume combining each
@@ -130,31 +130,42 @@ def check_args(parser, args):
         Argument list.
     """
     # Verifying threshold
-    if 1.0 < args.threshold < 0.0:
+    if 0.0 > args.threshold > 1.0:
         parser.error('Please enter a valid threshold value. '
                      'Pick a float value from 0.0 to 1.0')
 
-    # Verifying coords
-    x, y, z = range(0, 165), range(0, 213), range(0, 159)
+def check_coords_in_bbox(args, parser):
+    """
+    Verify that the provided coordinates are within the reference volume bounding box.
 
+    Parameters
+    ----------
+    parser: argparse.ArgumentParser object
+        Parser.
+    args: argparse namespace
+        Argument list.
+    """
+    # Load the reference
+    reference = load_user_template(args.reference)
+
+    # Verifying coords
+    x, y, z = range(0, reference.shape[0]), range(0, reference.shape[1]), range(0, reference.shape[2])
     if args.red[0] not in x or \
        args.red[1] not in y or \
        args.red[2] not in z:
-        parser.error('Red coords invalid. '
-                     'x, y, z values must be in [164, 212, 158].')
-
+        parser.error('Invalid red coordinates'
+                     f'x, y, z values must be in {reference.shape}')
     if args.green[0] not in x or \
-       args.green[1] not in y or \
-       args.green[2] not in z:
-        parser.error('Green coords invalid. '
-                     'x, y, z values must be in [164, 212, 158].')
-
+            args.green[1] not in y or \
+            args.green[2] not in z:
+        parser.error('Invalid green coordinates. '
+                     f'x, y, z values must be in {reference.shape}.')
     if args.blue:
         if args.blue[0] not in x or \
-           args.blue[1] not in y or \
-           args.blue[2] not in z:
-            parser.error('Blue coords invalid. '
-                         'x, y, z values must be in [164, 212, 158].')
+                args.blue[1] not in y or \
+                args.blue[2] not in z:
+            parser.error('Invalid blue coordinatesd. '
+                         f'x, y, z values must be in {reference.shape}.')
 
 
 def get_experiment_id(experiments, index, color):
@@ -190,7 +201,7 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
-    # Verying args validity
+    # Verifying args validity
     check_args(parser, args)
 
     # Loading reference
@@ -199,6 +210,9 @@ def main():
             not (args.reference).endswith(".nii.gz"):
         parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
+
+    # Checking that the coords are in the bounding box
+    check_coords_in_bbox(parser, args)
 
     # Checking file mat
     check_input_file(parser, args.file_mat)
@@ -255,7 +269,7 @@ def main():
     subdir = Path(args.dir / subdir_)
     subdir.mkdir(exist_ok=True, parents=True)
 
-    # Retrieving experiment informations
+    # Retrieving experiment information
     rroi = get_injection_infos(allen_experiments, red_id)[0]
     rloc = get_injection_infos(allen_experiments, red_id)[2]
     groi = get_injection_infos(allen_experiments, green_id)[0]
