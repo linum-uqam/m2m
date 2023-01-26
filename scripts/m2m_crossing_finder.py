@@ -7,7 +7,7 @@
     Experiments are found by search in the Allen Mouse Brain Connectivity API
     giving two or three MI-Brain voxel coordinates.\n
 
-    - Generate projection density maps for each experiments.
+    - Generate projection density maps for each experiment.
       Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
 
     - Generate a RGB projection density volume combining each
@@ -49,10 +49,20 @@
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import sys
+
+from m2m.allensdk_utils import (download_proj_density_vol,
+                                download_struct_mask_vol,
+                                get_structure_parents_infos,
+                                get_unionized_list,
+                                get_injection_infos,
+                                get_mcc_exps,
+                                get_mcc_stree,
+                                search_experiments)
 from m2m.control import (add_cache_arg,
                          add_output_dir_arg,
                          add_overwrite_arg,
@@ -65,14 +75,6 @@ from m2m.transform import (pretransform_vol_PIR_UserDataSpace,
                            registrate_allen2UserDataSpace,
                            get_allen_coords,
                            select_allen_bbox)
-from m2m.allensdk_utils import (download_proj_density_vol,
-                                download_struct_mask_vol,
-                                get_structure_parents_infos,
-                                get_unionized_list,
-                                get_injection_infos,
-                                get_mcc_exps,
-                                get_mcc_stree,
-                                search_experiments)
 from m2m.util import (save_nifti,
                       load_user_template)
 
@@ -130,31 +132,43 @@ def check_args(parser, args):
         Argument list.
     """
     # Verifying threshold
-    if 1.0 < args.threshold < 0.0:
+    if 0.0 > args.threshold > 1.0:
         parser.error('Please enter a valid threshold value. '
                      'Pick a float value from 0.0 to 1.0')
 
+
+def check_coords_in_bbox(args, parser):
+    """
+    Verify that the provided coordinates are within the reference volume bounding box.
+
+    Parameters
+    ----------
+    parser: argparse.ArgumentParser object
+        Parser.
+    args: argparse namespace
+        Argument list.
+    """
+    # Load the reference
+    reference = load_user_template(args.reference)
+
     # Verifying coords
-    x, y, z = range(0, 165), range(0, 213), range(0, 159)
-
+    x, y, z = range(0, reference.shape[0]), range(0, reference.shape[1]), range(0, reference.shape[2])
     if args.red[0] not in x or \
-       args.red[1] not in y or \
-       args.red[2] not in z:
-        parser.error('Red coords invalid. '
-                     'x, y, z values must be in [164, 212, 158].')
-
+            args.red[1] not in y or \
+            args.red[2] not in z:
+        parser.error('Invalid red coordinates'
+                     f'x, y, z values must be in {reference.shape}')
     if args.green[0] not in x or \
-       args.green[1] not in y or \
-       args.green[2] not in z:
-        parser.error('Green coords invalid. '
-                     'x, y, z values must be in [164, 212, 158].')
-
+            args.green[1] not in y or \
+            args.green[2] not in z:
+        parser.error('Invalid green coordinates. '
+                     f'x, y, z values must be in {reference.shape}.')
     if args.blue:
         if args.blue[0] not in x or \
-           args.blue[1] not in y or \
-           args.blue[2] not in z:
-            parser.error('Blue coords invalid. '
-                         'x, y, z values must be in [164, 212, 158].')
+                args.blue[1] not in y or \
+                args.blue[2] not in z:
+            parser.error('Invalid blue coordinatesd. '
+                         f'x, y, z values must be in {reference.shape}.')
 
 
 def get_experiment_id(experiments, index, color):
@@ -190,7 +204,7 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
-    # Verying args validity
+    # Verifying args validity
     check_args(parser, args)
 
     # Loading reference
@@ -199,6 +213,9 @@ def main():
             not (args.reference).endswith(".nii.gz"):
         parser.error("reference must be a nifti file.")
     user_vol = load_user_template(args.reference)
+
+    # Checking that the coords are in the bounding box
+    check_coords_in_bbox(parser, args)
 
     # Checking file mat
     check_input_file(parser, args.file_mat)
@@ -255,7 +272,7 @@ def main():
     subdir = Path(args.dir / subdir_)
     subdir.mkdir(exist_ok=True, parents=True)
 
-    # Retrieving experiment informations
+    # Retrieving experiment information
     rroi = get_injection_infos(allen_experiments, red_id)[0]
     rloc = get_injection_infos(allen_experiments, red_id)[2]
     groi = get_injection_infos(allen_experiments, green_id)[0]
@@ -358,8 +375,8 @@ def main():
             for k in range(user_shape[2]):
                 if args.blue:
                     if warped_red[i, j, k] == 0 and \
-                       warped_green[i, j, k] == 0 and \
-                       warped_blue[i, j, k] == 0:
+                            warped_green[i, j, k] == 0 and \
+                            warped_blue[i, j, k] == 0:
                         rgb_vol[i, j, k] = (0, 0, 0, 0)
                     else:
                         rgb_vol[i, j, k] = (warped_red[i, j, k] * 255,
@@ -368,7 +385,7 @@ def main():
                                             255)
                 else:
                     if warped_red[i, j, k] == 0 and \
-                       warped_green[i, j, k] == 0:
+                            warped_green[i, j, k] == 0:
                         rgb_vol[i, j, k] = (0, 0, 0, 0)
                     else:
                         rgb_vol[i, j, k] = (warped_red[i, j, k] * 255,
@@ -417,7 +434,7 @@ def main():
                 blue_proj = blue_hem.projection_density.tolist()[0]
             # Saving crossing rois
             if red_proj >= args.threshold and \
-               green_proj >= args.threshold:
+                    green_proj >= args.threshold:
                 if id not in xrois_ids:
                     structure_name = structures_names[
                         structures_ids.index(id)]
@@ -428,7 +445,7 @@ def main():
                     xrois_acronyms.append(structure_acronym)
             if args.blue:
                 if blue_proj >= args.threshold and \
-                   green_proj >= args.threshold:
+                        green_proj >= args.threshold:
                     if id not in xrois_ids:
                         structure_name = structures_names[
                             structures_ids.index(id)]
@@ -438,7 +455,7 @@ def main():
                         xrois_names.append(structure_name)
                         xrois_acronyms.append(structure_acronym)
                 if blue_proj >= args.threshold and \
-                   red_proj >= args.threshold:
+                        red_proj >= args.threshold:
                     if id not in xrois_ids:
                         structure_name = structures_names[
                             structures_ids.index(id)]
@@ -475,7 +492,7 @@ def main():
             xrois.append(roi)
 
         exps_infos = []
-        exps_ids = [red_id,  green_id]
+        exps_ids = [red_id, green_id]
         exps_locs = [rloc, gloc]
         exps_rois = [rroi, groi]
         if args.blue:
