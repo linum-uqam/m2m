@@ -167,7 +167,7 @@ def check_coords_in_bbox(args, parser):
         if args.blue[0] not in x or \
                 args.blue[1] not in y or \
                 args.blue[2] not in z:
-            parser.error('Invalid blue coordinatesd. '
+            parser.error('Invalid blue coordinates. '
                          f'x, y, z values must be in {reference.shape}.')
 
 
