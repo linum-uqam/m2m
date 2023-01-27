@@ -20,7 +20,7 @@ __version__ = '.'.join(map(str, _ver))
 CLASSIFIERS = ["Development Status :: 1 - Planning",
                "Environment :: Console",
                "Intended Audience :: Science/Research",
-               "License :: OSI Approved :: MIT License",
+               "License :: OSI Approved :: GPLv3 License",
                "Operating System :: OS Independent",
                "Programming Language :: Python",
                "Topic :: Scientific/Engineering"]
@@ -31,18 +31,17 @@ description = "m2m: Meso to Macro Toolkit"
 long_description = """
 Module
 ======
-m2m is a small library containing tools and utilities to
-quickly work with AllenSDK, Tractograms, MI-Brain, AVGT template.
+m2m are tools to merge Allen Mouse Connectivity experiments with neurophotonic, diffusion MRI and tractography data of the mouse brain
 """
 
 NAME = "m2m"
-MAINTAINER = "Mahdi Abou-Hamdan"
-MAINTAINER_EMAIL = "mah.abha8@gmail.com"
+MAINTAINER = "Joel Lefebvre"
+MAINTAINER_EMAIL = "lefebvre.joel@uqam.ca"
 DESCRIPTION = description
 LONG_DESCRIPTION = long_description
 URL = "https://github.com/linum-uqam/m2m"
 DOWNLOAD_URL = ""
-LICENSE = "MIT"
+LICENSE = "GPLv3"
 AUTHOR = "Mahdi Abou-Hamdan"
 AUTHOR_EMAIL = ""
 PLATFORMS = "OS Independent"
