@@ -137,7 +137,7 @@ def check_args(parser, args):
                      'Pick a float value from 0.0 to 1.0')
 
 
-def check_coords_in_bbox(args, parser):
+def check_coords_in_bbox(parser, args):
     """
     Verify that the provided coordinates are within the reference volume bounding box.
 
@@ -326,7 +326,7 @@ def main():
                                            args.threshold)
     check_file_exists(parser, args, xrois_json)
 
-    # Downloading projetion density maps
+    # Downloading projection density maps
     red_vol = download_proj_density_vol(nrrd_red, red_id,
                                         args.res, args.nocache)
     green_vol = download_proj_density_vol(nrrd_green, green_id,
@@ -349,12 +349,12 @@ def main():
 
     # Applying ANTsPyX registration
     warped_red = registrate_allen2UserDataSpace(args.file_mat,
-                                                red_vol, user_vol)
+                                                red_vol, user_vol, allen_res=args.res)
     warped_green = registrate_allen2UserDataSpace(args.file_mat,
-                                                  green_vol, user_vol)
+                                                  green_vol, user_vol, allen_res=args.res)
     if args.blue:
         warped_blue = registrate_allen2UserDataSpace(args.file_mat,
-                                                     blue_vol, user_vol)
+                                                     blue_vol, user_vol, allen_res=args.res)
 
     # Saving Niftis files
     save_nifti(warped_red, user_vol.affine, nifti_red)
@@ -467,7 +467,7 @@ def main():
 
     # Verifying if x-rois were found
     if len(xrois_names) == 0:
-        sys.exit("No crossing-ROIs founded ...\n"
+        sys.exit("No crossing-ROIs found...\n"
                  "Please try a lower threshold or "
                  "select others coordinates.")
     else:
@@ -533,7 +533,7 @@ def main():
 
         # Applying ANTsPy registration
         warped_mask_combined = registrate_allen2UserDataSpace(
-            args.file_mat, mask_combined, user_vol)
+            args.file_mat, mask_combined, user_vol, allen_res=args.res)
 
         # Improving display in MI-Brain
         warped_mask_combined = (warped_mask_combined != 0).astype(np.int32)
