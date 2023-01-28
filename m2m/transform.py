@@ -236,6 +236,8 @@ def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol,
         Allen volume to registrate.
     user_vol: (from nib.load())
         User reference volume.
+    allen_res: float
+        Resolution of the Allen volume, in micron
     smooth: boolean
         bSpline interpolation.
 
