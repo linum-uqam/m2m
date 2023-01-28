@@ -1,6 +1,8 @@
 # linum-m2m : LINUM's Meso to Macro Toolkit
 A collection of tools to work with both mesoscale brain data (e.g. the Allen Mouse Brain Connectivity Atlas) and with macroscale brain data (e.g. diffusion MRI acquisitions). These tools were first developed by Mahdi Abou-Hamdan during his 2022 summer internship in both the [LINUM](https://linum.info.uqam.ca) lab at [UQAM](https://uqam.ca/) (Canada) and the [GIN-IMN](https://www.gin.cnrs.fr/fr/) at [Université Bordeaux](https://www.u-bordeaux.fr/) (France).
 
+* Documentation: https://m2m.readthedocs.io/
+
 # Installation
 
 A docker image for this project is automatically built and pushed to DockerHub (https://hub.docker.com/r/linumuqam/m2m) everytime the `main` branch is updated. This image contains the toolkit dependencies (Python 3.7, AllenSDK, antspyx, etc.) along with the m2m module and scripts. Using the docker image is recommendend to simplify the installation process and dependency management.
