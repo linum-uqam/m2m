@@ -4,7 +4,7 @@ import nibabel as nib
 import ants
 
 
-def select_allen_bbox(res):
+def select_allen_bbox(res: int) -> tuple:
     """
     Select Allen voxel bounding box
     corresponding to the resolution.
@@ -16,9 +16,12 @@ def select_allen_bbox(res):
 
     Returns
     -------
-    tuple: Allen Bounding Box
+    tuple: Allen Bounding Box shape in voxel
     """
-    return (13200//res, 8000//res, 11400//res)
+    P = int(13200//res)
+    I = int(8000//res)
+    R = int(11400//res)
+    return P, I, R
 
 
 def convert_point_to_vox(point, res):
@@ -357,8 +360,15 @@ def get_allen_coords(user_coords, res, file_mat, user_vol):
     # Reading transform matrix
     tx = ants.read_transform(file_mat)
 
-    # Getting allen vox coords in User Data Space
-    allen_vox_user = tx.apply_to_point(user_coords)
+    # Converting the UDS coordinates from voxel to micron
+    user_coords_um = [x * user_vol.affine[0, 0] for x in user_coords]
+
+    # Getting allen um coords in User Data Space
+    #allen_vox_user = tx.apply_to_point(user_coords)
+    allen_um_user = tx.apply_to_point(user_coords_um)
+
+    # Converting to voxel in the original allen resolution
+    allen_vox_user = [x / res for x in allen_um_user]
     allen_vox_user = list(map(int, allen_vox_user))
 
     # Reorient the point in Allen Space voxel
