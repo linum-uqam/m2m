@@ -94,7 +94,7 @@ Docker
     docker run --rm -it --entrypoint bash linumuqam/m2m
 
 Docker (development)
---------------------
+~~~~~~~~~~~~~~~~~~~~
 To use the docker image for development, you need to replace the module and script source code by your own development version. To do this, we can bind mount the local working directory containing the source code and replace the ``/app`` source code in the docker image.
 
 * Pull or build the latest version of the ``linumuqam/m2m`` docker image as explained in the [Installation] section.
