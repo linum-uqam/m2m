@@ -79,7 +79,7 @@ Docker
 
 .. code-block:: bash
 
-    docker run -v /path/to/local/data:/data linumuqam/m2m allen_crossing_finder.py /data/transform_50micron.mat /data/reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --dir /data/detected_crossings --threshold 0.07
+    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_crossing_finder.py /data/transform_50micron.mat /data/reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --dir /data/detected_crossings --threshold 0.07
 
 * Import tracts given an experiment ID.
 
@@ -87,17 +87,36 @@ Docker
 
     docker run -v /path/to/local/data:/data linumuqam/m2m m2m_import_tract.py /data/output_tracts_100140756.trk /data/transform_50micron.mat /data/reference.nii.gz 50 --ids 100140756
 
+* Transform the Allen tractogram (Wildtype, RAS@50um) to the User's Data Space. Note that this command will take a few minutes to complete, as the tractogram first need to be downloaded and then each streamline have to be transformed to the user data space.
+
+.. code-block:: bash
+
+    docker run -v /path/to/local/data:/data linumuqam/m2m python m2m_transform_tractogram.py /data/transformed_tractogram.trk /data/transform_50micron.mat /data/reference.nii.gz
+
+* Extract a bundle of streamlines from the transformed Allen tractogram.
+
+.. code-block:: bash
+
+    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_tract_filter.py /data/input_tractogram.trk /data/output.trk /data/reference.nii.gz --sphere --center 132 133 69 --radius 2
+
 * To execute an image interactively (note that no modification inside the container will be saved)
 
 .. code-block:: bash
 
     docker run --rm -it --entrypoint bash linumuqam/m2m
 
+* **Note**: Some scripts will require a cache to accelerate processing. To do this with docker, we can use a docker volume named ``m2m_cache`` and mount it in the docker's home directory. You can add this option to the previous command to use a cache.
+
+.. code-block:: bash
+
+    -v m2m_cache:/home/appuser/.m2m
+
+
 Docker (development)
 ~~~~~~~~~~~~~~~~~~~~
 To use the docker image for development, you need to replace the module and script source code by your own development version. To do this, we can bind mount the local working directory containing the source code and replace the ``/app`` source code in the docker image.
 
-* Pull or build the latest version of the ``linumuqam/m2m`` docker image as explained in the [Installation] section.
+* Pull or build the latest version of the ``linumuqam/m2m`` docker image as explained in the Installation section.
 * Make sure you are in the source code directory on your computer
 * Execute your code while mounting the local source code directory. For example, to use your modified version of the ``m2m_compute_transform_matrix.py`` script,
 
