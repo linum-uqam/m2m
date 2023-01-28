@@ -435,6 +435,7 @@ def registrate_allen_streamlines(streamlines,
     array of arrays:
         Registered streamlines
     """
+    print("Transforming streamlines...")
     # Loading matrix, orientations and bounding box
     tx = ants.read_transform(file_mat)
     ornt_pir2user = get_ornt_PIR_UserDataSpace(user_vol)

@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 import requests
 from tqdm import tqdm
-from allen2tract.transform import registrate_allen_streamlines
-from allen2tract.tract import save_tract
+from m2m.transform import registrate_allen_streamlines
+from m2m.tract import save_tract
 
 
 class AllenStreamLines(object):

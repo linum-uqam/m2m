@@ -17,7 +17,7 @@ def configure_cache_dir(src, dest):
         shutil.rmtree(src)
 
 
-cache_dir = os.path.join(os.path.expanduser('~'), '.allen2tract')
+cache_dir = os.path.join(os.path.expanduser('~'), '.m2m')
 create_cache_dir(cache_dir)
 configure_cache_dir("data", os.path.join(cache_dir, "data"))
 configure_cache_dir("cache", os.path.join(cache_dir, "cache"))
@@ -55,7 +55,7 @@ class CustomBuildExtCommand(build_ext):
 
 
 # Get version and release info, which is all stored in module/version.py
-ver_file = os.path.join('allen2tract', 'version.py')
+ver_file = os.path.join('m2m', 'version.py')
 with open(ver_file) as f:
     exec(f.read())
 opts = dict(name=NAME,

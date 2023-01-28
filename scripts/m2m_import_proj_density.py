@@ -9,7 +9,7 @@
 
     Minimum mandatory requires to call the script : (a)
 
-    >>> allen_import_proj_density.py id path/to/ref.nii.gz
+    >>> m2m_import_proj_density.py id path/to/ref.nii.gz
         path/to/matrix.mat resolution
     
     Find an id here : https://connectivity.brain-map.org/
@@ -47,24 +47,24 @@ import argparse
 import json
 from pathlib import Path
 import numpy as np
-from allen2tract.control import (add_cache_arg,
-                                 add_matrix_arg,
-                                 add_output_dir_arg,
-                                 add_overwrite_arg,
-                                 add_reference_arg,
-                                 add_resolution_arg,
-                                 check_file_exists,
-                                 check_input_file)
-from allen2tract.transform import (get_user_coords,
-                                   pretransform_vol_PIR_UserDataSpace,
-                                   registrate_allen2UserDataSpace,
-                                   select_allen_bbox)
-from allen2tract.allensdk_utils import (download_proj_density_vol,
-                                        get_injection_infos,
-                                        get_mcc_exps)
-from allen2tract.util import (draw_spherical_mask,
-                              load_user_template,
-                              save_nifti,)
+from m2m.control import (add_cache_arg,
+                         add_matrix_arg,
+                         add_output_dir_arg,
+                         add_overwrite_arg,
+                         add_reference_arg,
+                         add_resolution_arg,
+                         check_file_exists,
+                         check_input_file)
+from m2m.transform import (get_user_coords,
+                           pretransform_vol_PIR_UserDataSpace,
+                           registrate_allen2UserDataSpace,
+                           select_allen_bbox)
+from m2m.allensdk_utils import (download_proj_density_vol,
+                                get_injection_infos,
+                                get_mcc_exps)
+from m2m.util import (draw_spherical_mask,
+                      load_user_template,
+                      save_nifti, )
 
 EPILOG = """
 Author : Mahdi

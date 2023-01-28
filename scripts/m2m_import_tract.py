@@ -31,17 +31,17 @@
 import argparse
 import pandas as pd
 import os
-from allen2tract.streamlines import AllenStreamLines
-from allen2tract.control import (add_cache_arg,
-                                 add_overwrite_arg,
-                                 add_resolution_arg,
-                                 add_reference_arg,
-                                 add_matrix_arg,
-                                 check_file_exists,
-                                 check_input_file,
-                                 get_cache_dir)
-from allen2tract.allensdk_utils import get_mcc_exps
-from allen2tract.util import load_user_template
+from m2m.streamlines import AllenStreamLines
+from m2m.control import (add_cache_arg,
+                         add_overwrite_arg,
+                         add_resolution_arg,
+                         add_reference_arg,
+                         add_matrix_arg,
+                         check_file_exists,
+                         check_input_file,
+                         get_cache_dir)
+from m2m.allensdk_utils import get_mcc_exps
+from m2m.util import load_user_template
 
 EPILOG = """
 Author : Mahdi
