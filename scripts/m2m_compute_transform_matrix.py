@@ -36,6 +36,8 @@ def _build_arg_parser():
     add_reference_arg(p)
     p.add_argument('out_mat', help='Path to output matrix (.mat)')
     add_resolution_arg(p)
+    p.add_argument("user_res", type=float,
+                   help="Reference resolution, in micron.")
     add_cache_arg(p)
     add_overwrite_arg(p)
     return p
@@ -66,7 +68,7 @@ def main():
     allen_reorient = pretransform_vol_PIR_UserDataSpace(allen_vol, user_vol)
 
     # Registrating with ANTsPyX
-    affine_mat = compute_transform_matrix(allen_reorient, user_vol)
+    affine_mat = compute_transform_matrix(allen_reorient, user_vol, fixed_res=args.user_res, moving_res=args.res)
 
     # Saving the matrix
     shutil.copy(affine_mat, args.out_mat)

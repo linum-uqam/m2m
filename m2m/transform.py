@@ -1,12 +1,10 @@
 import numpy as np
 from tqdm import tqdm
 import nibabel as nib
-import matplotlib
-matplotlib.use('TkAgg')
 import ants
 
 
-def select_allen_bbox(res):
+def select_allen_bbox(res: int) -> tuple:
     """
     Select Allen voxel bounding box
     corresponding to the resolution.
@@ -18,9 +16,12 @@ def select_allen_bbox(res):
 
     Returns
     -------
-    tuple: Allen Bounding Box
+    tuple: Allen Bounding Box shape in voxel
     """
-    return (13200//res, 8000//res, 11400//res)
+    P = int(13200//res)
+    I = int(8000//res)
+    R = int(11400//res)
+    return P, I, R
 
 
 def convert_point_to_vox(point, res):
@@ -222,7 +223,7 @@ def pretransform_point_UserDataSpace_PIR(point,
     return [x[0], y[0], z[0]]
 
 
-def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol,
+def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol, allen_res,
                                    smooth=False):
     """
     Align a 3D allen volume on User volume.
@@ -236,6 +237,8 @@ def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol,
         Allen volume to registrate.
     user_vol: (from nib.load())
         User reference volume.
+    allen_res: float
+        Resolution of the Allen volume, in micron
     smooth: boolean
         bSpline interpolation.
 
@@ -246,8 +249,9 @@ def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol,
     # Creating and reshaping ANTsPyx images for registration
     # Moving : Allen volume
     # Fixed : AVGT volume
-    fixed = ants.from_numpy(user_vol.get_fdata().astype(np.float32))
-    moving = ants.from_numpy(allen_vol.astype(np.float32))
+    fixed_res = user_vol.affine[0,0] * 1000 # micron
+    fixed = ants.from_numpy(user_vol.get_fdata().astype(np.float32), spacing=[fixed_res]*3)
+    moving = ants.from_numpy(allen_vol.astype(np.float32), spacing=[allen_res]*3)
 
     # Selecting interpolator
     interp = 'nearestNeighbor'
@@ -259,7 +263,7 @@ def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol,
                                  interpolator=interp).numpy()
 
 
-def compute_transform_matrix(moving_vol, fixed_vol):
+def compute_transform_matrix(moving_vol, fixed_vol, moving_res, fixed_res):
     """
     Compute an Affine transformation matrix
     to align Allen average template on User template.
@@ -271,13 +275,17 @@ def compute_transform_matrix(moving_vol, fixed_vol):
         Allen volume (from nrrd.read()).
     fixed_vol: volume
         Fixed volume (from nib.load()).
+    moving_res: float
+        Allen volume resolution
+    fixed_res: float
+        Fixed volume resolution
 
     Return
     ------
     string: Path of the transform matrix.
     """
-    moving = ants.from_numpy(moving_vol.astype(np.float32))
-    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32))
+    moving = ants.from_numpy(moving_vol.astype(np.float32), spacing=[moving_res]*3)
+    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32), spacing=[fixed_res]*3)
 
     mytx = ants.registration(fixed=fixed,
                              moving=moving,
@@ -352,8 +360,15 @@ def get_allen_coords(user_coords, res, file_mat, user_vol):
     # Reading transform matrix
     tx = ants.read_transform(file_mat)
 
-    # Getting allen vox coords in User Data Space
-    allen_vox_user = tx.apply_to_point(user_coords)
+    # Converting the UDS coordinates from voxel to micron
+    user_coords_um = [x * user_vol.affine[0, 0] for x in user_coords]
+
+    # Getting allen um coords in User Data Space
+    #allen_vox_user = tx.apply_to_point(user_coords)
+    allen_um_user = tx.apply_to_point(user_coords_um)
+
+    # Converting to voxel in the original allen resolution
+    allen_vox_user = [x / res for x in allen_um_user]
     allen_vox_user = list(map(int, allen_vox_user))
 
     # Reorient the point in Allen Space voxel
