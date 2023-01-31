@@ -361,10 +361,10 @@ def get_allen_coords(user_coords, res, file_mat, user_vol):
     tx = ants.read_transform(file_mat)
 
     # Converting the UDS coordinates from voxel to micron
-    user_coords_um = [x * user_vol.affine[0, 0] for x in user_coords]
+    user_res_um = user_vol.affine[0, 0] * 1000
+    user_coords_um = [x * user_res_um for x in user_coords]
 
     # Getting allen um coords in User Data Space
-    #allen_vox_user = tx.apply_to_point(user_coords)
     allen_um_user = tx.apply_to_point(user_coords_um)
 
     # Converting to voxel in the original allen resolution
