@@ -1,7 +1,7 @@
+import ants
+import nibabel as nib
 import numpy as np
 from tqdm import tqdm
-import nibabel as nib
-import ants
 
 
 def select_allen_bbox(res: int) -> tuple:
@@ -18,13 +18,13 @@ def select_allen_bbox(res: int) -> tuple:
     -------
     tuple: Allen Bounding Box shape in voxel
     """
-    P = int(13200//res)
-    I = int(8000//res)
-    R = int(11400//res)
+    P = int(13200 // res)
+    I = int(8000 // res)
+    R = int(11400 // res)
     return P, I, R
 
 
-def convert_point_to_vox(point, res):
+def convert_point_to_vox(point: tuple, res: int) -> tuple:
     """
     Convert a Allen point in um to voxels.
 
@@ -34,8 +34,12 @@ def convert_point_to_vox(point, res):
         Coordinate in um
     res: int
         Resolution in the Allen [25, 50, 100]
+    Returns
+    -------
+    tuple: point coordinates in voxel
     """
-    return [point[0]//res, point[1]//res, point[2]//res]
+    point_vox = [int(x / res) for x in point]
+    return point_vox
 
 
 def convert_point_to_um(point, res):
@@ -49,7 +53,7 @@ def convert_point_to_um(point, res):
     res: int
         Resolution in the Allen [25, 50, 100]
     """
-    return [point[0]*res, point[1]*res, point[2]*res]
+    return [point[0] * res, point[1] * res, point[2] * res]
 
 
 def get_ornt_PIR_UserDataSpace(user_vol):
@@ -180,7 +184,7 @@ def pretransform_point_PIR_UserDataSpace(point,
 
     # Getting the reoriented point in UserDataSpace
     x, y, z = np.where(fake_allen_vol_reorient == np.amax(
-                       fake_allen_vol_reorient))
+        fake_allen_vol_reorient))
 
     return [x[0], y[0], z[0]]
 
@@ -218,7 +222,7 @@ def pretransform_point_UserDataSpace_PIR(point,
     fake_allen_vol_reverted = pretransform_vol_UserDataSpace_PIR(
         user_vol, fake_allen_vol_reorient)
     x, y, z = np.where(fake_allen_vol_reverted == np.amax(
-                       fake_allen_vol_reverted))
+        fake_allen_vol_reverted))
 
     return [x[0], y[0], z[0]]
 
@@ -249,9 +253,9 @@ def registrate_allen2UserDataSpace(file_mat, allen_vol, user_vol, allen_res,
     # Creating and reshaping ANTsPyx images for registration
     # Moving : Allen volume
     # Fixed : AVGT volume
-    fixed_res = user_vol.affine[0,0] * 1000 # micron
-    fixed = ants.from_numpy(user_vol.get_fdata().astype(np.float32), spacing=[fixed_res]*3)
-    moving = ants.from_numpy(allen_vol.astype(np.float32), spacing=[allen_res]*3)
+    fixed_res = user_vol.affine[0, 0] * 1000  # micron
+    fixed = ants.from_numpy(user_vol.get_fdata().astype(np.float32), spacing=[fixed_res] * 3)
+    moving = ants.from_numpy(allen_vol.astype(np.float32), spacing=[allen_res] * 3)
 
     # Selecting interpolator
     interp = 'nearestNeighbor'
@@ -284,8 +288,8 @@ def compute_transform_matrix(moving_vol, fixed_vol, moving_res, fixed_res):
     ------
     string: Path of the transform matrix.
     """
-    moving = ants.from_numpy(moving_vol.astype(np.float32), spacing=[moving_res]*3)
-    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32), spacing=[fixed_res]*3)
+    moving = ants.from_numpy(moving_vol.astype(np.float32), spacing=[moving_res] * 3)
+    fixed = ants.from_numpy(fixed_vol.get_fdata().astype(np.float32), spacing=[fixed_res] * 3)
 
     mytx = ants.registration(fixed=fixed,
                              moving=moving,
@@ -426,7 +430,7 @@ def get_user_coords_sl(allen_coords, bbox_allen,
     for i in range(len(user_coords)):
         if user_coords[i] < 0:
             user_coords[i] += (bbox_allen[
-                int(ornt_pir2user[:, 0].tolist().index(i))] - 1)
+                                   int(ornt_pir2user[:, 0].tolist().index(i))] - 1)
 
     # Convert to micron
     allen_res_um = allen_res
