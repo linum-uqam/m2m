@@ -379,13 +379,13 @@ def get_allen_coords(user_coords, res, file_mat, user_vol):
 
 
 def get_user_coords_sl(allen_coords, bbox_allen,
-                       tx, ornt_pir2user, ornt_user2pir):
+                       tx, ornt_pir2user, ornt_user2pir, allen_res, user_res_um):
     """
     Overrided version of `get_user_coords`.
     Purposes: Retrieving user_coords with the maximum precision in
     order to right streamlines values.
 
-    Take more parameters to optimise the exectution time.
+    Take more parameters to optimise the execution time.
 
     Parameters
     ----------
@@ -399,6 +399,10 @@ def get_user_coords_sl(allen_coords, bbox_allen,
         nibabel orientation matrix from allen to user
     ornt_user2pir: 3x2 matrix
         nibabel orientation matrix from user to allen
+    allen_res: float
+        Allen resolution in micron
+    user_res_um: float
+        User's resolution in micron
 
     Returns
     -------
@@ -418,18 +422,25 @@ def get_user_coords_sl(allen_coords, bbox_allen,
     user_coords[int(ornt_pir2user[2][0])] = allen_coords[2] * ornt_user2pir[
         int(ornt_pir2user[2][0])][1]
 
-    # Adding the offset on the composant that is negative (sign changed)
+    # Adding the offset on the component that is negative (sign changed)
     for i in range(len(user_coords)):
         if user_coords[i] < 0:
             user_coords[i] += (bbox_allen[
                 int(ornt_pir2user[:, 0].tolist().index(i))] - 1)
 
-    # Applying tranformation matrix
-    return tx.invert().apply_to_point(user_coords)
+    # Convert to micron
+    allen_res_um = allen_res
+    user_coords_um = [x * allen_res_um for x in user_coords]
+    uds_coords_um = tx.invert().apply_to_point(user_coords_um)
+
+    # Applying transformation matrix
+    uds_coords_vox = [int(x / user_res_um) for x in uds_coords_um]
+
+    return uds_coords_vox
 
 
 def registrate_allen_streamlines(streamlines,
-                                 file_mat, user_vol, res):
+                                 file_mat, user_vol, allen_res):
     """
     Align allen streamlines on the AVGT.
 
@@ -441,7 +452,7 @@ def registrate_allen_streamlines(streamlines,
         Full path to transformation matrix
     user_vol: ndarray
         User volume data array
-    res: int
+    allen_res: int
         Resolution in the Allen [25, 50, 100]
         corresponding to the matrix.
 
@@ -455,7 +466,8 @@ def registrate_allen_streamlines(streamlines,
     tx = ants.read_transform(file_mat)
     ornt_pir2user = get_ornt_PIR_UserDataSpace(user_vol)
     ornt_user2pir = get_ornt_UserDataSpace_PIR(user_vol)
-    bbox_allen = select_allen_bbox(res)
+    bbox_allen = select_allen_bbox(allen_res)
+    user_res_um = user_vol.affine[0, 0] * 1000
 
     # Loop : Transforming streamlines
     new_streamlines = []
@@ -463,7 +475,7 @@ def registrate_allen_streamlines(streamlines,
         new_streamline = []
         for point in sl:
             user_vox = get_user_coords_sl(list(point), bbox_allen, tx,
-                                          ornt_pir2user, ornt_user2pir)
+                                          ornt_pir2user, ornt_user2pir, allen_res, user_res_um)
             new_streamline.append(user_vox)
         new_streamlines.append(new_streamline)
 
