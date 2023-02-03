@@ -39,7 +39,7 @@ from m2m.control import (add_cache_arg,
                          add_matrix_arg,
                          check_file_exists,
                          check_input_file,
-                         get_cache_dir)
+                         get_cached_dir)
 from m2m.allensdk_utils import get_mcc_exps
 from m2m.util import load_user_template
 
@@ -70,7 +70,7 @@ def main():
     args = parser.parse_args()
 
     # Configuring cache dir
-    cache_dir = get_cache_dir()
+    cache_dir = get_cached_dir("cache_streamlines")
 
     # Loading reference
     check_input_file(parser, args.reference)
@@ -104,8 +104,7 @@ def main():
                      "Please check: https://connectivity.brain-map.org/")
 
     # Initializing and downloading the streamlines
-    s = AllenStreamLines(args.res, os.path.join(cache_dir,
-                                                "cache_streamlines"))
+    s = AllenStreamLines(args.res, directory=cache_dir)
     s.download(in_ids)
 
     # Saving the streamlines as a .trk file
