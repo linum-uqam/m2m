@@ -127,7 +127,7 @@ Docker
 
 .. code-block:: bash
 
-    -v m2m_cache:/home/appuser/.m2m
+    -v m2m_cache:/root/.m2m
 
 
 Docker (development)

@@ -3,6 +3,10 @@ A collection of tools to work with both mesoscale brain data (e.g. the Allen Mou
 
 Please refer to https://m2m.readthedocs.io/ for the installation & usage instructions and the API documentation.
 
+<img src="https://user-images.githubusercontent.com/4246744/215859695-f05c1164-9ab5-489a-927f-2c89dbfca77d.png" width="256">
+
+**Figure**: Allen Institute microscopy derived wildtype mouse tractogram aligned onto a 50 micron whole mouse brain OCT template.
+
 ## References
 
 * Abou-Hamdan, M., Cosenza, E., Miraux, S., Petit, L. and Lefebvre, J. (2023). Exploring the Allen Mouse Connectivity experiments with new neuroinformatic tools for neurophotonics, diffusion MRI and tractography applications. _SPIE Photonics West 2023_ (San Francisco, USA).
