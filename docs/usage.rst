@@ -57,12 +57,30 @@ If none of this work, try installing the dependencies with an anaconda virtual e
 
 Uses cases
 ----------
+Python
+~~~~~~
+
+* Display the help for a script
+.. code-block:: bash
+
+    python scripts/m2m_compute_transform_matrix.py --help
+
+* Download an Allen mouse brain template at 25 micron, and reorient it to RAS+.
+.. code-block:: bash
+
+    python scripts/m2m_download_template.py /path/to/allen_template_25um.nii --res 25 --apply-transform
+
 Docker
 ~~~~~~
 * Display the help for a script
 .. code-block:: bash
 
     docker run linumuqam/m2m m2m_compute_transform_matrix.py --help
+
+* Download an Allen mouse brain template at 25 micron, and reorient it to RAS+.
+.. code-block:: bash
+
+    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_download_template.py /data/allen_template_25um.nii --res 25 --apply-transform
 
 * Compute the transform matrix ``transform_50micron.mat``, given a user-space reference volume ``reference.nii.gz`` in the folder ``/path/to/local/data``.
 .. code-block:: bash
