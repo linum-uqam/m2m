@@ -19,7 +19,7 @@ if ref :
 out_path = st.text_input('Enter output Matrix Path (/path/to/output.mat)')
 
 # Set override
-override = st.radio("Force overriding output ?")
+override = st.checkbox("Force overriding output ?")
 
 # Resolution
 allen_res = st.radio('Select Allen resolution (microns)', [25, 50, 100])

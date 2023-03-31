@@ -29,7 +29,7 @@ infos = st.checkbox("Save informations about the experiment (.json)", value=True
 output_dir = st.text_input("Output directory: (path)",)
 
 # Set override
-override = st.radio("Force overriding output ?")
+override = st.checkbox("Force overriding output ?")
 
 # Run the script with subprocess
 if st.button("Run the script"):
