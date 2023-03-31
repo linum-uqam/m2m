@@ -24,7 +24,7 @@ if st.button('Download Template'):
     output.parent.mkdir(exist_ok=True, parents=True)
     
     # Run script as subprocess
-    command = ['python3', 'download_allen_template.py', str(output), '-r', str(resolution)]
+    command = ['python3', 'scripts/m2m_download_template.py', str(output), '-r', str(resolution)]
     if apply_transform:
         command.append('--apply_transform')
     try:

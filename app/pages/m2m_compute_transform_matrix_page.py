@@ -18,6 +18,9 @@ if ref :
 # Output Matrix Path
 out_path = st.text_input('Enter output Matrix Path (/path/to/output.mat)')
 
+# Set override
+override = st.radio("Force overriding output ?")
+
 # Resolution
 allen_res = st.radio('Select Allen resolution (microns)', [25, 50, 100])
 
@@ -27,8 +30,12 @@ user_res = st.number_input('Enter User resolution (microns)', value=0, step=1)
 # Button to run script
 if st.button('Compute Affine Transformation Matrix'):
     command = ['python3', 'scripts/m2m_compute_transform_matrix.py', str(ref_path), str(out_path), str(allen_res), str(user_res)]
+    if override:
+        command.append('-f')
     try:
         result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         st.success("Matrix {} downloaded successfully".format(out_path))
+        ref_path.unlink()
     except subprocess.CalledProcessError as e:
         st.error(e.stderr)
+        ref_path.unlink()

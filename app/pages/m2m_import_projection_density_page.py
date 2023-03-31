@@ -28,6 +28,9 @@ infos = st.checkbox("Save informations about the experiment (.json)", value=True
 # Set output directory
 output_dir = st.text_input("Output directory: (path)",)
 
+# Set override
+override = st.radio("Force overriding output ?")
+
 # Run the script with subprocess
 if st.button("Run the script"):
     # Check if all input files are uploaded
@@ -40,7 +43,7 @@ if st.button("Run the script"):
         mat_path = Path(mat.name)
         mat_path.write_bytes(mat.getvalue())
         # Run the script
-        cmd = ["python3", "m2m_import_proj_density.py", str(id), str(ref_path), str(mat_path), "--threshold", str(threshold), "--resolution", str(resolution)]
+        cmd = ["python3", "scripts/m2m_import_proj_density.py", str(id), str(ref_path), str(mat_path), str(resolution), "--threshold", str(threshold)]
         if smooth:
             cmd.append("--smooth")
         if not_all:
@@ -53,10 +56,20 @@ if st.button("Run the script"):
                 cmd.append("--bin")
             if infos:
                 cmd.append("--infos")
-        cmd.append("--dir")
-        cmd.append(str(output_dir))
-        subprocess.run(cmd)
-        # Remove the input files
-        ref_path.unlink()
-        mat_path.unlink()
-        st.success("The script has been completed.")
+        if output_dir:
+            cmd.append("--dir")
+            cmd.append(str(output_dir))
+        if override:
+            cmd.append("-f")
+        try:
+            result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            st.success("File(s) downloaded successfully")
+            # Remove the input files
+            ref_path.unlink()
+            mat_path.unlink()
+        except subprocess.CalledProcessError as e:
+            st.error(e.stderr)
+            # Remove the input files
+            ref_path.unlink()
+            mat_path.unlink()
+
