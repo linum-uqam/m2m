@@ -2,6 +2,9 @@ import streamlit as st
 import subprocess
 from pathlib import Path
 
+# Page configuration
+st.set_page_config(page_title="M2M Compute Transform Matrix", page_icon=":mouse:")
+
 st.title('Compute Affine Transformation Matrix')
 
 # Link to the documentation
@@ -19,7 +22,7 @@ if ref :
 out_path = st.text_input('Enter output Matrix Path (/path/to/output.mat)')
 
 # Set override
-override = st.checkbox("Force overriding output ?")
+override = st.checkbox("Overwrite output file")
 
 # Resolution
 allen_res = st.radio('Select Allen resolution (microns)', [25, 50, 100])

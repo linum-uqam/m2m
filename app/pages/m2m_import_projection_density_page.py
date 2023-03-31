@@ -2,8 +2,11 @@ import streamlit as st
 import subprocess
 from pathlib import Path
 
+# Page configuration
+st.set_page_config(page_title="M2M Import Projection Density", page_icon=":mouse:")
+
 # Create Streamlit app
-st.title("Import projection density map")
+st.title("Import Allen Mouse Brain Connectivity Projection Density Map")
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_import_proj_density.html')
 st.write("Please upload the input files and set the arguments for the script:")
@@ -20,16 +23,17 @@ resolution = st.radio("Allen resolution: (same as the matrix)", [25, 50, 100])
 
 not_all = st.checkbox("Save only the specified files", value=False)
 # Set file flags
-map = st.checkbox("Save the projection density map of the experiment (.nii.gz)", value=True)
-roi = st.checkbox("Save a spherical mask at the injection coordinates of the experiment (.nii.gz)", value=True)
-bin = st.checkbox("Save a binarized projection density map (.nii.gz) with a certain threshold", value=True)
-infos = st.checkbox("Save informations about the experiment (.json)", value=True)
+if not_all:
+    map = st.checkbox("Save the projection density map of the experiment (.nii.gz)", value=False)
+    roi = st.checkbox("Save a spherical mask at the injection coordinates of the experiment (.nii.gz)", value=False)
+    bin = st.checkbox("Save a binarized projection density map (.nii.gz) with a certain threshold", value=False)
+    infos = st.checkbox("Save informations about the experiment (.json)", value=False)
 
 # Set output directory
 output_dir = st.text_input("Output directory: (path)",)
 
 # Set override
-override = st.checkbox("Force overriding output ?")
+override = st.checkbox("Overwrite output file")
 
 # Run the script with subprocess
 if st.button("Run the script"):

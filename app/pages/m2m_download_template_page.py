@@ -2,6 +2,9 @@ import streamlit as st
 import subprocess
 from pathlib import Path
 
+# Page configuration
+st.set_page_config(page_title='M2M Download Template', page_icon=":mouse:")
+
 st.title('Download Allen Mouse Brain Template')
 
 # Link to the documentation
