@@ -18,11 +18,9 @@ def _build_arg_parser():
     p = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("output",
-                   help="Output nifti filename")
-    p.add_argument("output_json",
-                   help="Output json annotation information file.")
-    #p.add_argument("--itksnap_info_file", default=None,
-    #               help="Optional txt annotation information file name. Can be used by ITKSnap")
+                   help="Output nifti filename (.nii or .nii.gz)")
+    p.add_argument("output_labels",
+                   help="Output labels information file (.txt or .label) (Can be used by ITKSnap)")
     p.add_argument("-r", "--resolution", default=100, type=int, choices=ALLEN_RESOLUTIONS,
                    help="Template resolution in micron. Default=%(default)s")
     p.add_argument("--apply_transform", action="store_true",
@@ -46,16 +44,30 @@ def main():
     output.absolute()
     output.parent.mkdir(exist_ok=True, parents=True)
 
-    # Preparing the filenames
-    nrrd_file = output.parent / f"allen_annotation_{args.resolution}.nrrd"
+    # Prepare the output label file
+    output_labels = Path(args.output_labels)
+    extension = ""
+    if output_labels.name.endswith(".txt"):
+        extension = ".txt"
+    elif output_labels.name.endswith(".label"):
+        extension = ".label"
+    assert extension in [".txt", ".label"], "The output label file must be a .txt or .label file."
+    output_labels.absolute()
+    output_labels.parent.mkdir(exist_ok=True, parents=True)
 
-    # Downloading the annotation
+    # Preparing the temporary filenames
+    nrrd_file = output.parent / f"allen_annotation_{args.resolution}um.nrrd"
+    json_file = output_labels.parent / f"allen_labels_{args.resolution}um.json"
+
+    # # Downloading the annotation
     reference_space_key = "annotation/ccf_2017"
     manifest_file = output.parent / "manifest.json"
-    rpa = ReferenceSpaceApi(base_uri=str(output.parent))
     rspc = ReferenceSpaceCache(args.resolution, reference_space_key, manifest = manifest_file)
-    #rpa.download_template_volume(resolution=args.resolution, file_name=nrrd_file)
-    rpa.download_annotation_volume(ccf_version="annotation/ccf_2017", resolution=args.resolution, file_name=nrrd_file)
+
+    # Download the brain annotations and structure information - WIP
+    # ID 1 is the adult mouse structure graph
+    rsp = rspc.get_reference_space(structure_file_name=json_file, annotation_file_name=nrrd_file)
+    rsp.write_itksnap_labels(str(nrrd_file), str(output_labels))
 
     # Loading the nrrd file
     vol = sitk.ReadImage(str(nrrd_file))
@@ -70,15 +82,10 @@ def main():
     else:
         vol.SetDirection([0, 0, -1, 1, 0, 0, 0, -1, 0])  # Set the correct axes directions.
     sitk.WriteImage(vol, str(output))
-    nrrd_file.unlink()  # Removes the nrrd file
 
-    # Download the brain structure information - WIP
-    # ID 1 is the adult mouse structure graph
-    #tree = rspc.get_structure_tree(file_name=args.output_json, structure_graph_id=1)
-    #if args.itksnap_info_file is not None:
-    #   info = tree.export_label_description()
-    #     with open(args.itksnap_info_file, 'w') as f:
-    #        f.write(info.to_string(index=False))
+    # Remove the temporary files
+    nrrd_file.unlink()  # Removes the nrrd file
+    json_file.unlink()
 
 if __name__ == "__main__":
     main()
