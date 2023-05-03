@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Download the Allen mouse brain annotation for the Adule Mouse (3D), and setting the correct RAS+ direction and spacing.
+Download the Allen mouse brain annotation for the Adult Mouse (3D), and setting the correct RAS+ direction and spacing.
 """
 
 import argparse
-from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 from allensdk.core.reference_space_cache import ReferenceSpaceCache
 from pathlib import Path
 import SimpleITK as sitk
@@ -23,8 +22,6 @@ def _build_arg_parser():
                    help="Output labels information file (.txt or .label) (Can be used by ITKSnap)")
     p.add_argument("-r", "--resolution", default=100, type=int, choices=ALLEN_RESOLUTIONS,
                    help="Template resolution in micron. Default=%(default)s")
-    p.add_argument("--apply_transform", action="store_true",
-                   help="Apply the transform to align the volume to RAS+ instead of relying only on the volume metadata")
 
     return p
 
@@ -75,12 +72,13 @@ def main():
     # Preparing the affine to align the template in the RAS+
     r_mm = args.resolution / 1e3  # Convert the resolution from micron to mm
     vol.SetSpacing([r_mm] * 3)  # Set the spacing in mm
-    if args.apply_transform:
-        vol = sitk.PermuteAxes(vol, (2, 0, 1))
-        vol = sitk.Flip(vol, (False, False, True))
-        vol.SetDirection([1, 0, 0, 0, 1, 0, 0, 0, 1])
-    else:
-        vol.SetDirection([0, 0, -1, 1, 0, 0, 0, -1, 0])  # Set the correct axes directions.
+
+    # Apply the transform
+    vol = sitk.PermuteAxes(vol, (2, 0, 1))
+    vol = sitk.Flip(vol, (False, False, True))
+    vol.SetDirection([1, 0, 0, 0, 1, 0, 0, 0, 1])
+
+    # Save the volume
     sitk.WriteImage(vol, str(output))
 
     # Remove the temporary files
