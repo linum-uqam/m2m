@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 # Page configuration
-st.set_page_config(page_title='M2M Compute Transform Matrix', page_icon=':matrix:')
+st.set_page_config(page_title='M2M Compute Transform Matrix', page_icon=':mouse:')
 
 st.title('Compute Affine Transformation Matrix')
 
