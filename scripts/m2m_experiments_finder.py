@@ -64,11 +64,11 @@ def _build_arg_parser():
                                 epilog=EPILOG, description=__doc__)
     add_matrix_arg(p)
     add_reference_arg(p)
-    p.add_argument('x', type=int, required=True,
+    p.add_argument('x', type=int,
                    help='X-component of UDS voxel coordinates')
-    p.add_argument('y', type=int, required=True,
+    p.add_argument('y', type=int,
                    help='Y-component of UDS voxel coordinates')
-    p.add_argument('z', type=int, required=True,
+    p.add_argument('z', type=int,
                    help='Y-component of UDS voxel coordinates')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--injection', action="store_true",
