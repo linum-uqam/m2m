@@ -5,7 +5,7 @@
     Find crossing regions (ROIs) between Allen Mouse Brain Connectivity
     experiments.
     Experiments are found by search in the Allen Mouse Brain Connectivity API
-    giving two or three MI-Brain voxel coordinates.\n
+    giving two or three User Data Space (UDS) voxel coordinates.\n
 
     - Generate projection density maps for each experiment.
       Maps are downloaded from the Allen Mouse Brain Connectivity API.\n
@@ -89,13 +89,13 @@ def _build_arg_parser():
     add_matrix_arg(p)
     add_reference_arg(p)
     p.add_argument('--red', nargs=3, type=int, required=True,
-                   help='MI-Brain voxels coordinates of first experiment.\n'
+                   help='UDS voxels coordinates of first experiment.\n'
                         'First experiment will be colored in red.')
     p.add_argument('--green', nargs=3, type=int, required=True,
-                   help='MI-Brain voxels coordinates of second experiment.\n'
+                   help='UDS voxels coordinates of second experiment.\n'
                         'Second experiment will be colored in green.')
     p.add_argument('--blue', nargs=3, type=int,
-                   help='MI-Brain voxels coordinates of third experiment.\n'
+                   help='UDS voxels coordinates of third experiment.\n'
                         'Third experiment will be colored in blue.')
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument('--injection', action="store_true",
