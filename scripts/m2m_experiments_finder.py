@@ -20,13 +20,13 @@
 
     Injection coordinate search: (--injection)
 
-    >>> m2m_experiments_finder.py path/to/.mat path/to/ref.nii.gz
-        resolution x y z --injection --nb_of_exps n
+    >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
+        x y z --injection --nb_of_exps n
 
     Spatial search: (--spatial):
 
-    >>> m2m_experiments_finder.py path/to/.mat path/to/ref.nii.gz
-        resolution x y z --injection --nb_of_exps n
+    >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
+        x y z --injection --nb_of_exps n
 """
 
 import argparse
@@ -62,6 +62,7 @@ Author : Mahdi
 def _build_arg_parser():
     p = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                 epilog=EPILOG, description=__doc__)
+    add_resolution_arg(p)
     add_matrix_arg(p)
     add_reference_arg(p)
     p.add_argument('x', type=int,
@@ -83,7 +84,6 @@ def _build_arg_parser():
                         'allensdk.api.queries.mouse_connectivity_api.html')
     p.add_argument('--nb_of_exps', type=int, default=1,
                    help='Number of experiments needed. 1 by default.')
-    add_resolution_arg(p)
     add_output_dir_arg(p)
     add_cache_arg(p)
     add_overwrite_arg(p)
