@@ -179,7 +179,7 @@ def main():
         method = "injected"
     if args.spatial:
         method = "with_high_signal"
-    subdir_ = f"experiments_{method}_at_[{args.x},{args.y},{args.z}]_at_{args.res}_microns"
+    subdir_ = f"experiments_{method}_at_{args.x}_{args.y}_{args.z}_at_{args.res}_microns"
     subdir = Path(args.dir / subdir_)
     subdir.mkdir(exist_ok=True, parents=True)
 
@@ -192,7 +192,7 @@ def main():
 
         # Projection density maps Niftis and Nrrd files
         nrrd_file = "{}_{}.nrrd".format(id, args.res)
-        nifti_file = "{}_{}_{}_proj_density_{}.nii.gz".format(id,
+        nifti_file = subdir / "{}_{}_{}_proj_density_{}.nii.gz".format(id,
                                                               roi, loc, args.res)
         check_file_exists(parser, args, nifti_file)
 
