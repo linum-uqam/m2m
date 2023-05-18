@@ -167,8 +167,8 @@ def main():
                 exps_ids = allen_exps[0:args.nb_of_exps-1]['id']
             else:
                 exps_ids = allen_exps[0]['id']
-        else:
-            exps_ids = allen_exps[0]['id']
+    else:
+        exps_ids = allen_exps[0]['id']
 
     print("{} experiments founded, downloading...".format(exps_ids))
 
