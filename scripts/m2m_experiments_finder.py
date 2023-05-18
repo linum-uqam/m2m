@@ -110,7 +110,7 @@ def check_coords_in_bbox(parser, args):
     if args.x not in x or \
             args.y not in y or \
             args.z not in z:
-        parser.error('Invalid red coordinates'
+        parser.error('Invalid coordinates '
                      f'x, y, z values must be in {reference.shape} at {args.res} microns')
 
 
@@ -156,7 +156,7 @@ def main():
     # Checking if there are enough allen_exps compared to the nb_of_exps needed
     if args.nb_of_exps > 1:
         if len(allen_exps) < args.nb_of_exps:
-            print("Only {} experiments founded at [{},{},{}],"
+            print("Only {} experiments founded at [{},{},{}], "
                   "processing...".format(len(allen_exps), args.x, args.y, args.z))
 
             # Resetting the number of experiments needed to the total number available
@@ -164,14 +164,15 @@ def main():
 
             # Retrieving experiments ids
             if nb_of_exps > 1:
-                exps_ids = allen_exps[0:args.nb_of_exps-1]['id']
+                exps_ids = [allen_exps[i]['id'] for i in range(0, nb_of_exps)]
             else:
-                exps_ids = allen_exps[0]['id']
+                exps_ids = [allen_exps[0]['id']]
+        else:
+            exps_ids = [allen_exps[i]['id'] for i in range(0, args.nb_of_exps)]
     else:
-        exps_ids = allen_exps[0]['id']
-    exps_ids = [exps_ids]
+        exps_ids = [allen_exps[0]['id']]
 
-    print("{} experiments founded, downloading...".format(exps_ids))
+    print("{} experiments founded, downloading...".format(len(exps_ids)))
 
     # Preparing files names
     # Creating subdir
