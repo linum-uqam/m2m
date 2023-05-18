@@ -150,17 +150,17 @@ def main():
                                     allen_coords)
 
     # Checking if allen_exps is not empty
-    if allen_exps.lenght == 0:
+    if len(allen_exps) == 0:
         sys.exit("No experiment founded for [{},{},{}]".format(args.x, args.y, args.z))
 
     # Checking if there are enough allen_exps compared to the nb_of_exps needed
     if args.nb_of_exps > 1:
-        if allen_exps.length < args.nb_of_exps:
+        if len(allen_exps) < args.nb_of_exps:
             print("Only {} experiments founded at [{},{},{}],"
-                  "processing...".format(allen_exps.length, args.x, args.y, args.z))
+                  "processing...".format(len(allen_exps), args.x, args.y, args.z))
 
             # Resetting the number of experiments needed to the total number available
-            nb_of_exps = allen_exps.length
+            nb_of_exps = len(allen_exps)
 
             # Retrieving experiments ids
             if nb_of_exps > 1:
