@@ -169,6 +169,7 @@ def main():
                 exps_ids = allen_exps[0]['id']
     else:
         exps_ids = allen_exps[0]['id']
+    exps_ids = [exps_ids]
 
     print("{} experiments founded, downloading...".format(exps_ids))
 
@@ -178,7 +179,7 @@ def main():
         method = "injected"
     if args.spatial:
         method = "with_high_signal"
-    subdir_ = f"experiments_{method}_at_[{args.x},{args.y},{args.z}_at_{args.res}_microns]"
+    subdir_ = f"experiments_{method}_at_[{args.x},{args.y},{args.z}]_at_{args.res}_microns"
     subdir = Path(args.dir / subdir_)
     subdir.mkdir(exist_ok=True, parents=True)
 
