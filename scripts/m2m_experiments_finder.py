@@ -176,7 +176,7 @@ def main():
         writer = csv.writer(csv_file)
 
         # Write the header
-        writer.writerow(['ids'])
+        writer.writerow(['id'])
 
         # Write the data rows
         for id in exps_ids:
