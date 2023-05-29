@@ -2,31 +2,29 @@
 # -*- coding: utf-8 -*-
 
 """
-    Find Allen Mouse Brain Connectivity (AMBCA) experiments.
+    Find experiments in the Allen Mouse Brain Connectivity Atlas (AMBCA)
+    dataset giving a set of User Data Space (UDS) voxel coordinates [x, y, z].\n
 
-    Experiments are searched in the AMBCA Dataset
-    giving a set of User Data Space (UDS) voxel coordinates [x, y, z].\n
+    The script then saves the experiment identifiers in a .csv file,
+    which can be used as input for the "m2m_import_proj_density.py" script.\n
 
     Important: Select the same resolution as your matrix
     We higly recommend to work with high resolution (starting from 50)
     in order to search experiments more precisely.\n
 
-    Examples:
-    ---------
-    Generate projection density maps for each experiment.\n
-    Maps are downloaded from the AMBCA API.\n
+    Example:
+    --------
+    1. Find experiments identifiers (a or b):
+        a. Injection coordinate search: (--injection)
+        >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
+            x y z --injection --nb_of_exps n
 
-    All files are stored in a same folder.\n
+        b.Spatial search: (--spatial):
+        >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
+            x y z --injection --nb_of_exps n
 
-    Injection coordinate search: (--injection)
-
-    >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
-        x y z --injection --nb_of_exps n
-
-    Spatial search: (--spatial):
-
-    >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
-        x y z --injection --nb_of_exps n
+    2. Call m2m_import_proj_density.py with theses indentifiers as an input:
+       (see m2m_import_proj_density.py documentation)
 """
 
 import argparse
