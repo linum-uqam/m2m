@@ -32,25 +32,19 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import csv
 
-from m2m.allensdk_utils import (download_proj_density_vol,
-                                get_injection_infos,
-                                get_mcc_exps,
-                                get_mcc_stree,
+from m2m.allensdk_utils import (get_mcc_exps,
                                 search_experiments)
 from m2m.control import (add_cache_arg,
                          add_output_dir_arg,
                          add_overwrite_arg,
                          add_resolution_arg,
-                         check_file_exists,
                          add_matrix_arg,
                          add_reference_arg,
                          check_input_file)
-from m2m.transform import (pretransform_vol_PIR_UserDataSpace,
-                           registrate_allen2UserDataSpace,
-                           get_allen_coords)
-from m2m.util import (save_nifti,
-                      load_user_template)
+from m2m.transform import (get_allen_coords)
+from m2m.util import (load_user_template)
 
 EPILOG = """
 Author : Mahdi
@@ -130,12 +124,16 @@ def main():
     # Checking file mat
     check_input_file(parser, args.file_mat)
 
-    # Getting experiments from Mouse Connectivity Cache
-    allen_experiments = get_mcc_exps(args.nocache)
-
     # Configuring output directory
     args.dir = Path(args.dir)
     args.dir.mkdir(exist_ok=True, parents=True)
+
+    # Preparing file name
+    if args.injection:
+        method = "injected"
+    if args.spatial:
+        method = "with_high_signal"
+    csv_ = args.dir / f"experiments_{method}_at_{args.x}_{args.y}_{args.z}.csv"
 
     # Creating UDS vector coords
     uds_coords = [args.x, args.y, args.z]
@@ -143,6 +141,7 @@ def main():
     # Getting Allen coords
     allen_coords = get_allen_coords(uds_coords, args.res,
                                     args.file_mat, user_vol)
+
     # Searching Allen experiments
     allen_exps = search_experiments(args.injection, args.spatial,
                                     allen_coords)
@@ -170,47 +169,18 @@ def main():
     else:
         exps_ids = [allen_exps[0]['id']]
 
-    print("{} experiments founded, downloading...".format(len(exps_ids)))
+    print("{} experiments founded, saving ids...".format(len(exps_ids)))
 
-    # Preparing files names
-    # Creating subdir
-    if args.injection:
-        method = "injected"
-    if args.spatial:
-        method = "with_high_signal"
-    subdir_ = f"experiments_{method}_at_{args.x}_{args.y}_{args.z}_at_{args.res}_microns"
-    subdir = Path(args.dir / subdir_)
-    subdir.mkdir(exist_ok=True, parents=True)
+    # Saving ids
+    with open(csv_, 'w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
 
-    # Iterating on each experiments
-    for id in exps_ids:
+        # Write the header
+        writer.writerow(['ids'])
 
-        # Retrieving experiment information
-        roi = get_injection_infos(allen_experiments, id)[0]
-        loc = get_injection_infos(allen_experiments, id)[2]
-
-        # Projection density maps Niftis and Nrrd files
-        nrrd_file = "{}_{}.nrrd".format(id, args.res)
-        nifti_file = subdir / "{}_{}_{}_proj_density_{}.nii.gz".format(id,
-                                                              roi, loc, args.res)
-        check_file_exists(parser, args, nifti_file)
-
-        # Downloading projection density maps
-        exp_vol = download_proj_density_vol(nrrd_file, id,
-                                            args.res, args.nocache)
-
-        # Transforming manually to RAS+
-        exp_vol = pretransform_vol_PIR_UserDataSpace(exp_vol, user_vol)
-
-        # Converting Allen volumes to float32
-        exp_vol = exp_vol.astype(np.float32)
-
-        # Applying ANTsPyX registration
-        warped_vol = registrate_allen2UserDataSpace(args.file_mat,
-                                                    exp_vol, user_vol, allen_res=args.res)
-
-        # Saving Niftis files
-        save_nifti(warped_vol, user_vol.affine, nifti_file)
+        # Write the data rows
+        for id in exps_ids:
+            writer.writerow([id])
 
 
 if __name__ == "__main__":
