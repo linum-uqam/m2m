@@ -17,11 +17,11 @@
     1. Find experiments identifiers (a or b):
         a. Injection coordinate search: (--injection)
         >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
-            x y z --injection --nb_of_exps n
+            path/to/output.csv x y z --injection --nb_of_exps n
 
         b.Spatial search: (--spatial):
         >>> m2m_experiments_finder.py resolution path/to/.mat path/to/ref.nii.gz
-            x y z --injection --nb_of_exps n
+            path/to/output.csv x y z --spatial --nb_of_exps n
 
     2. Call m2m_import_proj_density.py with theses indentifiers as an input:
        (see m2m_import_proj_density.py documentation)
@@ -34,17 +34,17 @@ from pathlib import Path
 import numpy as np
 import csv
 
-from m2m.allensdk_utils import (get_mcc_exps,
-                                search_experiments)
+from m2m.allensdk_utils import search_experiments
 from m2m.control import (add_cache_arg,
                          add_output_dir_arg,
                          add_overwrite_arg,
                          add_resolution_arg,
                          add_matrix_arg,
                          add_reference_arg,
+                         check_file_exists,
                          check_input_file)
-from m2m.transform import (get_allen_coords)
-from m2m.util import (load_user_template)
+from m2m.transform import get_allen_coords
+from m2m.util import load_user_template
 
 EPILOG = """
 Author : Mahdi
@@ -57,6 +57,7 @@ def _build_arg_parser():
     add_resolution_arg(p)
     add_matrix_arg(p)
     add_reference_arg(p)
+    p.add_argument('out_csv', help='Path to output csv (.csv)')
     p.add_argument('x', type=int,
                    help='X-component of UDS voxel coordinates')
     p.add_argument('y', type=int,
@@ -124,16 +125,17 @@ def main():
     # Checking file mat
     check_input_file(parser, args.file_mat)
 
+    # Verifying output file
+    check_file_exists(parser, args, args.out_csv)
+    if not (args.out_csv).endswith(".csv"):
+        parser.error("out_csv must be a csv file.")
+
     # Configuring output directory
     args.dir = Path(args.dir)
     args.dir.mkdir(exist_ok=True, parents=True)
 
     # Preparing file name
-    if args.injection:
-        method = "injected"
-    if args.spatial:
-        method = "with_high_signal"
-    csv_ = args.dir / f"experiments_{method}_at_{args.x}_{args.y}_{args.z}.csv"
+    csv_ = args.dir / args.out_csv
 
     # Creating UDS vector coords
     uds_coords = [args.x, args.y, args.z]
@@ -148,12 +150,12 @@ def main():
 
     # Checking if allen_exps is not empty
     if len(allen_exps) == 0:
-        sys.exit("No experiment founded for [{},{},{}]".format(args.x, args.y, args.z))
+        sys.exit("No experiments found for [{},{},{}]".format(args.x, args.y, args.z))
 
     # Checking if there are enough allen_exps compared to the nb_of_exps needed
     if args.nb_of_exps > 1:
         if len(allen_exps) < args.nb_of_exps:
-            print("Only {} experiments founded at [{},{},{}], "
+            print("Only {} experiments found at [{},{},{}], "
                   "processing...".format(len(allen_exps), args.x, args.y, args.z))
 
             # Resetting the number of experiments needed to the total number available
@@ -169,7 +171,7 @@ def main():
     else:
         exps_ids = [allen_exps[0]['id']]
 
-    print("{} experiments founded, saving ids...".format(len(exps_ids)))
+    print("{} experiments found, saving ids...".format(len(exps_ids)))
 
     # Saving ids
     with open(csv_, 'w', newline='') as csv_file:
@@ -181,6 +183,8 @@ def main():
         # Write the data rows
         for id in exps_ids:
             writer.writerow([id])
+
+    print('{} saved'.format(args.out_csv))
 
 
 if __name__ == "__main__":
