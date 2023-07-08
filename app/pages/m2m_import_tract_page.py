@@ -8,6 +8,7 @@ import zipfile
 # Page configuration
 st.set_page_config(page_title='M2M Import Tract', page_icon=':mouse:')
 st.title('M2M Import Tract')
+st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_import_tract.html')
 st.write('Download streamlines from Allen Mouse Brain Connectivity Atlas and combine them into a single tractogram.')
 
 # Step 1: Set Output Tractogram Path
