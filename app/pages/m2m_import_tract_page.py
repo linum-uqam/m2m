@@ -1,76 +1,67 @@
 import streamlit as st
 import subprocess
+import pandas as pd
 from pathlib import Path
+import tempfile
+import zipfile
 
-# Define Streamlit interface
-st.set_page_config(page_title="M2M Import Tractogram", page_icon=":mouse:")
+# Page configuration
+st.set_page_config(page_title='M2M Import Tract', page_icon=':mouse:')
+st.title('M2M Import Tract')
+st.write('Download streamlines from Allen Mouse Brain Connectivity Atlas and combine them into a single tractogram.')
 
-st.title("Import Allen Mouse Brain Connectivity Atlas Streamlines")
+# Step 1: Set Output Tractogram Path
+st.subheader('Step 1: Set Output Tractogram Path')
+out_tract = st.text_input('Path to output tractogram (trk)')
 
-# Add file inputs
-out_tract = st.text_input("Output tractogram (trk) file:")
-mat = st.file_uploader("Transformation matrix file (mat):", type=["mat"])
-if mat:
-    mat_path = Path(mat.name)
-    mat_path.write_bytes(mat.getvalue())
-ref = st.file_uploader("Reference nifti file:", type=["nii", "nii.gz"])
-if ref:
-    ref_path = Path(ref.name)
-    ref_path.write_bytes(ref.getvalue())
+# Step 2: Upload reference file and matrix file
+st.subheader('Step 2: Upload reference file and matrix file') 
+ref = st.file_uploader("Reference file (nifti):", type=["nii", "nii.gz"])
+mat = st.file_uploader("Matrix file (mat):", type=["mat"])
 
-# Add input fields
-st.subheader("Select experiment IDs")
-ids_type = st.radio("How do you want to select the experiment IDs?", options=["Upload CSV file", "Manually"])
-if ids_type == "Upload CSV file":
-    ids_csv = st.file_uploader("CSV file containing experiment IDs:", type=["csv"])
+# Step 3: Select Allen resolution
+st.subheader('Step 3: Select resolution)')
+res = st.radio('Resolution', [25, 50, 100])
+
+# Step 4: Set Experiment IDs
+st.subheader('Step 4: Set Experiment IDs')
+ids_type = st.radio('IDs Type', ['CSV File', 'Manual'])
+if ids_type == 'CSV File':
+    ids_csv = st.file_uploader('CSV File', type=['csv'])
     if ids_csv:
-        ids_csv_path = Path(ids_csv.name)
-        ids_csv_path.write_bytes(ids_csv.getvalue())
+        ids = pd.read_csv(ids_csv)
+        in_ids = ids['id'].tolist()
 else:
-    ids_csv = None
-    ids = st.text_input("Experiment IDs (separated by space):")
+    in_ids = st.text_input('Experiment IDs (separated by spaces)').split()
 
-# Add other options
-res = st.radio('Select Allen resolution (microns)', [25, 50, 100])
-nocache = st.checkbox("Disable cache")
-overwrite = st.checkbox("Overwrite output file")
-
-# Add download button
-if st.button("Download streamlines"):
-    # Validate inputs
-    if not out_tract:
-        st.error("Please select an output tractogram (trk) file")
-    if not mat:
-        st.error("Please select a transformation matrix (mat) file")
-    if not ref:
-        st.error("Please select a reference nifti file")
-    if ids_type == "Upload CSV file" and not ids_csv:
-        st.error("Please select a CSV file containing experiment IDs")
-    if ids_type == "Manually" and not ids:
-        st.error("Please enter experiment IDs")
-    
-    # Call script as subprocess
-    cmd = ["python3", "scripts/m2m_import_tract.py", str(out_tract), str(mat_path), str(ref_path), str(res)]
-    if ids_csv:
-        cmd.append("--ids_csv")
-        cmd.append(str(ids_csv_path))
-    else:
-        cmd.append("--ids")
-        cmd.extend(ids.split())
-    if nocache:
-        cmd.append("--nocache")
-    if overwrite:
-        cmd.append("-f")
-    try:
-        result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        st.success("Streamlines downloaded successfully")
-        ref_path.unlink()
-        mat_path.unlink()
-        if ids_csv:
-            ids_csv_path.unlink()
-    except subprocess.CalledProcessError as e:
-        st.error(e.stderr)    
-        ref_path.unlink()
-        mat_path.unlink()
-        if ids_csv:
-            ids_csv_path.unlink()
+# Step 5: Run Script
+st.subheader('Step 5: Run Script')
+if st.button('Run'):
+    with tempfile.TemporaryDirectory() as tempdir:
+        # Save the reference image and the matrix in the tempdir
+        ref_path = Path(tempdir) / Path(ref.name).name
+        with open(ref_path, 'wb') as f:
+            f.write(ref.getvalue())
+        mat_path = Path(tempdir) / Path(mat.name).name
+        with open(mat_path, 'wb') as f:
+            f.write(mat.getvalue())
+        cmd = ['python3', 'scripts/m2m_import_tract.py', str(out_tract), str(mat_path), str(ref_path), str(res)]
+        if ids_type == 'CSV File':
+            cmd.extend(['--ids_csv', str(ids_csv.name)])
+        else:
+            cmd.extend(['--ids'] + str(in_ids))
+        try:
+            result = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            st.success("Tract imported successfully")
+            # Download the output tract
+            st.subheader('Step 6: Download tract')
+            with open(Path(tempdir) / out_tract, 'rb') as f:
+                trk_bytes = f.read()
+                st.download_button(
+                    label='Download tract',
+                    data=trk_bytes,
+                    file_name=out_tract,
+                    mime='application/octet-stream'
+                )
+        except subprocess.CalledProcessError as e:
+            st.error(e.stderr)
