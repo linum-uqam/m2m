@@ -69,7 +69,7 @@ if st.button('Find'):
                 label="Save CSV", 
                 data=csv.to_csv(index=False).encode('utf-8'), 
                 file_name=output_filename.name, 
-                mime="text/plain"
+                mime="text/csv"
             )
         except subprocess.CalledProcessError as e:
             st.error(e.stderr)
