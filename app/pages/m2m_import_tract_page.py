@@ -3,7 +3,7 @@ import subprocess
 import pandas as pd
 from pathlib import Path
 import tempfile
-import zipfile
+
 
 # Page configuration
 st.set_page_config(page_title='M2M Import Tract', page_icon=':mouse:')
@@ -12,6 +12,9 @@ st.title('M2M Import Tract')
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_import_tract.html')
 st.write('Download streamlines from Allen Mouse Brain Connectivity Atlas and combine them into a single tractogram.')
+
+# Temporary message
+st.warning("Currently not working due to API access issues, sorry for the inconvenience")
 
 # Step 1: Upload reference file and matrix file
 st.subheader('Step 1: Upload reference file and matrix file') 
