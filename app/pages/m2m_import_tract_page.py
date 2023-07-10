@@ -19,8 +19,8 @@ ref = st.file_uploader("Reference file (nifti):", type=["nii", "nii.gz"])
 mat = st.file_uploader("Matrix file (mat):", type=["mat"])
 
 # Step 2: Select Allen resolution
-st.subheader('Step 2: Select resolution)')
-res = st.radio('Resolution', [25, 50, 100])
+st.subheader('Step 2: Select resolution')
+res = st.radio('Resolution (same as matrix)', [25, 50, 100])
 
 # Step34: Set Experiment IDs
 st.subheader('Step 3: Set Experiment IDs')
