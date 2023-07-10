@@ -13,17 +13,17 @@ st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_experiments_finder.ht
 st.write('Find experiments in the Allen Mouse Brain Connectivity Atlas (AMBCA) dataset '
          'given a set of User Data Space (UDS) voxel coordinates [x, y, z].')
 
-# Step 1: Set Resolution
-st.subheader('Step 1: Set Resolution')
-resolution = st.radio('Resolution (microns)', [25, 50, 100])
-
-# Step 2: Upload Matrix File
-st.subheader('Step 2: Upload Matrix File')
+# Step 1: Upload Matrix File
+st.subheader('Step 1: Upload Matrix File')
 mat = st.file_uploader('Matrix file (.mat)', type=["mat"])
 
-# Step 3: Upload Reference Image
-st.subheader('Step 3: Upload Reference Image')
+# Step 2: Upload Reference Image
+st.subheader('Step 2: Upload Reference Image')
 ref = st.file_uploader('Reference image (nifti)', type=['nii', 'nii.gz'])
+
+# Step 3: Set Resolution
+st.subheader('Step 3: Set Resolution')
+resolution = st.radio('Resolution (same as matrix)', [25, 50, 100])
 
 # Step 4: Set Coordinates
 st.subheader('Step 4: Set Coordinates (UDS-voxels)')
@@ -64,6 +64,8 @@ if st.button('Find'):
         try:
             result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             st.success('Experiments found successfully')
+            # Download experiments
+            st.subheader('Step 8: Download experiments ids')
             csv = pd.read_csv(output_filename)
             st.download_button(
                 label="Save CSV", 
