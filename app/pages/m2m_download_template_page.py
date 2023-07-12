@@ -5,7 +5,6 @@ import tempfile
 
 # Page configuration
 st.set_page_config(page_title='M2M Download Template', page_icon=":mouse:")
-
 st.title('M2M Download Template')
 
 # Link to the documentation
@@ -16,7 +15,7 @@ st.write('Download Allen Mouse Brain Template')
 st.subheader('Step 1: Select template resolution')
 resolution = st.radio('Allen resolution (microns)', [10, 25, 50, 100])
 
-# Step 3: Download template
+# Step 2: Download template
 st.subheader('Step 2: Download template')
 if st.button('Download template'):
     # Create temporary directory

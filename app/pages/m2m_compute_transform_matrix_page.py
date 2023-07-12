@@ -7,7 +7,6 @@ from pathlib import Path
 
 # Page configuration
 st.set_page_config(page_title='M2M Compute Transform Matrix', page_icon=':mouse:')
-
 st.title('M2M Compute Transform Matrix')
 
 # Link to the documentation

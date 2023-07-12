@@ -4,7 +4,6 @@ import pandas as pd
 from pathlib import Path
 import tempfile
 
-
 # Page configuration
 st.set_page_config(page_title='M2M Import Tract', page_icon=':mouse:')
 st.title('M2M Import Tract')
