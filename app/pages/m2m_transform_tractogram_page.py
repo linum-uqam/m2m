@@ -14,7 +14,7 @@ st.write('Transform the Allen tractogram (Wildtype, RAS@50um) to the User\'s Dat
 
 # Step 1: Upload transform matrix file
 st.subheader('Step 1: Upload transform matrix file')
-file_mat = st.file_uploader("Transform matrix file (mat):", type=["mat"])
+file_mat = st.file_uploader("Matrix file (mat) 50 microns only:", type=["mat"])
 
 # Step 2: Upload reference file
 st.subheader('Step 2: Upload reference file')
