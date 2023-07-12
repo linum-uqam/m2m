@@ -1,12 +1,11 @@
 import streamlit as st
 import subprocess
-import scipy.io as sio
 import tempfile
-import sys
 from pathlib import Path
 
 # Page configuration
-st.set_page_config(page_title='M2M Compute Transform Matrix', page_icon=':mouse:')
+st.set_page_config(page_title='M2M Compute Transform Matrix',
+                   page_icon=':mouse:')
 st.title('M2M Compute Transform Matrix')
 
 # Link to the documentation
@@ -32,10 +31,12 @@ if st.button('Compute matrix') and ref and allen_res and user_res:
             f.write(ref.getvalue())
         # Build the command to run the script
         mat = 'matrix.mat'
-        command = ['python3', 'scripts/m2m_compute_transform_matrix.py', str(ref_path), str(Path(tempdir) / mat), str(allen_res), str(user_res)]
+        command = ['python3', 'scripts/m2m_compute_transform_matrix.py',
+                   str(ref_path), str(Path(tempdir) / mat), str(allen_res), str(user_res)]
         # Run the command
         try:
-            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
             st.success('Matrix computation completed successfully')
             # Download the output matrix
             st.subheader('Step 4: Download affine transformation matrix')

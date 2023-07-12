@@ -26,15 +26,18 @@ if st.button('Download Annotation'):
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
         # Define the output filename
-        output_filename = Path(temp_dir) / f'allen_annotation_{resolution}.nii.gz'
+        output_filename = Path(temp_dir) / \
+            f'allen_annotation_{resolution}.nii.gz'
         if label == '.txt':
             output_labels = Path(temp_dir) / f'allen_annotation_labels.txt'
-        else:   
+        else:
             output_labels = Path(temp_dir) / f'allen_annotation_labels.label'
         # Run script as subprocess
-        command = ['python3', 'scripts/m2m_download_annotation.py', str(output_filename), str(output_labels), '-r', str(resolution)]
+        command = ['python3', 'scripts/m2m_download_annotation.py',
+                   str(output_filename), str(output_labels), '-r', str(resolution)]
         try:
-            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
             st.success("Annotation downloaded successfully.")
             # Download the file
             # Create a ZIP archive of the files
@@ -46,7 +49,8 @@ if st.button('Download Annotation'):
             # Download the ZIP file using st.download_button
             with open(zip_path, 'rb') as f:
                 zip_data = f.read()
-                st.download_button(label='Save Annotation and Labels', data=zip_data, file_name='annotation_files.zip', mime='application/zip')
- 
+                st.download_button(label='Save Annotation and Labels', data=zip_data,
+                                   file_name='annotation_files.zip', mime='application/zip')
+
         except subprocess.CalledProcessError as e:
             st.error(e.stderr)

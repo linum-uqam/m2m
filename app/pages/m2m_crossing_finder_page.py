@@ -40,17 +40,21 @@ coordinates = {}
 
 for color_name in color_names:
     color_label = color_options[color_name]
-    coordinates[color_name] = st.text_input(f'{color_label} coordinates (X Y Z) space separated', value='0 0 0').split()
+    coordinates[color_name] = st.text_input(
+        f'{color_label} coordinates (X Y Z) space separated', value='0 0 0').split()
     if len(coordinates[color_name]) != 3:
-        st.error(f'Please enter all three coordinates (X, Y, Z) for the {color_label} color.')
+        st.error(
+            f'Please enter all three coordinates (X, Y, Z) for the {color_label} color.')
 
 # Step 5: Select search type
 st.subheader('Step 5: Select search type')
-search_type = st.radio('Search Type:', ['Injection Coordinate Search', 'Spatial Search'])
+search_type = st.radio(
+    'Search Type:', ['Injection Coordinate Search', 'Spatial Search'])
 
 # Step 6: Enter threshold
 st.subheader('Step 6: Enter threshold')
-threshold = st.number_input('Threshold:', value=0.10, min_value=0.0, max_value=1.0, step=0.01)
+threshold = st.number_input(
+    'Threshold:', value=0.10, min_value=0.0, max_value=1.0, step=0.01)
 
 dir = Path(tempfile.mkdtemp()) / f"crossing_files"
 
@@ -69,10 +73,12 @@ if st.button('Run'):
             f.write(reference.getvalue())
 
         # Prepare the command
-        cmd = ['python3', 'scripts/m2m_crossing_finder.py', str(mat_path), str(ref_path), str(res)]
+        cmd = ['python3', 'scripts/m2m_crossing_finder.py',
+               str(mat_path), str(ref_path), str(res)]
 
         # Add UDS voxel coordinates
-        cmd += ['--red'] + coordinates['red'] + ['--green'] + coordinates['green']
+        cmd += ['--red'] + coordinates['red'] + \
+            ['--green'] + coordinates['green']
 
         # Add optional blue coordinates
         if coord_option == '3-color':
@@ -87,7 +93,8 @@ if st.button('Run'):
         cmd += ['--threshold', str(threshold), '-d', str(dir)]
 
         try:
-            result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            result = subprocess.run(
+                cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
             # Create a ZIP archive of the directory
             zip_path = Path(tempdir) / "data.zip"
@@ -96,7 +103,8 @@ if st.button('Run'):
                     zip_file.write(file, arcname=file.relative_to(dir))
 
             st.success("Crossing regions found successfully")
-            st.subheader('Step 8: Download Crossing ROIs and Merged Projection Maps')
+            st.subheader(
+                'Step 8: Download Crossing ROIs and Merged Projection Maps')
 
             # Provide download link for the zip file
             with open(zip_path, 'rb') as f:
@@ -110,5 +118,3 @@ if st.button('Run'):
 
         except subprocess.CalledProcessError as e:
             st.error(e.stderr)
-
-

@@ -1,6 +1,5 @@
 import streamlit as st
 import subprocess
-import pandas as pd
 from pathlib import Path
 import tempfile
 
@@ -35,7 +34,8 @@ if st.button('Run'):
             f.write(reference.getvalue())
 
         # Prepare the command
-        cmd = ['python3', 'scripts/m2m_transform_tractogram.py', 'transformed_tractogram.trk', str(mat_path), str(ref_path)]
+        cmd = ['python3', 'scripts/m2m_transform_tractogram.py',
+               'transformed_tractogram.trk', str(mat_path), str(ref_path)]
 
         try:
             result = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,

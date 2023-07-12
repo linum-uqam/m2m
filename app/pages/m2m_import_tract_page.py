@@ -13,10 +13,11 @@ st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_import_tract.html')
 st.write('Download streamlines from Allen Mouse Brain Connectivity Atlas and combine them into a single tractogram.')
 
 # Temporary message
-st.warning("Currently not working due to API access issues, sorry for the inconvenience")
+st.warning(
+    "Currently not working due to API access issues, sorry for the inconvenience")
 
 # Step 1: Upload reference file and matrix file
-st.subheader('Step 1: Upload reference file and matrix file') 
+st.subheader('Step 1: Upload reference file and matrix file')
 ref = st.file_uploader("Reference file (nifti):", type=["nii", "nii.gz"])
 mat = st.file_uploader("Matrix file (mat):", type=["mat"])
 
@@ -47,13 +48,15 @@ if st.button('Run'):
         with open(mat_path, 'wb') as f:
             f.write(mat.getvalue())
         out_tract = "tract.trk"
-        cmd = ['python3', 'scripts/m2m_import_tract.py', str(out_tract), str(mat_path), str(ref_path), str(res)]
+        cmd = ['python3', 'scripts/m2m_import_tract.py',
+               str(out_tract), str(mat_path), str(ref_path), str(res)]
         if ids_type == 'CSV File':
             cmd.extend(['--ids_csv', str(ids_csv.name)])
         else:
             cmd.extend(['--ids'] + str(in_ids))
         try:
-            result = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            result = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
             st.success("Tract imported successfully")
             # Download the output tract
             st.subheader('Step 5: Download tract')

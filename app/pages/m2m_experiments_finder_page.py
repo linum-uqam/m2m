@@ -33,7 +33,8 @@ z = st.number_input('Z-coordinate', value=0, step=1)
 
 # Step 5: Search Type
 st.subheader('Step 5: Search Type')
-search_type = st.radio('Search Type', ['Injection center', 'High signal region'])
+search_type = st.radio(
+    'Search Type', ['Injection center', 'High signal region'])
 
 # Step 6: Number of Experiments
 st.subheader('Step 6: Number of Experiments')
@@ -54,7 +55,8 @@ if st.button('Find'):
         with open(ref_path, 'wb') as f:
             f.write(ref.getvalue())
         # Run the script
-        cmd = ['python3', 'scripts/m2m_experiments_finder.py', str(resolution), str(mat_path), str(ref_path), str(output_filename), str(x), str(y), str(z)]
+        cmd = ['python3', 'scripts/m2m_experiments_finder.py', str(resolution), str(
+            mat_path), str(ref_path), str(output_filename), str(x), str(y), str(z)]
         if search_type == 'Injection center':
             cmd.append('--injection')
         else:
@@ -62,15 +64,16 @@ if st.button('Find'):
         cmd.append('--nb_of_exps')
         cmd.append(str(nb_of_exps))
         try:
-            result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            result = subprocess.run(
+                cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             st.success('Experiments found successfully')
             # Download experiments
             st.subheader('Step 8: Download experiments ids')
             csv = pd.read_csv(output_filename)
             st.download_button(
-                label="Save CSV", 
-                data=csv.to_csv(index=False).encode('utf-8'), 
-                file_name=output_filename.name, 
+                label="Save CSV",
+                data=csv.to_csv(index=False).encode('utf-8'),
+                file_name=output_filename.name,
                 mime="text/csv"
             )
         except subprocess.CalledProcessError as e:

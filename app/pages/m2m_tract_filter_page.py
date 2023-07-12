@@ -1,6 +1,5 @@
 import streamlit as st
 import subprocess
-import pandas as pd
 from pathlib import Path
 import tempfile
 
@@ -47,10 +46,12 @@ if st.button('Run'):
             f.write(reference.getvalue())
 
         # Prepare the command
-        cmd = ['python3', 'scripts/m2m_tract_filter.py', str(in_tract_path), 'filtered_tract.trk', str(ref_path)]
+        cmd = ['python3', 'scripts/m2m_tract_filter.py',
+               str(in_tract_path), 'filtered_tract.trk', str(ref_path)]
 
         if roi_type == 'Sphere':
-            cmd.extend(['--sphere', '--center', center, '--radius', str(radius)])
+            cmd.extend(['--sphere', '--center', center,
+                       '--radius', str(radius)])
 
             if download_sphere:
                 cmd.extend(['--download_sphere', sphere_path])

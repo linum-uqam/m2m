@@ -21,19 +21,22 @@ if st.button('Download template'):
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
         # Define the output filename
-        output_filename = Path(temp_dir) / f'allen_template_{resolution}.nii.gz'
+        output_filename = Path(temp_dir) / \
+            f'allen_template_{resolution}.nii.gz'
         # Run script as subprocess
-        command = ['python3', 'scripts/m2m_download_template.py', str(output_filename), '-r', str(resolution)]
+        command = ['python3', 'scripts/m2m_download_template.py',
+                   str(output_filename), '-r', str(resolution)]
         try:
-            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
             st.success("Template downloaded successfully.")
             # Download the file
             with open(output_filename, 'rb') as f:
                 file_bytes = f.read()
                 st.download_button(
-                    label="Save template", 
-                    data=file_bytes, 
-                    file_name=output_filename.name, 
+                    label="Save template",
+                    data=file_bytes,
+                    file_name=output_filename.name,
                     mime="application/x-gzip"
                 )
         except subprocess.CalledProcessError as e:
