@@ -9,10 +9,11 @@ import pandas as pd
 st.set_page_config(page_title="M2M Import Projection Density", page_icon=":mouse:")
 
 # Create Streamlit app
-st.title("Import Allen Mouse Brain Connectivity Projection Density Map")
+st.title("M2M Import Projection Density")
+
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_import_proj_density.html')
-st.write("Please upload the input files and set the arguments for the script:")
+st.write("Import Allen Mouse Brain Connectivity Projection Density Map")
 
 # Step 1: Choose an experiment id in the Allen Mouse Brain Connectivity Atlas dataset
 st.subheader('Step 1: Choose an experiment id in the Allen Mouse Brain Connectivity Atlas dataset')

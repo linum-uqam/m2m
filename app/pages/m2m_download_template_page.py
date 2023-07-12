@@ -6,11 +6,11 @@ import tempfile
 # Page configuration
 st.set_page_config(page_title='M2M Download Template', page_icon=":mouse:")
 
-st.title('Download Allen Mouse Brain Template')
+st.title('M2M Download Template')
 
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_download_template.html')
-st.write('Please set the arguments for the script:')
+st.write('Download Allen Mouse Brain Template')
 
 # Step 1: Select template resolution
 st.subheader('Step 1: Select template resolution')

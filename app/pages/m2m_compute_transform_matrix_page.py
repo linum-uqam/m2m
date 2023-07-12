@@ -8,11 +8,11 @@ from pathlib import Path
 # Page configuration
 st.set_page_config(page_title='M2M Compute Transform Matrix', page_icon=':mouse:')
 
-st.title('Compute Affine Transformation Matrix')
+st.title('M2M Compute Transform Matrix')
 
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_compute_transform_matrix.html')
-st.write('Please upload the input files and set the arguments for the script:')
+st.write('Compute Affine Transformation Matrix')
 
 # Step 1: Upload reference image
 st.subheader('Step 1: Upload reference image')

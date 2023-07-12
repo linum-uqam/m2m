@@ -7,11 +7,11 @@ import zipfile
 # Page configuration
 st.set_page_config(page_title='M2M Download Annotation', page_icon=":mouse:")
 
-st.title('Download Allen Mouse Brain Annotation')
+st.title('M2M Download Annotation')
 
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_download_annotation.html')
-st.write('Please set the arguments for the script:')
+st.write('Download Allen Mouse Brain Annotation')
 
 # Step 1: Select Annotation resolution
 st.subheader('Step 1: Select Annotation resolution')
