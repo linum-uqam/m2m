@@ -37,7 +37,7 @@ if st.button('Compute matrix') and ref and allen_res and user_res:
         # Run the command
         try:
             result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-            st.success('Matrix {} computation completed successfully'.format(mat))
+            st.success('Matrix computation completed successfully')
             # Download the output matrix
             st.subheader('Step 4: Download affine transformation matrix')
             with open(Path(tempdir) / mat, 'rb') as f:
