@@ -17,6 +17,7 @@ References
    :maxdepth: 1
    :caption: Contents:
 
+   installation
    usage
    api
    scripts

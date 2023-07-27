@@ -1,145 +1,120 @@
 Usage
 =====
 
-.. _installation:
+Web app (discovering m2m)
+=========================
+To get use to the m2m toolkit, you can run it on a Streamlit Web App.
 
-Installation
-------------
-A docker image for this project is automatically built and pushed to DockerHub (https://hub.docker.com/r/linumuqam/m2m) everytime the ``main`` branch is updated. This image contains the toolkit dependencies (Python 3.7, AllenSDK, antspyx, etc.) along with the m2m module and scripts. Using the docker image is recommended to simplify the installation process and dependency management.
+To do this, there are two options
 
-Docker Installation (Recommended)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Option 1
+~~~~~~~~
+
+* Run the following command 
+
+.. code-block:: bash
+
+    streamlit run app/m2m_main_page.py
+
+* Click on a link to open the Streamlit Web App locally
+
+This option may not work on Windows, see installation page for more informations.
+  
+Option 2
+~~~~~~~~
+
 * Install `Docker Desktop <https://www.docker.com/get-started/>`_
-* Pull the latest docker image from DockerHub
+* Build the Docker image
 
 .. code-block:: bash
 
-    docker pull linumuqam/m2m:latest
+    docker build -t m2m/streamlit .
 
-* Alternatively, clone the repository and compile the docker image locally.
-.. code-block:: bash
-
-    docker build --pull --rm -t linumuqam/m2m:latest .
-
-
-Pip installation (for development)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Clone the repository, create a python virtual environment with Python 3.7, and then install the package with
-.. code-block:: bash
-
-    pip install -e .
-
-
-Notes
-~~~~~
-You will probably need to install these additional dependencies before installing the package
-
-* MacOS
+* Run the Docker container
 
 .. code-block:: bash
 
-    brew install libpng openblas lapack gfortran
+    docker run -p 8501:8501 m2m/streamlit
 
-* Linux
+* Click on a link to open the Streamlit Web App locally
+
+Note
+~~~~
+Using the Steamlit Web App is not recommended if you have large images (exceeding 200 Mb)
+because you may encounter some limitations. For advanced usage, we recommend working in command line.
+
+The Web App is only usefull for beginner users in order to provide convient
+interface to discover the functionalities of the toolkit.
+
+Command line (advanced usage)
+=============================
+Here a example of a typical command line usage.
+
+Step 1 - Download a user-space reference volume (choose one or both)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Download an Allen mouse brain template at 100 microns (up to 10 microns)
 
 .. code-block:: bash
 
-    sudo apt-get install libpng-dev libblas-dev liblapack-dev
+   m2m_download_template.py allen_template_100.nii.gz -r 25
 
-If none of this work, try installing the dependencies with an anaconda virtual environment
-
-* Conda
+* Download an Allen mouse brain annotation at 100 microns (up to 10 microns)
 
 .. code-block:: bash
 
-    conda install libpng libblas liblapack
+   m2m_download_annotation.py allen_annotation_100.nii.gz labels.txt -r 25
 
-Uses cases
-----------
-Python
-~~~~~~
+Step 2 - Compute a transform matrix
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Compute the transform matrix ``transform_50.mat`` at 50 microns, 
+  given a user-space reference volume ``reference.nii.gz`` at 100 microns
+
+.. code-block:: bash
+
+    m2m_compute_transform_matrix.py reference.nii.gz transform_50.mat 50
+
+Note that a transformation matrix for a specific resolution is valid only for this specific resolution.
+If you want to import data (Step 3) with another resolution, you have to compute another matrix.
+
+Step 3 - Examples of uses cases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+With your reference image (e.g. ``reference.nii.gz``) and 
+your resolution-specific transformation matrix (e.g. ``transform_50.mat``) , you can
+
+* Import the projection density from the experiment id ``100140756``.
+
+.. code-block:: bash
+
+    m2m_import_proj_density.py --id 100140756  reference.nii.gz transform_50.mat 50
+
+* Find crossings ROIs based on two injection positions, ``(132,133,69)`` for the first injection position 
+  and ``(143,94,69)`` for the second injection position. The injection positions are given in voxel in the user space. 
+  For this example, a threshold of 0.07 is used to generate the crossings mask.
+
+.. code-block:: bash
+
+    m2m_crossing_finder.py transform_50.mat reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --threshold 0.07
+
+
+* Find 5 experiments ids in the Allen Mouse Brain Connectivity Atlas dataset
+  given an injetion position ``(132,133,69)``. The injection position is given in voxel in the user space.
+  The ids are downloaded in a csv file and can be used in ``m2m_import_proj_density.py``.
+
+.. code-block:: bash
+
+    m2m_experiments_finder.py 50 transform_50.mat reference.nii.gz experiments_ids.csv 132 133 69 --injection --nb_of_exps 5
+
+Note
+~~~~
+The following example are shown using basic arguments. 
+Consult the help of a script for more details about the other options available.
 
 * Display the help for a script
-.. code-block:: bash
-
-    python scripts/m2m_compute_transform_matrix.py --help
-
-* Download an Allen mouse brain template at 25 micron, and reorient it to RAS+.
-.. code-block:: bash
-
-    python scripts/m2m_download_template.py /path/to/allen_template_25um.nii --res 25 --apply-transform
-
-Docker
-~~~~~~
-* Display the help for a script
-.. code-block:: bash
-
-    docker run linumuqam/m2m m2m_compute_transform_matrix.py --help
-
-* Download an Allen mouse brain template at 25 micron, and reorient it to RAS+.
-.. code-block:: bash
-
-    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_download_template.py /data/allen_template_25um.nii --res 25 --apply-transform
-
-* Compute the transform matrix ``transform_50micron.mat``, given a user-space reference volume ``reference.nii.gz`` in the folder ``/path/to/local/data``.
-.. code-block:: bash
-
-    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_compute_transform_matrix.py /data/reference.nii.gz /data/transform_50micron.mat 50
-
-* Import the projection density from the experiment id ``100140756``. The downloaded data will be save in the ``/path/to/local/data/`` directory which is bound to the ``/data`` directory in the docker container.
 
 .. code-block:: bash
 
-    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_import_proj_density.py 100140756 /data/reference.nii.gz /data/transform_50micron.mat 50 -d /data
+    m2m_compute_transform_matrix.py --help
 
-* Find crossings based on two injection positions, (132,133,69) for the first injection position and (143,94,69) for the second injection position. The injection positions are given in voxel in the user space. For this example, a threshold of 0.07 is used to generate the crossings mask.
-
-.. code-block:: bash
-
-    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_crossing_finder.py /data/transform_50micron.mat /data/reference.nii.gz 50 --red 132 133 69 --green 143 94 69 --injection --dir /data/detected_crossings --threshold 0.07
-
-* Import tracts given an experiment ID.
-
-.. code-block:: bash
-
-    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_import_tract.py /data/output_tracts_100140756.trk /data/transform_50micron.mat /data/reference.nii.gz 50 --ids 100140756
-
-* Transform the Allen tractogram (Wildtype, RAS@50um) to the User's Data Space. Note that this command will take a few minutes to complete, as the tractogram first need to be downloaded and then each streamline have to be transformed to the user data space.
-
-.. code-block:: bash
-
-    docker run -v /path/to/local/data:/data linumuqam/m2m python m2m_transform_tractogram.py /data/transformed_tractogram.trk /data/transform_50micron.mat /data/reference.nii.gz
-
-* Extract a bundle of streamlines from the transformed Allen tractogram.
-
-.. code-block:: bash
-
-    docker run -v /path/to/local/data:/data linumuqam/m2m m2m_tract_filter.py /data/input_tractogram.trk /data/output.trk /data/reference.nii.gz --sphere --center 132 133 69 --radius 2
-
-* To execute an image interactively (note that no modification inside the container will be saved)
-
-.. code-block:: bash
-
-    docker run --rm -it --entrypoint bash linumuqam/m2m
-
-* **Note**: Some scripts will require a cache to accelerate processing. To do this with docker, we can use a docker volume named ``m2m_cache`` and mount it in the docker's home directory. You can add this option to the previous command to use a cache.
-
-.. code-block:: bash
-
-    -v m2m_cache:/root/.m2m
-
-
-Docker (development)
-~~~~~~~~~~~~~~~~~~~~
-To use the docker image for development, you need to replace the module and script source code by your own development version. To do this, we can bind mount the local working directory containing the source code and replace the ``/app`` source code in the docker image.
-
-* Pull or build the latest version of the ``linumuqam/m2m`` docker image as explained in the Installation section.
-* Make sure you are in the source code directory on your computer
-* Execute your code while mounting the local source code directory. For example, to use your modified version of the ``m2m_compute_transform_matrix.py`` script,
-
-.. code-block:: bash
-
-    docker run -v ${PWD}:/app linumuqam/m2m python scripts/m2m_compute_transform_matrix.py --help
-
-Likewise, the docker image can be configured to be used as a Python interpreter by your IDE. Please refer to `these instructions <https://code.visualstudio.com/docs/containers/quickstart-python>`_ for Visual Studio Code and to `these instructions <https://www.jetbrains.com/help/pycharm/using-docker-as-a-remote-interpreter.html>`_ for PyCharm.
+Alternatively, you can consult the scripts page.
