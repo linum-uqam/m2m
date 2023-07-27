@@ -5,13 +5,12 @@ import tempfile
 import pandas as pd
 
 # Page configuration
-st.set_page_config(page_title='M2M Experiments Finder', page_icon=':mag:')
+st.set_page_config(page_title='M2M Experiments Finder', page_icon='🔍')
 st.title('M2M Experiments Finder')
 
 # Link to the documentation
 st.write('https://m2m.readthedocs.io/en/latest/scripts/m2m_experiments_finder.html')
-st.write('Find experiments in the Allen Mouse Brain Connectivity Atlas (AMBCA) dataset '
-         'given a set of User Data Space (UDS) voxel coordinates [x, y, z].')
+st.write('Find experiments IDs in the Allen Mouse Brain Connectivity Atlas dataset')
 
 # Step 1: Upload Matrix File
 st.subheader('Step 1: Upload Matrix File')

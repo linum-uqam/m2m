@@ -7,7 +7,7 @@ import pandas as pd
 
 # Page configuration
 st.set_page_config(
-    page_title="M2M Import Projection Density", page_icon=":mouse:")
+    page_title="M2M Import Projection Density", page_icon="🗺️")
 st.title("M2M Import Projection Density")
 
 # Link to the documentation

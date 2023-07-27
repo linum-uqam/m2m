@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 
 # Page configuration
-st.set_page_config(page_title='M2M Download Template', page_icon=":mouse:")
+st.set_page_config(page_title='M2M Download Template', page_icon="🐭")
 st.title('M2M Download Template')
 
 # Link to the documentation

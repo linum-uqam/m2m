@@ -50,7 +50,7 @@ Command line (advanced usage)
 =============================
 Here a example of a typical command line usage.
 
-Step 1 - Download a user-space reference volume (choose one or both)
+Step 1 - Download a user-space reference image (choose one or both)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Download an Allen mouse brain template at 100 microns (up to 10 microns)

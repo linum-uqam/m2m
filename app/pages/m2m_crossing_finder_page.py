@@ -5,7 +5,7 @@ import tempfile
 import zipfile
 
 # Page configuration
-st.set_page_config(page_title='M2M Crossing Finder', page_icon=':mouse:')
+st.set_page_config(page_title='M2M Crossing Finder', page_icon='🔎')
 st.title('M2M Crossing Finder')
 
 # Link to the documentation
