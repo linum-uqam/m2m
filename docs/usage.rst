@@ -18,7 +18,7 @@ Option 1
 
 * Click on a link to open the Streamlit Web App locally
 
-This option may not work on Windows, see `Installation`_ page for more informations.
+This option may not work on Windows, see Installation page for more informations.
   
 Option 2
 ~~~~~~~~
@@ -117,4 +117,4 @@ Consult the help of a script for more details about the other options available.
 
     m2m_compute_transform_matrix.py --help
 
-Alternatively, you can consult the `Scripts`_ page.
+Alternatively, you can consult the Scripts page.
