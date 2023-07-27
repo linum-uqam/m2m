@@ -9,6 +9,6 @@ Please refer to https://m2m.readthedocs.io/ for the installation & usage instruc
 
 ## References
 
-* Abou-Hamdan, M., Cosenza, E., Miraux, S., Petit, L. and Lefebvre, J. (2023). Exploring the Allen Mouse Connectivity experiments with new neuroinformatic tools for neurophotonics, diffusion MRI and tractography applications. _SPIE Photonics West 2023_ (San Francisco, USA).
+* Mahdi Abou-Hamdan, Elise Cosenza, Sylvain Miraux, Laurent Petit, Joël Lefebvre, "Exploring the Allen mouse connectivity experiments with new neuroinformatic tools for neurophotonics, diffusion MRI and tractography applications," Proc. SPIE 12365, Neural Imaging and Sensing 2023, 123650A (14 March 2023); https://doi.org/10.1117/12.2649029
 
 
