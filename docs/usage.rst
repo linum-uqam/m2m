@@ -43,8 +43,8 @@ Note
 Using the Steamlit Web App is not recommended if you have large images (exceeding 200 Mb)
 because you may encounter some limitations. For advanced usage, we recommend working in command line.
 
-The Web App is only usefull for beginner users in order to provide convient
-interface to discover the functionalities of the toolkit.
+The Web App is only usefull for beginner users in order to provide convenient
+interfaces to discover the functionalities of the toolkit.
 
 Command line (advanced usage)
 =============================
