@@ -1,3 +1,0 @@
-libpng-dev
-libblas-dev
-liblapack-dev

@@ -1,5 +1,5 @@
 # For more information, please refer to https://aka.ms/vscode-docker-python
-FROM python:3.9-slim
+FROM continuumio/anaconda3
 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -18,15 +18,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /app
-# or 
-# RUN git clone https://github.com/linum-uqam/m2m .
 
 # Install the module
-RUN pip install -r requirements.txt
+RUN conda env create -f environment.yml
+
+# Make RUN commands use the new environment:
+SHELL ["conda", "run", "-n", "m2m", "/bin/bash", "-c"]
 RUN pip install -e .
 
 EXPOSE 8501
 
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
 
-ENTRYPOINT ["streamlit", "run", "app/m2m_main_page.py", "--server.port=8501", "--server.address=0.0.0.0"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "m2m", "streamlit", "run", "app/m2m_main_page.py", "--server.port=8501", "--server.address=0.0.0.0"]
