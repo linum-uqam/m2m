@@ -9,4 +9,3 @@ dependencies:
   - pynrrd=0.4.2
   - streamlit=1.26.0
   - pytables=3.8.0
-  - sphinx-argparse=0.4.0
