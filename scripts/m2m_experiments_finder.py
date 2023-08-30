@@ -31,7 +31,6 @@ import argparse
 import sys
 from pathlib import Path
 
-import numpy as np
 import csv
 
 from m2m.allensdk_utils import search_experiments
