@@ -4,6 +4,7 @@ Installation
 We recommend using Anaconda and to install m2m in a separate environment. Execute the following command.
 
 .. code-block:: bash
+
     git clone https://github.com/linum-uqam/m2m.git
     cd m2m
     conda env create -f environment.yml

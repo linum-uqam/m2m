@@ -7,11 +7,6 @@ Web app (discovering m2m)
 =========================
 To get use to the m2m toolkit, you can run it on a Streamlit Web App.
 
-To do this, there are two options
-
-Option 1
-~~~~~~~~
-
 * Run the following command 
 
 .. code-block:: bash
@@ -21,24 +16,6 @@ Option 1
 * Click on a link to open the Streamlit Web App locally
 
 This option may not work on Windows, see Installation page for more informations.
-  
-Option 2
-~~~~~~~~
-
-* Install `Docker Desktop <https://www.docker.com/get-started/>`_
-* Build the Docker image
-
-.. code-block:: bash
-
-    docker build -t m2m/streamlit .
-
-* Run the Docker container
-
-.. code-block:: bash
-
-    docker run -p 8501:8501 m2m/streamlit
-
-* Click on a link to open the Streamlit Web App locally
 
 Note
 ~~~~
