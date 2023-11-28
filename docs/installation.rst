@@ -11,6 +11,17 @@ We recommend using Anaconda and to install m2m in a separate environment. Execut
     conda activate m2m
     pip install -e .
 
+Update
+======
+
+To update the toolkit, execute the following command.
+
+.. code-block:: bash
+
+    conda activate m2m
+    git pull
+    pip install -e .  # This command is necessary only if the requirements have changed
+
 Notes
 =====
 
