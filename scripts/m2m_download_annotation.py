@@ -9,6 +9,12 @@ import argparse
 from allensdk.core.reference_space_cache import ReferenceSpaceCache
 from pathlib import Path
 import SimpleITK as sitk
+import nrrd
+import numpy as np
+import nibabel as nib
+from m2m.transform import (registrate_allen2UserDataSpace)
+from m2m.util import (load_user_template,
+                      save_nifti, )
 
 ALLEN_RESOLUTIONS = [10, 25, 50, 100]
 
@@ -22,6 +28,13 @@ def _build_arg_parser():
                    help="Output labels information file (.txt or .label) (Can be used by ITKSnap)")
     p.add_argument("-r", "--resolution", default=100, type=int, choices=ALLEN_RESOLUTIONS,
                    help="Template resolution in micron. Default=%(default)s")
+
+    # Add optional arguments to align the template to the user space
+    p.add_argument_group("Align the template to the user space")
+    p.add_argument("-m", "--file_mat", default=None, type=str,
+                   help="Path to the transform matrix (.mat)")
+    p.add_argument("-R", "--reference", default=None, type=str,
+                     help="Path to the reference volume (.nii.gz)")
 
     return p
 
@@ -64,26 +77,48 @@ def main():
     # Download the brain annotations and structure information - WIP
     # ID 1 is the adult mouse structure graph
     rsp = rspc.get_reference_space(structure_file_name=json_file, annotation_file_name=nrrd_file)
-    rsp.write_itksnap_labels(str(nrrd_file), str(output_labels))
+    rsp.write_itksnap_labels(str(nrrd_file), str(output_labels))  # TODO: this step takes a long time, can we speed it up?
 
     # Loading the nrrd file
-    vol = sitk.ReadImage(str(nrrd_file))
+    vol, metadata = nrrd.read(str(nrrd_file))
 
-    # Preparing the affine to align the template in the RAS+
+    # Converting to PIR to RAS+
+    vol = np.moveaxis(vol, [0, 1, 2], [1, 2, 0])
+    vol = np.flip(vol, axis=1)  # To move from A->P to P->A
+    vol = np.flip(vol, axis=2)  # To move from S->I to I->S
+
+    # Preparing the affine
     r_mm = args.resolution / 1e3  # Convert the resolution from micron to mm
-    vol.SetSpacing([r_mm] * 3)  # Set the spacing in mm
-
-    # Apply the transform
-    vol = sitk.PermuteAxes(vol, (2, 0, 1))
-    vol = sitk.Flip(vol, (False, False, True))
-    vol.SetDirection([1, 0, 0, 0, 1, 0, 0, 0, 1])
+    affine = np.eye(4) * r_mm
+    affine[3, 3] = 1
 
     # Save the volume
-    sitk.WriteImage(vol, str(output))
+    img = nib.Nifti1Image(vol, affine)
+    nib.save(img, str(output))
 
     # Remove the temporary files
     nrrd_file.unlink()  # Removes the nrrd file
     json_file.unlink()
+
+    # If the affine matrix was provided, apply it
+    if args.reference is not None and args.file_mat is not None:
+        user_vol = load_user_template(args.reference)
+
+        # Load the allen template
+        allen_vol = load_user_template(str(output))
+        allen_vol = allen_vol.get_fdata()
+
+        # Applying ANTsPyX registration
+        warped_vol = registrate_allen2UserDataSpace(
+            args.file_mat,
+            allen_vol,
+            user_vol,
+            allen_res=args.resolution,
+            smooth=False
+        )
+
+        # Saving the warped volume
+        save_nifti(warped_vol, user_vol.affine, args.output)
 
 if __name__ == "__main__":
     main()

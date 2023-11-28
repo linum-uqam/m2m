@@ -9,8 +9,8 @@ def add_overwrite_arg(parser):
 
 def add_resolution_arg(parser):
     parser.add_argument('res', type=int,
-                        choices=[25, 50, 100],
-                        help='Resolution of the Allen files \n'
+                        choices=[10, 25, 50, 100],
+                        help='Resolution (in micron) of the Allen files \n'
                              'Please use the same resolution as '
                              'the transformation matrix.')
 

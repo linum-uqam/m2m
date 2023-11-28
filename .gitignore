@@ -149,3 +149,9 @@ dmypy.json
 # IDE config files
 .vscode/
 .idea/
+
+# Data
+data/
+*.nii
+*.nii.gz
+*.mat

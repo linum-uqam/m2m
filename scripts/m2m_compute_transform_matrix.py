@@ -3,7 +3,7 @@
 
 """
     Compute an Affine transformation matrix for a specific resolution 
-    in the Allen (25, 50, 100) using ANTsPyX.
+    in the Allen using ANTsPyX.
 
     Thoses matrices are needed for the other scripts in order 
     to align Allen data on User Data Space.
@@ -48,7 +48,7 @@ def main():
     parser = _build_arg_parser()
     args = parser.parse_args()
 
-    # Verying args validity
+    # Checking args validity
     check_input_file(parser, args.reference)
     if not (args.reference).endswith(".nii") and \
             not (args.reference).endswith(".nii.gz"):
@@ -64,10 +64,10 @@ def main():
     # Loading User template
     user_vol = load_user_template(str(args.reference))
 
-    # Pretransform volumes orientations
+    # Pre-transform volumes orientations
     allen_reorient = pretransform_vol_PIR_UserDataSpace(allen_vol, user_vol)
 
-    # Registrating with ANTsPyX
+    # Registration with ANTsPyX
     affine_mat = compute_transform_matrix(allen_reorient, user_vol, fixed_res=args.user_res, moving_res=args.res)
 
     # Saving the matrix

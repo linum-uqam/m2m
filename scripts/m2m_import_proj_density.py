@@ -94,7 +94,7 @@ def _build_arg_parser():
                         'is nearestNeighbor by default.\n'
                         'Using --smooth will change the method to bSpline.')
     p.add_argument('--threshold', type=float, default=.5,
-                   help='Threshold for the binarised map.')
+                   help='Threshold for the binarized map.')
     p.add_argument('--not_all', action="store_true",
                    help='If set, only saves the files specified')
     add_resolution_arg(p)
@@ -112,7 +112,7 @@ def _build_arg_parser():
                    help='Save a binarized projection density map (.nii.gz)'
                         'with a certain --threshold.')
     g.add_argument('--infos', action="store_true",
-                   help='Save informations about the experiment (.json):\n'
+                   help='Save information about the experiment (.json):\n'
                         '- Injection coordinates (MI-Brain, Allen)\n'
                         '- Hemisphere (L or R)\n'
                         '- Injection ROI\n')
