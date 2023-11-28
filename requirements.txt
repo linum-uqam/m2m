@@ -1,4 +1,3 @@
 SimpleITK==2.2.1
 allensdk==2.15.2
 antspyx==0.3.8
-sphinx-argparse==0.4.0
