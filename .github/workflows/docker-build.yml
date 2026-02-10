@@ -49,8 +49,8 @@ jobs:
             type=ref,event=branch
             # Tag with PR number
             type=ref,event=pr
-            # Tag latest for main branch
-            type=raw,value=latest,enable={{is_default_branch}}
+            # Tag latest for main branch and version releases
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') || startsWith(github.ref, 'refs/tags/v') }}
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
