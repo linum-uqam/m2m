@@ -7,7 +7,6 @@ FROM antsx/ants:latest
 # Set metadata
 LABEL maintainer="Joël Lefebvre <lefebvre.joel@uqam.ca>"
 LABEL description="LINUM's Meso to Macro Toolkit - Neuroimaging analysis tools"
-LABEL version="0.1.0"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
