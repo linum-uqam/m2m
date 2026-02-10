@@ -30,19 +30,25 @@ This branch fixes critical dependency conflicts, removes duplication across depe
 - **Issue**: Only setup.py existed, making cross-platform builds difficult
 - **Fix**: Added pyproject.toml with modern PEP 621 configuration
 
-## Dependency Simplification (No Duplication)
+### 7. **Unnecessary Dependency on Conda**
+- **Issue**: Conda added complexity without providing essential benefits
+- **Analysis**: All dependencies (including antspyx and allensdk) have pre-built wheels for pip on major platforms
+- **Fix**: Removed environment.yml and simplified to pip/venv-only installation
+- **Benefits**: Simpler setup, standard Python tooling, easier for users, better maintainability
 
-To maintain clean, DRY (Don't Repeat Yourself) code and easier maintenance, all dependencies are now defined in a **single source of truth**:
+## Dependency Simplification (No Duplication, Pip-Only)
 
-### Dependency File Structure
+To maintain clean, DRY (Don't Repeat Yourself) code and easier maintenance, all dependencies are now defined in a **single source of truth** using standard Python tooling:
+
+### Dependency File Structure (Pip-Only)
 - **`requirements.txt`**: Single source of truth for all pip package dependencies with version constraints
-- **`environment.yml`**: Minimal conda configuration (Python 3.11 + build tools) + references `requirements.txt`
 - **`pyproject.toml`**: Modern packaging metadata, dynamically reads dependencies from `requirements.txt`
 - **`requirements-dev.txt`**: Development extras that reference `requirements.txt` + `docs/requirements.txt`
 - **`docs/requirements.txt`**: Sphinx-only dependencies for ReadTheDocs (no duplication)
+- **Removed `environment.yml`**: Conda is no longer required - using standard Python venv simplifies the setup
 
 ### ReadTheDocs Compatibility
-The `.readthedocs.yaml` configuration is fully compatible:
+The `.readthedocs.yaml` configuration is fully compatible with pip-only installation:
 ```yaml
 python:
   install:
@@ -54,38 +60,35 @@ This structure ensures:
 - ✅ No duplicate dependency declarations
 - ✅ Single place to update versions
 - ✅ ReadTheDocs builds successfully
-- ✅ Conda and pip installations work identically
+- ✅ Standard pip installation works across all platforms
 - ✅ Development setup includes all necessary tools
+- ✅ No conda dependency required
 
 ## Files Modified
 
 ### Updated Files
-1. **environment.yml**: Simplified to reference `requirements.txt` (no duplication)
-2. **requirements.txt**: Comprehensive list with all dependencies and version constraints
-3. **pyproject.toml**: Dynamically references dependencies (no duplication)
-4. **requirements-dev.txt**: References base requirements files
-5. **setup.py**: Improved with better error handling and pyproject.toml compatibility
-6. **README.md**: Updated installation instructions
-7. **INSTALL.md**: Added explanation of simplified dependency structure
+1. **requirements.txt**: Comprehensive list with all dependencies and version constraints
+2. **pyproject.toml**: Dynamically references dependencies (no duplication)
+3. **requirements-dev.txt**: References base requirements files
+4. **setup.py**: Improved with better error handling and pyproject.toml compatibility
+5. **README.md**: Updated installation instructions for pip/venv-only approach
+6. **INSTALL.md**: Comprehensive pip/venv installation guide with platform-specific instructions
 
 ### New Files Created
 1. **pyproject.toml**: Modern Python packaging configuration (PEP 621)
 2. **INSTALL.md**: Comprehensive installation guide with platform-specific instructions
 3. **requirements-dev.txt**: Development dependencies separated from runtime dependencies
 4. **CHANGES.md**: This file documenting all changes
+5. **SIMPLIFICATION_SUMMARY.md**: Before/after comparison of dependency management
+
+### Removed Files
+1. **environment.yml**: Removed to simplify setup - conda is no longer required
 
 ### Existing Files (Unchanged, Already Compatible)
-1. **`.readthedocs.yaml`**: Already configured correctly for the new structure
+1. **`.readthedocs.yaml`**: Already configured correctly for pip-only installation
 2. **`docs/requirements.txt`**: Sphinx-only dependencies (no changes needed)
 
 ## Key Changes Detail
-
-### environment.yml
-- Added Python 3.11 pin
-- Added build dependencies (cython, setuptools)
-- Specified version ranges for all packages
-- Added conda-forge channel as primary
-- Moved allensdk and antspyx to pip section for better compatibility
 
 ### requirements.txt
 - Added all implicit dependencies explicitly
@@ -117,18 +120,29 @@ This structure ensures:
 To test this fix:
 
 ```bash
-# 1. Remove any existing m2m environment
-conda env remove -n m2m
+# 1. Remove any existing virtual environment
+rm -rf .venv  # or: rmdir /s .venv on Windows
 
-# 2. Create fresh environment
-conda env create -f environment.yml
+# 2. Create fresh virtual environment with Python 3.11
+python3.11 -m venv .venv
 
-# 3. Activate and install
-conda activate m2m
+# 3. Activate environment
+source .venv/bin/activate  # or: .venv\Scripts\activate on Windows
+
+# 4. Upgrade pip and install
+pip install --upgrade pip setuptools wheel
 pip install -e .
 
-# 4. Verify installation
-python -c "import m2m; import allensdk; print('Success!')"
+# 5. Verify installation
+python -c "import m2m; import numpy; import allensdk; print('Success!')"
+```
+
+For conda users (optional):
+```bash
+# Alternative using conda for Python version management
+conda create -n m2m python=3.11 pip
+conda activate m2m
+pip install -e .
 ```
 
 ## Compatibility Matrix
@@ -148,19 +162,32 @@ None. All changes are backward compatible. Existing installations will continue 
 
 ## Migration Guide
 
-For users with existing environments:
+For users with existing conda environments:
 
 ```bash
-# Option 1: Update existing environment
+# Option 1: Switch to venv (recommended for simplicity)
+# 1. Export your existing packages (optional, for reference)
 conda activate m2m
-conda env update -f environment.yml
-pip install --upgrade -e .
+pip list > old-packages.txt
+conda deactivate
 
-# Option 2: Fresh install (recommended)
-conda env remove -n m2m
-conda env create -f environment.yml
-conda activate m2m
+# 2. Create new venv
+python3.11 -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 pip install -e .
+
+# Option 2: Keep using conda (still supported)
+conda activate m2m
+pip install --upgrade -e .
+# Note: environment.yml no longer exists, but conda + pip still works fine
+```
+
+For users with existing venv:
+
+```bash
+# Just upgrade
+source .venv/bin/activate
+pip install --upgrade -e .
 ```
 
 ## References
