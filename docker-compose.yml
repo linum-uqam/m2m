@@ -1,8 +1,6 @@
 # Docker Compose configuration for m2m
 # Simplifies running the m2m toolkit in a containerized environment
 
-version: '3.8'
-
 services:
   # Web interface service (Streamlit)
   m2m:
