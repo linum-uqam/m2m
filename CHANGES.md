@@ -1,8 +1,8 @@
-# Dependency Fix Changes
+# Dependency Fix and Simplification Changes
 
 ## Summary
 
-This branch fixes critical dependency conflicts and installation issues that prevented the package from being installed across different platforms.
+This branch fixes critical dependency conflicts, removes duplication across dependency files, and simplifies the installation process while maintaining full compatibility with ReadTheDocs.
 
 ## Problems Fixed
 
@@ -30,19 +30,53 @@ This branch fixes critical dependency conflicts and installation issues that pre
 - **Issue**: Only setup.py existed, making cross-platform builds difficult
 - **Fix**: Added pyproject.toml with modern PEP 621 configuration
 
+## Dependency Simplification (No Duplication)
+
+To maintain clean, DRY (Don't Repeat Yourself) code and easier maintenance, all dependencies are now defined in a **single source of truth**:
+
+### Dependency File Structure
+- **`requirements.txt`**: Single source of truth for all pip package dependencies with version constraints
+- **`environment.yml`**: Minimal conda configuration (Python 3.11 + build tools) + references `requirements.txt`
+- **`pyproject.toml`**: Modern packaging metadata, dynamically reads dependencies from `requirements.txt`
+- **`requirements-dev.txt`**: Development extras that reference `requirements.txt` + `docs/requirements.txt`
+- **`docs/requirements.txt`**: Sphinx-only dependencies for ReadTheDocs (no duplication)
+
+### ReadTheDocs Compatibility
+The `.readthedocs.yaml` configuration is fully compatible:
+```yaml
+python:
+  install:
+    - requirements: docs/requirements.txt  # Sphinx dependencies
+    - requirements: requirements.txt       # Package dependencies
+```
+
+This structure ensures:
+- ✅ No duplicate dependency declarations
+- ✅ Single place to update versions
+- ✅ ReadTheDocs builds successfully
+- ✅ Conda and pip installations work identically
+- ✅ Development setup includes all necessary tools
+
 ## Files Modified
 
 ### Updated Files
-1. **environment.yml**: Complete rewrite with proper dependency constraints and Python version
-2. **requirements.txt**: Expanded with all dependencies and version constraints
-3. **setup.py**: Improved with better error handling and pyproject.toml compatibility
-4. **README.md**: Updated installation instructions
+1. **environment.yml**: Simplified to reference `requirements.txt` (no duplication)
+2. **requirements.txt**: Comprehensive list with all dependencies and version constraints
+3. **pyproject.toml**: Dynamically references dependencies (no duplication)
+4. **requirements-dev.txt**: References base requirements files
+5. **setup.py**: Improved with better error handling and pyproject.toml compatibility
+6. **README.md**: Updated installation instructions
+7. **INSTALL.md**: Added explanation of simplified dependency structure
 
 ### New Files Created
 1. **pyproject.toml**: Modern Python packaging configuration (PEP 621)
 2. **INSTALL.md**: Comprehensive installation guide with platform-specific instructions
 3. **requirements-dev.txt**: Development dependencies separated from runtime dependencies
 4. **CHANGES.md**: This file documenting all changes
+
+### Existing Files (Unchanged, Already Compatible)
+1. **`.readthedocs.yaml`**: Already configured correctly for the new structure
+2. **`docs/requirements.txt`**: Sphinx-only dependencies (no changes needed)
 
 ## Key Changes Detail
 

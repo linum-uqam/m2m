@@ -9,7 +9,7 @@ This guide provides detailed installation instructions for the m2m (Meso to Macr
 
 ## Quick Start (Recommended)
 
-The recommended installation method uses conda to manage dependencies and ensure cross-platform compatibility:
+The recommended installation method uses conda to manage dependencies and ensure cross-platform compatibility.
 
 ```bash
 # Clone the repository
@@ -17,6 +17,7 @@ git clone https://github.com/linum-uqam/m2m.git
 cd m2m
 
 # Create and activate the conda environment
+# This installs Python 3.11, build tools, and all dependencies from requirements.txt
 conda env create -f environment.yml
 conda activate m2m
 

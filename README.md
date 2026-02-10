@@ -7,9 +7,13 @@ A collection of tools to work with both mesoscale brain data (e.g. the Allen Mou
 
 ### Quick Installation
 
-We recommend using Anaconda/Miniconda for installation. Once the source code is cloned/downloaded, open a terminal in the source code location and install:
+We recommend using Anaconda/Miniconda for installation:
 
 ```bash
+# Clone and navigate to the repository
+git clone https://github.com/linum-uqam/m2m.git
+cd m2m
+
 # Create and activate the conda environment
 conda env create -f environment.yml
 conda activate m2m
@@ -18,9 +22,9 @@ conda activate m2m
 pip install -e .
 ```
 
-**Note**: Python 3.9-3.12 is supported. Python 3.13+ is not yet compatible with all dependencies.
+**Note**: Requires Python 3.11 (pinned for compatibility). All dependencies are managed through `requirements.txt`.
 
-For detailed installation instructions, troubleshooting, and platform-specific notes, see [INSTALL.md](INSTALL.md).
+📖 For detailed instructions, troubleshooting, and platform-specific notes, see [INSTALL.md](INSTALL.md).
 
 ### Usage
 
