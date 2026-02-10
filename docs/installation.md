@@ -6,7 +6,21 @@ m2m can be installed using Docker (recommended for simplicity) or locally with P
 
 ### Option 1: Docker (Recommended)
 
-The easiest way to use m2m - no Python installation needed!
+The easiest way to use m2m - no Python installation needed! Pre-built images are automatically built and published to [Docker Hub](https://hub.docker.com/r/linumuqam/m2m).
+
+**Using the pre-built image (no git clone needed):**
+
+```bash
+# Create data directories
+mkdir -p data/input data/output
+
+# Run the web interface directly
+docker run -p 8501:8501 -v $(pwd)/data:/data linumuqam/m2m:latest
+
+# Access the web interface at http://localhost:8501
+```
+
+**Using docker-compose (recommended for development):**
 
 ```bash
 # Clone the repository
@@ -25,7 +39,7 @@ docker-compose up
 **Requirements:**
 
 * Docker Desktop or Docker Engine
-* Docker Compose (usually included with Docker Desktop)
+* Docker Compose (optional, for docker-compose method)
 
 **Benefits:**
 
@@ -33,6 +47,7 @@ docker-compose up
 * ✅ Works identically on all platforms (Linux, macOS, Windows)
 * ✅ All dependencies pre-installed
 * ✅ Isolated environment
+* ✅ Pre-built images updated automatically on each release
 
 ### Option 2: Local Python Installation
 
@@ -102,7 +117,7 @@ docker-compose up
 docker run --rm \
   -v $(pwd)/scripts:/scripts:ro \
   -v $(pwd)/data:/data:rw \
-  linum/m2m:latest \
+  linumuqam/m2m:latest \
   python /scripts/m2m_download_template.py --help
 ```
 
@@ -111,7 +126,7 @@ docker run --rm \
 ```bash
 docker run --rm -it \
   -v $(pwd)/data:/data \
-  linum/m2m:latest \
+  linumuqam/m2m:latest \
   python
 ```
 
@@ -121,7 +136,7 @@ docker run --rm -it \
 docker run --rm -it \
   -v $(pwd)/scripts:/scripts \
   -v $(pwd)/data:/data \
-  linum/m2m:latest \
+  linumuqam/m2m:latest \
   bash
 ```
 

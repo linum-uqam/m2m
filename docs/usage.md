@@ -36,7 +36,7 @@ All m2m scripts are available in the Docker container. You can run them by mount
 docker run --rm \
   -v $(pwd)/scripts:/scripts:ro \
   -v $(pwd)/data:/data:rw \
-  linum/m2m:latest \
+  linumuqam/m2m:latest \
   python /scripts/m2m_download_template.py allen_template_100.nii.gz -r 25
 ```
 

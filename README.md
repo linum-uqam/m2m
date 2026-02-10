@@ -12,7 +12,9 @@ A collection of tools to work with both mesoscale brain data (e.g. the Allen Mou
 
 ### Option 1: Docker (Recommended)
 
-The easiest way to use m2m - no Python installation needed:
+The easiest way to use m2m - no Python installation needed! Pre-built images are available on [Docker Hub](https://hub.docker.com/r/linumuqam/m2m).
+
+**Using docker-compose (with web interface):**
 
 ```bash
 # Clone the repository
@@ -28,13 +30,20 @@ docker-compose up
 # Access the web interface at http://localhost:8501
 ```
 
-**Run m2m scripts:**
+**Using the pre-built image directly:**
+
 ```bash
+# Run m2m scripts
 docker run --rm \
   -v $(pwd)/scripts:/scripts:ro \
   -v $(pwd)/data:/data:rw \
-  linum/m2m:latest \
+  linumuqam/m2m:latest \
   python /scripts/m2m_download_template.py --help
+
+# Or launch the web interface
+docker run -p 8501:8501 \
+  -v $(pwd)/data:/data \
+  linumuqam/m2m:latest
 ```
 
 ### Option 2: Local Python Installation
