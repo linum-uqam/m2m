@@ -4,14 +4,65 @@ This guide provides detailed installation instructions for the m2m (Meso to Macr
 
 ## Prerequisites
 
+### Option 1: Docker (Easiest - No Python Installation Required)
+- **Docker** ([Install Docker](https://docs.docker.com/get-docker/))
+- **Docker Compose** (usually included with Docker Desktop)
+
+### Option 2: Local Python Installation
 - **Python 3.9, 3.10, 3.11, or 3.12** (Python 3.11 recommended for best compatibility)
 - Python 3.13+ is **not supported** due to dependency constraints
 - **Git** (for cloning the repository)
 - **pip** (usually comes with Python)
 
-## Quick Start (Recommended)
+## Quick Start
 
-The recommended installation method uses Python's built-in `venv` module to create an isolated environment:
+### Option A: Docker (Recommended for Simplicity)
+
+Docker provides the simplest installation - no Python setup required! All dependencies are pre-installed in the container.
+
+```bash
+# Clone the repository
+git clone https://github.com/linum-uqam/m2m.git
+cd m2m
+
+# Create data directories
+mkdir -p data/input data/output
+
+# Start the application with Docker Compose
+docker-compose up
+
+# The Streamlit web interface will be available at http://localhost:8501
+```
+
+**That's it!** The container includes Python 3.11, all dependencies, and the m2m toolkit ready to use.
+
+**To run Python scripts instead of the web interface:**
+```bash
+# Run a Python script in the container
+docker-compose run --rm m2m-cli python your_script.py
+
+# Or get an interactive Python session
+docker-compose run --rm m2m-cli python
+
+# Or get a bash shell
+docker-compose run --rm m2m-cli bash
+```
+
+**To stop the application:**
+```bash
+docker-compose down
+```
+
+**Benefits of Docker:**
+- ✅ No Python installation required
+- ✅ No dependency management
+- ✅ Works identically on all platforms (Linux, macOS, Windows)
+- ✅ Isolated environment - won't affect your system
+- ✅ Easy cleanup - just remove the container
+
+### Option B: Local Python Installation (Pip + Venv)
+
+If you prefer a local installation or need to develop/modify the code:
 
 ```bash
 # Clone the repository
@@ -36,7 +87,7 @@ pip install -e .
 
 **Note**: All dependencies are automatically installed from [requirements.txt](requirements.txt) when you run `pip install -e .`
 
-## Alternative: Using Conda (Optional)
+### Option C: Using Conda (Optional)
 
 If you prefer conda for Python version management:
 
@@ -106,6 +157,95 @@ On Debian/Ubuntu:
 ```bash
 sudo apt-get update
 sudo apt-get install python3.11 python3.11-venv python3.11-dev build-essential
+```
+
+## Docker Usage (Detailed)
+
+### Building the Docker Image
+
+If you want to build the image yourself (instead of using docker-compose):
+
+```bash
+# Build the image
+docker build -t linum/m2m:latest .
+
+# Run the Streamlit web interface
+docker run -d \
+  --name m2m \
+  -p 8501:8501 \
+  -v $(pwd)/data/input:/data/input:ro \
+  -v $(pwd)/data/output:/data/output:rw \
+  linum/m2m:latest
+
+# View logs
+docker logs -f m2m
+
+# Stop and remove container
+docker stop m2m
+docker rm m2m
+```
+
+### Running Python Scripts with Docker
+
+```bash
+# Run a Python script
+docker run --rm \
+  -v $(pwd)/data/input:/data/input:ro \
+  -v $(pwd)/data/output:/data/output:rw \
+  -v $(pwd)/my_script.py:/app/my_script.py:ro \
+  linum/m2m:latest \
+  python /app/my_script.py
+
+# Interactive Python session
+docker run --rm -it \
+  -v $(pwd)/data:/data \
+  linum/m2m:latest \
+  python
+
+# Bash shell access
+docker run --rm -it \
+  -v $(pwd)/data:/data \
+  linum/m2m:latest \
+  bash
+```
+
+### Docker Volume Management
+
+The docker-compose setup creates persistent volumes for cache and configuration:
+
+```bash
+# List volumes
+docker volume ls
+
+# Inspect a volume
+docker volume inspect m2m_m2m-cache
+
+# Remove volumes (clears cache)
+docker-compose down -v
+```
+
+### Docker Resource Management
+
+Docker containers are isolated and resource-limited by default. For large datasets:
+
+```bash
+# Run with more memory (example: 8GB)
+docker run --memory="8g" -p 8501:8501 linum/m2m:latest
+
+# Check container resource usage
+docker stats m2m
+```
+
+### Updating the Docker Image
+
+When m2m is updated:
+
+```bash
+# Rebuild the image
+docker-compose build --no-cache
+
+# Restart with new image
+docker-compose up -d
 ```
 
 ## Troubleshooting
@@ -340,6 +480,66 @@ Or install large packages one at a time:
 pip install numpy scipy pandas
 pip install -e .
 ```
+
+### Docker-Specific Issues
+
+#### Issue: Port 8501 already in use
+
+**Solution**: Change the port mapping in docker-compose.yml:
+```yaml
+ports:
+  - "8502:8501"  # Use port 8502 instead
+```
+
+#### Issue: Permission denied errors with volumes
+
+**Cause**: The container runs as user ID 1000, which may not match your user ID.
+
+**Solution on Linux**:
+```bash
+# Change ownership of data directories
+sudo chown -R 1000:1000 data/
+```
+
+**Solution on macOS/Windows**: Docker Desktop handles this automatically.
+
+#### Issue: Container keeps restarting
+
+**Solution**: Check the logs:
+```bash
+docker-compose logs -f m2m
+```
+
+Common causes:
+- Port already in use
+- Memory limit too low
+- Missing dependencies (rebuild with `--no-cache`)
+
+#### Issue: Cannot access Streamlit interface
+
+**Solution**:
+1. Check container is running: `docker ps`
+2. Check logs: `docker-compose logs m2m`
+3. Try accessing: `http://localhost:8501`
+4. On some systems, use `http://127.0.0.1:8501` instead
+
+#### Issue: Docker build fails
+
+**Solution**:
+```bash
+# Clear Docker cache and rebuild
+docker system prune -a
+docker-compose build --no-cache
+```
+
+#### Issue: Slow performance in Docker
+
+**Cause**: Volume mounting can be slow on macOS/Windows.
+
+**Solution**:
+- Use Docker volumes instead of bind mounts for better performance
+- Increase Docker Desktop resources (CPU/Memory) in settings
+- On macOS, consider using VirtioFS (in Docker Desktop settings)
 
 ## Getting Help
 

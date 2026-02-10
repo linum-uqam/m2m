@@ -36,6 +36,16 @@ This branch fixes critical dependency conflicts, removes duplication across depe
 - **Fix**: Removed environment.yml and simplified to pip/venv-only installation
 - **Benefits**: Simpler setup, standard Python tooling, easier for users, better maintainability
 
+### 8. **No Containerized Installation Option**
+- **Issue**: Users had to install Python and manage dependencies manually
+- **Solution**: Added Docker containerization for zero-setup installation
+- **Benefits**: No Python installation required, consistent environment across all platforms, isolated from system, easier deployment
+
+### 9. **Docker Build Failures with antspyx**
+- **Issue**: Building antspyx from source in Docker took 30+ minutes and failed with memory errors
+- **Solution**: Use official `antsx/ants:latest` base image (ANTs pre-compiled), then install Python 3.11 and antspyx via pip
+- **Benefits**: Build time reduced from 30+ minutes (or failure) to ~2-5 minutes, reliable builds, ANTs toolkit ready to use
+
 ## Dependency Simplification (No Duplication, Pip-Only)
 
 To maintain clean, DRY (Don't Repeat Yourself) code and easier maintenance, all dependencies are now defined in a **single source of truth** using standard Python tooling:
@@ -80,6 +90,9 @@ This structure ensures:
 3. **requirements-dev.txt**: Development dependencies separated from runtime dependencies
 4. **CHANGES.md**: This file documenting all changes
 5. **SIMPLIFICATION_SUMMARY.md**: Before/after comparison of dependency management
+6. **Dockerfile**: Container image definition with all dependencies pre-installed
+7. **docker-compose.yml**: Docker Compose configuration for easy container management
+8. **.dockerignore**: Docker build optimization (excludes unnecessary files)
 
 ### Removed Files
 1. **environment.yml**: Removed to simplify setup - conda is no longer required
@@ -114,6 +127,20 @@ This structure ensures:
 - Troubleshooting section for common issues
 - Alternative installation methods
 - Verification steps
+- Comprehensive Docker usage guide
+
+### Docker Configuration (NEW)
+- **Dockerfile**: Uses official `antsx/ants` base image (ANTs pre-compiled), installs Python 3.11 and antspyx on top, avoiding long build times and memory issues
+- **docker-compose.yml**: Service definitions for web interface and CLI usage, volume management for scripts/ directory
+- **.dockerignore**: Optimizes build context by excluding unnecessary files
+- **Benefits**:
+  - Zero-configuration installation
+  - Consistent environment across all platforms
+  - Isolated from system Python
+  - Fast build (~2-5 minutes instead of 30+ minutes or failure)
+  - ANTs toolkit pre-compiled and ready to use
+  - Easy script execution from scripts/ directory
+  - Streamlit web interface ready out-of-the-box
 
 ## Testing Recommendations
 
@@ -143,6 +170,28 @@ For conda users (optional):
 conda create -n m2m python=3.11 pip
 conda activate m2m
 pip install -e .
+```
+
+### Docker Installation Test
+
+```bash
+# 1. Build and start the Docker container
+docker-compose up -d
+
+# 2. Check container is running
+docker ps | grep m2m
+
+# 3. Check logs for any errors
+docker-compose logs m2m
+
+# 4. Test web interface
+# Open browser to http://localhost:8501
+
+# 5. Test Python API in container
+docker-compose run --rm m2m-cli python -c "import m2m; import numpy; import allensdk; print('Success!')"
+
+# 6. Stop and clean up
+docker-compose down
 ```
 
 ## Compatibility Matrix

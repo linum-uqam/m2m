@@ -1,0 +1,30 @@
+# Docker Compose configuration for m2m
+# Simplifies running the m2m toolkit in a containerized environment
+
+version: '3.8'
+
+services:
+  # Web interface service (Streamlit)
+  m2m:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: linum/m2m:latest
+    container_name: m2m-toolkit
+    ports:
+      - "8501:8501"  # Streamlit web interface
+    volumes:
+      # Mount local directories for data persistence
+      - ./data/input:/data/input:ro      # Read-only input data
+      - ./data/output:/data/output:rw    # Read-write output data
+      - ./scripts:/scripts:ro             # Your m2m scripts (read-only)
+      - m2m-cache:/data/cache            # Persistent cache
+    environment:
+      - M2M_CACHE_DIR=/data/cache
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    restart: unless-stopped
+
+volumes:
+  m2m-cache:
+    driver: local

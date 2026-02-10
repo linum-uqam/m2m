@@ -7,7 +7,29 @@ A collection of tools to work with both mesoscale brain data (e.g. the Allen Mou
 
 ### Quick Installation
 
-We recommend using Python's built-in `venv` for a simple, lightweight installation:
+#### Option 1: Docker (Recommended - No Python Installation Needed!)
+
+The easiest way to use m2m - just install Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/linum-uqam/m2m.git
+cd m2m
+
+# Create data directories
+mkdir -p data/input data/output
+
+# Start with Docker Compose
+docker-compose up
+
+# Access the web interface at http://localhost:8501
+```
+
+**Benefits**: No Python setup, works on all platforms, isolated environment.
+
+#### Option 2: Local Python Installation
+
+For development or if you prefer local installation:
 
 ```bash
 # Clone and navigate to the repository
@@ -29,6 +51,41 @@ pip install -e .
 
 ### Usage
 
+#### Using Docker
+
+```bash
+# Start web interface
+docker-compose up
+
+# Run m2m scripts from the scripts/ directory
+# Example: Download template data
+docker run --rm \
+  -v $(pwd)/scripts:/scripts:ro \
+  -v $(pwd)/data:/data:rw \
+  linum/m2m:latest \
+  python /scripts/m2m_download_template.py --help
+
+# Run your own scripts
+docker run --rm \
+  -v $(pwd)/scripts:/scripts:ro \
+  -v $(pwd)/data:/data:rw \
+  linum/m2m:latest \
+  python /scripts/your_analysis.py
+
+# Interactive Python session
+docker run --rm -it -v $(pwd)/data:/data linum/m2m:latest python
+
+# Interactive bash shell
+docker run --rm -it -v $(pwd)/scripts:/scripts -v $(pwd)/data:/data linum/m2m:latest bash
+
+# Stop the application
+docker-compose down
+```
+
+Access the web interface at **http://localhost:8501**
+
+#### Using Local Installation
+
 After installation, activate your environment before using the software:
 
 ```bash
@@ -48,6 +105,6 @@ import m2m
 
 ## References
 
-* Mahdi Abou-Hamdan, Elise Cosenza, Sylvain Miraux, Laurent Petit, Joël Lefebvre, "Exploring the Allen mouse connectivity experiments with new neuroinformatic tools for neurophotonics, diffusion MRI and tractography applications," Proc. SPIE 12365, Neural Imaging and Sensing 2023, 123650A (14 March 2023); https://doi.org/10.1117/12.2649029
+* Abou-Hamdan, M., Cosenza, E., Miraux, S., Petit, L. et Lefebvre, J. (2023). **Exploring the Allen mouse connectivity experiments with new neuroinformatic tools for neurophotonics, diffusion MRI and tractography applications.** In *SPIE Photonics West 2023 (vol. 12365, p. 123650A-123650A‑10)*. https://doi.org/10.1117/12.2649029
 
 
