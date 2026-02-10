@@ -55,7 +55,7 @@ For development or if you prefer local installation:
 git clone https://github.com/linum-uqam/m2m.git
 cd m2m
 
-# Create and activate a virtual environment (Python 3.9-3.11)
+# Create and activate a virtual environment (Python 3.9, 3.10 or 3.11)
 python3.11 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
