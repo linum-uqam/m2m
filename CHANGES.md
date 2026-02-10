@@ -17,7 +17,7 @@
 - **Web interface**: Streamlit app ready out-of-the-box at http://localhost:8501
 
 ### Cross-Platform Support
-- **Python 3.9-3.12 support**: Works across all major Python versions (3.11 recommended)
+- **Python 3.9-3.11 support**: Works across all major Python versions (3.11 recommended)
 - **Platform markers**: Proper handling of platform-specific dependencies like antspyx
 - **Tested on**: Linux, macOS (Intel/ARM), Windows (limited antspyx support)
 
