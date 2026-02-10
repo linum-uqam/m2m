@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel", "cython>=0.29", "numpy>=1.23,<1.24"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "m2m"
+dynamic = ["version", "dependencies"]
+description = "LINUM's Meso to Macro Toolkit - Tools for mesoscale and macroscale brain data"
+readme = "README.md"
+requires-python = ">=3.9,<3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "LINUM Lab", email = "info@linum.uqam.ca"}
+]
+keywords = ["neuroscience", "neuroimaging", "brain", "mri", "connectivity"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+# Dependencies are read from requirements.txt to avoid duplication
+# This is handled by setuptools via setup.py
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+docs = [
+    "sphinx>=7.2.6",
+    "sphinx-argparse>=0.4.0",
+    "sphinx-rtd-theme>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://linum.info.uqam.ca"
+Documentation = "https://m2m.readthedocs.io/"
+Repository = "https://github.com/linum-uqam/m2m"
+
+[tool.setuptools.dynamic]
+version = {attr = "m2m.version.VERSION"}
+
+[tool.setuptools.packages.find]
+include = ["m2m*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

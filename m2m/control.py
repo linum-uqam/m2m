@@ -80,6 +80,14 @@ def check_input_file(parser, path):
 
 
 def get_cache_dir():
+    """Get the cache directory path.
+
+    Checks M2M_CACHE_DIR environment variable first, falls back to ~/.m2m
+    This allows Docker containers to use persistent volumes for caching.
+    """
+    cache_dir = os.environ.get('M2M_CACHE_DIR')
+    if cache_dir:
+        return cache_dir
     return os.path.join(os.path.expanduser('~'), '.m2m')
 
 

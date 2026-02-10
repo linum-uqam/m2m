@@ -1,0 +1,27 @@
+# Development dependencies for m2m
+# Install with: pip install -r requirements-dev.txt
+
+# First install base requirements
+-r requirements.txt
+
+# Testing
+pytest>=7.0
+pytest-cov>=4.0
+pytest-mock>=3.10
+
+# Code quality
+black>=23.0
+flake8>=6.0
+mypy>=1.0
+pylint>=2.17
+
+# Documentation (references docs/requirements.txt)
+-r docs/requirements.txt
+
+# Jupyter for notebooks and examples
+jupyter>=1.0
+jupyterlab>=4.0
+ipykernel>=6.20
+
+# Pre-commit hooks (optional)
+pre-commit>=3.0
