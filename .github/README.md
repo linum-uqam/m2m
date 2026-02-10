@@ -49,5 +49,5 @@ Tag strategy:
 
 ### Platform Support
 
-The workflow builds images for:
+The workflow currently builds images for the following platform:
 - `linux/amd64` (Intel/AMD 64-bit)

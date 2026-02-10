@@ -34,7 +34,7 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
 # Create directories for data and scripts
 RUN mkdir -p /app /data/cache /data/input /data/output /scripts && \
-    chmod 777 /data /scripts
+    chmod 775 /data /scripts
 
 # Set working directory
 WORKDIR /app
