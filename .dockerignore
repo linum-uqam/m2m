@@ -90,7 +90,6 @@ docker-compose.*.yml
 # Documentation source (we keep generated docs)
 *.md
 !README.md
-LICENSE.md
 
 # Examples and tests (optional - comment out if you want these in the image)
 examples/
