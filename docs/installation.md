@@ -71,8 +71,8 @@ pip install -e .
 
 **Requirements:**
 
-* Python 3.9, 3.10, 3.11, or 3.12 (Python 3.11 recommended)
-* Python 3.13+ is not yet supported due to dependency constraints
+* Python 3.9, 3.10, or 3.11 (Python 3.11 recommended)
+* Python 3.12+ is not supported due to AllenSDK dependency constraints
 * pip (usually comes with Python)
 * Git
 

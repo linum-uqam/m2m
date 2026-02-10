@@ -55,7 +55,7 @@ For development or if you prefer local installation:
 git clone https://github.com/linum-uqam/m2m.git
 cd m2m
 
-# Create and activate a virtual environment (Python 3.9-3.12)
+# Create and activate a virtual environment (Python 3.9-3.11)
 python3.11 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
@@ -80,8 +80,8 @@ import m2m
 ## Requirements
 
 - **Docker**: No Python installation required (Option 1)
-- **Python 3.9-3.12**: Python 3.11 recommended (Option 2)
-  - Python 3.13+ is not yet supported due to dependency constraints
+- **Python 3.9-3.11**: Python 3.11 recommended (Option 2)
+  - Python 3.12+ is not supported due to AllenSDK dependency constraints
 
 ---
 

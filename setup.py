@@ -135,7 +135,7 @@ setup(
     install_requires=install_requires,
     scripts=version_info.get('SCRIPTS', []),
     include_package_data=True,
-    python_requires='>=3.9,<3.13',
+    python_requires='>=3.9,<3.12',
     cmdclass={
         'build_ext': CustomBuildExtCommand,
     },
