@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel", "cython>=0.29", "numpy>=1.23,<1.24"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "m2m"
+dynamic = ["version"]
+description = "LINUM's Meso to Macro Toolkit - Tools for mesoscale and macroscale brain data"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+license = {text = "MIT"}
+authors = [
+    {name = "LINUM Lab", email = "info@linum.uqam.ca"}
+]
+keywords = ["neuroscience", "neuroimaging", "brain", "mri", "connectivity"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+dependencies = [
+    "numpy>=1.23,<1.24",
+    "pandas>=1.5.3,<2.0",
+    "scipy>=1.9,<1.11",
+    "nibabel>=3.2",
+    "pynrrd>=1.0",
+    "h5py>=3.7",
+    "tables>=3.7",
+    "simpleitk>=2.1",
+    "scikit-image>=0.19,<0.20",
+    "allensdk>=2.16.0",
+    "antspyx>=0.5.0; platform_system != 'Windows'",
+    "xarray>=2022.3.0,<2023.2.0",
+    "jinja2>=3.0",
+    "matplotlib>=3.5",
+    "seaborn>=0.12",
+    "streamlit>=1.20",
+    "requests>=2.28",
+    "tqdm>=4.64",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "mypy>=1.0",
+]
+docs = [
+    "sphinx>=7.2.6",
+    "sphinx-argparse>=0.4.0",
+    "sphinx-rtd-theme>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://linum.info.uqam.ca"
+Documentation = "https://m2m.readthedocs.io/"
+Repository = "https://github.com/linum-uqam/m2m"
+
+[tool.setuptools.dynamic]
+version = {attr = "m2m.version.VERSION"}
+
+[tool.setuptools.packages.find]
+include = ["m2m*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

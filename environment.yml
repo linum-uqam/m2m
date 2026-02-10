@@ -1,11 +1,39 @@
 name: m2m
 channels:
-  - defaults
   - conda-forge
+  - defaults
 dependencies:
-  - numpy=1.25.2
-  - pandas=2.0.3
-  - nibabel=5.*
-  - pynrrd=0.4.2
-  - streamlit=1.26.0
-  - pytables=3.8.0
+  # Pin Python version for compatibility
+  - python=3.11
+
+  # Build dependencies (required by setup.py)
+  - cython>=0.29
+  - setuptools>=65.0
+  - pip>=23.0
+
+  # Core scientific computing stack
+  - numpy>=1.23,<1.24
+  - pandas>=1.5.3,<2.0
+  - scipy>=1.9,<1.11
+
+  # Imaging and data handling
+  - nibabel>=3.2
+  - pynrrd>=1.0
+  - pytables>=3.7
+  - simpleitk>=2.1
+  - h5py>=3.7
+  - scikit-image>=0.19
+
+  # Visualization and UI
+  - streamlit>=1.20
+  - matplotlib>=3.5
+  - seaborn>=0.12
+
+  # Additional dependencies from AllenSDK requirements
+  - jinja2>=3.0
+  - xarray<2023.2.0
+
+  # Install pip packages after conda packages
+  - pip:
+    - allensdk>=2.16.0
+    - antspyx>=0.5.0
