@@ -52,13 +52,12 @@ RUN python3 -m pip install setuptools wheel
 # Copy requirements
 COPY requirements.txt .
 
-# Install antspyx first (benefits from pre-compiled ANTs in base image)
-RUN pip install antspyx
-
-# Install remaining dependencies (filter out antspyx to avoid reinstall)
+# Install dependencies from requirements (filter out antspyx to avoid reinstall)
 RUN grep -v "antspyx" requirements.txt > requirements-filtered.txt || cp requirements.txt requirements-filtered.txt
 RUN pip install -r requirements-filtered.txt
 
+# Install antspyx after pinned deps, without pulling its own dependencies
+RUN pip install --no-deps antspyx
 # Copy the m2m application
 COPY . .
 
