@@ -15,7 +15,6 @@
 - **Fast builds**: Uses official `antsx/ants` base image to avoid long compilation times
 - **Easy script execution**: Mount scripts/ directory for running m2m tools
 - **Web interface**: Streamlit app ready out-of-the-box at http://localhost:8501
-- **Multi-platform support**: Docker images built for linux/amd64 and linux/arm64
 
 ### Cross-Platform Support
 - **Python 3.9-3.12 support**: Works across all major Python versions (3.11 recommended)

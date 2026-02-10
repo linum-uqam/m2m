@@ -47,8 +47,7 @@ Tag strategy:
 - `main`, `dev`: Branch-based tags
 - `pr-123`: Pull request builds (not pushed)
 
-### Multi-Platform Builds
+### Platform Support
 
 The workflow builds images for:
 - `linux/amd64` (Intel/AMD 64-bit)
-- `linux/arm64` (ARM 64-bit, e.g., Apple Silicon, AWS Graviton)
