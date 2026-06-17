@@ -2,7 +2,10 @@
 # Uses official ANTs image which has ANTs tools pre-compiled
 # Then installs Python and antspyx on top
 
-FROM antsx/ants:latest
+# Use platform-specific base image
+# Note: antsx/ants may not have arm64 variant, in which case Docker will emulate
+ARG TARGETPLATFORM
+FROM --platform=$TARGETPLATFORM antsx/ants:latest
 
 # Set metadata
 LABEL maintainer="Joël Lefebvre <lefebvre.joel@uqam.ca>"
